@@ -115,7 +115,6 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel:PhotoT
     var startOffsetY by remember { mutableStateOf(0f) }
     var endOffsetY by remember { mutableStateOf(0f) }
     var selectedBitmap by remember { mutableStateOf(createBitmap(1,1, config = Bitmap.Config.ARGB_8888)) }
-//
     val textViewModel=viewModel<TextRecognitionViewModel>()
     val dictionaryViewModel=viewModel<DictionaryViewModel>()
     val summaryViewModel=viewModel<SummaryViewModel>()
@@ -287,6 +286,26 @@ Row() {
 
     }
 }
+                        Row() {
+                            Button(onClick = {dictionaryViewModel.saveMeaning()}) {
+                                Text("Save Meaning")
+                            }
+
+                            Button(onClick = { summaryViewModel.saveSummaryWithImage(selectedBitmap) }) {
+                                Text("Save Summary")
+                            }
+                        }
+                        
+                        Row() {
+                            Button(onClick = {navController.navigate(Screen.MeaningScreen.route)}) {
+                                Text("View Meaning")
+                                
+                            }
+
+                            Button(onClick = {navController.navigate(Screen.SummaryScreen.route)}) {
+                                Text("View Summary")
+                            }
+                        }
 }
 
                     //Summary part
@@ -296,7 +315,9 @@ Row() {
                         is DiscussUiState.Success->{
                             val scroll= rememberScrollState()
 
-                            Text(modifier =Modifier.height(130.dp).verticalScroll(scroll),
+                            Text(modifier = Modifier
+                                .height(130.dp)
+                                .verticalScroll(scroll),
                               text="Summary ::"+ appUiState.outputText
                             )}
                         is DiscussUiState.Loading ->
