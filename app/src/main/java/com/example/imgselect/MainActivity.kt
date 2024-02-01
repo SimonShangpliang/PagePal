@@ -24,9 +24,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -56,12 +61,15 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
@@ -77,6 +85,7 @@ import com.example.imgselect.ui.theme.ImgselectTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.Math.abs
+import kotlin.math.sqrt
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -123,7 +132,9 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel:PhotoT
     val photoTaken by rememberUpdatedState(newValue = photoViewModel.bitmap.collectAsState().value)
     Log.d("ManActivity2",photoTaken.toString())
     val imageBitmap: ImageBitmap = selectedBitmap!!.asImageBitmap()
-
+    var focus by remember{
+        mutableStateOf(false)
+    }
     //The launcher we will use for the PickVisualMedia contract.
     //When .launch()ed, this will display the photo picker.
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -139,37 +150,87 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel:PhotoT
             .background(Color.White)
             .fillMaxHeight(0.6f)
             .fillMaxWidth()
-            .pointerInput(Unit) {
-                detectDragGestures(onDragStart = { change ->
+            .pointerInput(Unit)
+            {
+
+                detectTapGestures(onDoubleTap =  { change ->
                     //setting coordinates of selected images
-                    startOffsetX = change.x
-                    startOffsetY = change.y
-                    endOffsetX = change.x
-                    endOffsetY = change.y
-                }) { change, point ->
-                    endOffsetX = change.position.x
-                    endOffsetY = change.position.y
+                    if (focus) {
+                        startOffsetX = change.x + 20
+                        startOffsetY = change.y + 20
+                        endOffsetX = change.x + 300
+                        endOffsetY = change.y + 300
+                    }
+                }) { }
+            }
+
+            .pointerInput(Unit) {
+
+                detectDragGestures() { change, point ->
+                    if (focus) {
+                        val distanceToStart = euclideanDistance(
+                            startOffsetX,
+                            startOffsetY,
+                            change.position.x,
+                            change.position.y
+                        )
+                        val distanceToEnd = euclideanDistance(
+                            startOffsetX,
+                            endOffsetY,
+                            change.position.x,
+                            change.position.y
+                        )
+                        val distanceToStartEnd = euclideanDistance(
+                            endOffsetX,
+                            startOffsetY,
+                            change.position.x,
+                            change.position.y
+                        )
+                        val distanceToEndEnd = euclideanDistance(
+                            endOffsetX,
+                            endOffsetY,
+                            change.position.x,
+                            change.position.y
+                        )
+
+                        val minDistance = minOf(
+                            distanceToStart,
+                            distanceToEnd,
+                            distanceToStartEnd,
+                            distanceToEndEnd
+                        )
+                        when (minDistance) {
+                            distanceToStart -> {
+                                startOffsetX = change.position.x
+                                startOffsetY = change.position.y
+                            }
+
+                            distanceToEnd -> {
+                                startOffsetX = change.position.x
+                                endOffsetY = change.position.y
+                            }
+
+                            distanceToStartEnd -> {
+                                endOffsetX = change.position.x
+                                startOffsetY = change.position.y
+                            }
+
+                            distanceToEndEnd -> {
+                                endOffsetX = change.position.x
+                                endOffsetY = change.position.y
+                            }
+                        }
+                    }
                 }
             }
     ) {
+
         Column() {
-            Button(
-                onClick = {
-                    //On button press, launch the photo picker
-                    launcher.launch(
-                        PickVisualMediaRequest(
-                            //Here we request only photos. Change this to .ImageAndVideo if you want videos too.
-                            //Or use .VideoOnly if you only want videos.
-                            mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
-                        )
-                    )
-                }
-            ) {
-                Text("Select Photo")
-            }
+
 Box() {
-    DisplayImageFromUri(photoUri = photoUri)
-    DisplayRotatedImage(photoTaken = photoTaken, degrees = 90f)
+
+    DisplayImageFromUri(photoUri = photoUri,focus=focus)
+    DisplayRotatedImage(photoTaken = photoTaken, degrees = 90f,focus=focus)
     //Do use this for seeing the cropped region real time
 //    Image(modifier = Modifier
 //        .padding(0.dp)
@@ -179,7 +240,7 @@ Box() {
         }
 
 //Whatever you select from the upper box gets drawn by this into a particular size
-        Canvas(modifier = Modifier.fillMaxWidth()) {
+        Canvas(modifier = Modifier.fillMaxWidth().zIndex(2f)) {
             Log.d("MainActivity", "DONE")
             val topLeftX = startOffsetX
             val topLeftY = startOffsetY
@@ -208,7 +269,56 @@ Box() {
         val coroutineScope = rememberCoroutineScope()
         //
 
+        Row(modifier=Modifier){
+            Button(
+                onClick = {
+                    //On button press, launch the photo picker
+                    launcher.launch(
+                        PickVisualMediaRequest(
+                            //Here we request only photos. Change this to .ImageAndVideo if you want videos too.
+                            //Or use .VideoOnly if you only want videos.
+                            mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
+                        )
+                    )
+                }
+            ) {
+                Text("Select Photo")
+            }
+            Button(
+                onClick = {
+                    if(focus==true)
+                    {
+                        startOffsetX=0f
+                        startOffsetY=0f
+                        endOffsetX=0f
+                        endOffsetY=0f
+                    }
+                    else
+                    {
+                        startOffsetX=300f
+                        startOffsetY=300f
+                        endOffsetX=600f
+                        endOffsetY=600f
+                    }
+                    //On button press, launch the photo picker
+                    focus=!focus
 
+                }
+            ) {
+                if(focus==false){
+                    Text("Crop")}
+                else
+                {
+                    Text("Stop Crop")
+                }
+            }
+            if(focus==false){
+                Text("Zoom Enabled/Crop Disabled",color=Color.Black)}
+            else
+            {
+                Text("Zoom Disabled/Crop Enabled",color=Color.Black)
+            }
+        }
         Row() {
             //Crop an image
             Button(onClick = {
@@ -387,7 +497,7 @@ fun rotateBitmap(source: Bitmap, degrees: Float): Bitmap {
 }
 
 @Composable
-fun DisplayImageFromUri(photoUri: Uri?, modifier: Modifier = Modifier) {
+fun DisplayImageFromUri(photoUri: Uri?, modifier: Modifier = Modifier,focus:Boolean) {
     if (photoUri != null) {
 
         val painter = rememberAsyncImagePainter(
@@ -397,32 +507,136 @@ fun DisplayImageFromUri(photoUri: Uri?, modifier: Modifier = Modifier) {
                 .build()
         )
 
+var scale by remember{
+    mutableStateOf(1f)
+}
+        var offset by remember{
+            mutableStateOf(Offset.Zero)
+        }
+        BoxWithConstraints(modifier= Modifier
+            .fillMaxWidth()
 
+            ){
+
+
+        var state= rememberTransformableState{
+            zoomChange, panChange, rotationChange ->
+            if(focus==false){
+            scale=(scale*zoomChange).coerceIn(1f,5f)
+
+            val extraWidth=(scale-1)*constraints.maxWidth
+            val extraHeight=(scale-1)*constraints.maxHeight
+
+            val maxX=extraWidth/2
+            val maxY=extraHeight/2
+            offset=Offset(
+                x=(offset.x+scale*panChange.x).coerceIn(-maxX,maxX),
+                y=(offset.y+scale*panChange.y).coerceIn(-maxY,maxY)
+
+                    )}
+        }
         Image(
             painter = painter,
             contentDescription = null,
             modifier = modifier
                 .padding(5.dp)
                 .fillMaxWidth()
-                .border(6.0.dp, Color.Gray),
+                .zIndex(1f)
+                //.border(6.0.dp, Color.Gray)
+                .graphicsLayer {
+
+                    scaleX = scale
+                    scaleY = scale
+                    translationX = offset.x
+                    translationY = offset.y
+
+                }
+                .takeIf { !focus }?.transformable(state)?:(modifier
+                .padding(5.dp)
+                .fillMaxWidth()
+                .zIndex(1f)
+                //.border(6.0.dp, Color.Gray)
+                .graphicsLayer {
+
+                    scaleX = scale
+                    scaleY = scale
+                    translationX = offset.x
+                    translationY = offset.y
+
+                })
+            ,
             contentScale = ContentScale.Crop
         )
-    }
+    }}
 }
 
 @Composable
-fun DisplayRotatedImage(photoTaken: Bitmap?, degrees: Float, modifier: Modifier = Modifier) {
+fun DisplayRotatedImage(photoTaken: Bitmap?, degrees: Float, modifier: Modifier = Modifier,focus:Boolean) {
     if (photoTaken != null) {
+        var scale by remember{
+            mutableStateOf(1f)
+        }
+        var offset by remember{
+            mutableStateOf(Offset.Zero)
+        }
+        BoxWithConstraints(modifier= Modifier
+            .fillMaxWidth()
+
+        ){
+
+
+            var state= rememberTransformableState{
+                    zoomChange, panChange, rotationChange ->
+                if(focus==false){
+                    scale=(scale*zoomChange).coerceIn(1f,5f)
+
+                    val extraWidth=(scale-1)*constraints.maxWidth
+                    val extraHeight=(scale-1)*constraints.maxHeight
+
+                    val maxX=extraWidth/2
+                    val maxY=extraHeight/2
+                    offset=Offset(
+                        x=(offset.x+scale*panChange.x).coerceIn(-maxX,maxX),
+                        y=(offset.y+scale*panChange.y).coerceIn(-maxY,maxY)
+
+                    )}
+            }
+            Image(
+                bitmap = rotateBitmap(photoTaken, degrees)!!.asImageBitmap(),
+                contentDescription = null,
+
+                modifier = modifier
+                    .padding(5.dp)
+                    .fillMaxWidth()
+                    .zIndex(1f)
+                    //.border(6.0.dp, Color.Gray)
+                    .graphicsLayer {
+
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = offset.x
+                        translationY = offset.y
+
+                    }
+                    .takeIf { !focus }?.transformable(state)?:(modifier
+                    .padding(5.dp)
+                    .fillMaxWidth()
+                    .zIndex(1f)
+                    //.border(6.0.dp, Color.Gray)
+                    .graphicsLayer {
+
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = offset.x
+                        translationY = offset.y
+
+                    })
+                ,
+                contentScale = ContentScale.Crop
+            )
+        }
         Log.d("ManActivity", photoTaken.toString())
-        Image(
-            bitmap = rotateBitmap(photoTaken, degrees)!!.asImageBitmap(),
-            contentDescription = null,
-            modifier = modifier
-                .padding(5.dp)
-                .fillMaxWidth()
-                .border(6.0.dp, Color.Gray),
-            contentScale = ContentScale.Crop
-        )
+
     }
 }
 private fun captureSelectedRegion(
@@ -463,4 +677,10 @@ onCaptureResult(bitmap)
             // Use alternative methods for lower API levels
             // For instance, View.draw() or View.getDrawingCache()
         }}
+}
+fun euclideanDistance(x1:Float, y1: Float, x2: Float, y2: Float): Float {
+    val deltaX = x2 - x1
+    val deltaY = y2 - y1
+
+    return sqrt(deltaX * deltaX + deltaY * deltaY).toFloat()
 }
