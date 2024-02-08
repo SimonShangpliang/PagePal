@@ -9,5 +9,7 @@ sealed class Screen(val route:String) {
 
     object SummaryScreen:Screen("summary_screen")
 
+    object ChatScreen: Screen("chat_screen")
+
 
 }

@@ -8,6 +8,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.dictionary.model.DictionaryViewModel
+import com.example.imgselect.model.PhotoTakenViewModel
+import com.example.imgselect.model.SummaryViewModel
 
 @Composable
 fun Navigation(window: Window,applicationContext: Context)
@@ -30,6 +32,10 @@ fun Navigation(window: Window,applicationContext: Context)
         }
         composable(route = Screen.SummaryScreen.route) {
             SummaryScreen(summaryList = summaryViewModel.getSummaryList())
+        }
+
+        composable(route = Screen.ChatScreen.route) {
+            ChatScreen()
         }
 
     }

@@ -1,4 +1,4 @@
-package com.example.imgselect
+package com.example.imgselect.model
 
 import android.app.Application
 import android.graphics.Bitmap
@@ -8,22 +8,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.imgselect.data.LocalStorageDao
 import com.example.imgselect.data.LocalStorageDatabase
 import com.example.imgselect.data.LocalStorageRepository
 import com.example.imgselect.data.Summary
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import com.google.ai.client.generativeai.type.generationConfig
-import com.google.android.gms.common.util.IOUtils.toByteArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonNull.content
-import okhttp3.Dispatcher
 import java.io.ByteArrayOutputStream
 import java.lang.Exception
 
@@ -49,7 +44,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         readAllSummary = repository.readAllSummary
     }
     fun questioning(userInput:String){
-        _uiState.value=DiscussUiState.Loading
+        _uiState.value= DiscussUiState.Loading
         val prompt=userInput
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -59,7 +54,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
                 }
                 //var output=""
                 output+= generativeModel.generateContent(content).text
-                _uiState.value =DiscussUiState.Success(output)
+                _uiState.value = DiscussUiState.Success(output)
                 Log.d("MainActivity","Response done")
 
 //                generativeModel.generateContentStream(content).collect{
@@ -69,7 +64,8 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
                 Log.d("MainActivity",output)
 
             }catch (e: Exception){
-                _uiState.value=DiscussUiState.Error(e.localizedMessage?:"Error in Generating content")
+                _uiState.value=
+                    DiscussUiState.Error(e.localizedMessage ?: "Error in Generating content")
                 Log.d("MainActivity",e.localizedMessage)
             }
 

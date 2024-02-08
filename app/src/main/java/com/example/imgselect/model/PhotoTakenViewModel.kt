@@ -1,4 +1,4 @@
-package com.example.imgselect
+package com.example.imgselect.model
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.getValue
