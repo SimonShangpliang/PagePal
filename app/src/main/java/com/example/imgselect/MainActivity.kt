@@ -385,6 +385,7 @@ Row() {
         Text("Get Summary")
 
     }
+
 }
                         Row() {
                             Button(onClick = {dictionaryViewModel.saveMeaning()}) {
