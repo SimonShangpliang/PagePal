@@ -20,10 +20,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -33,9 +35,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.BottomSheetScaffold
+import androidx.compose.material.BottomSheetValue
+import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -45,6 +61,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -58,6 +75,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -67,6 +85,8 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.dictionary.model.DictionaryViewModel
+import com.example.imgselect.model.ChatViewModel
+import com.example.imgselect.model.ChatViewModelWithImage
 import com.example.imgselect.model.DiscussUiState
 import com.example.imgselect.model.PhotoTakenViewModel
 import com.example.imgselect.model.SummaryViewModel
@@ -106,8 +126,9 @@ Navigation(window = window, applicationContext =applicationContext )
 }
 
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun MainScreen(window: Window,navController: NavController,photoViewModel: PhotoTakenViewModel) {
+fun MainScreen(window: Window,navController: NavController,photoViewModel: PhotoTakenViewModel , chatViewModel: ChatViewModel , chatViewModelWithImage: ChatViewModelWithImage , viewModel: TypewriterViewModel) {
     //These are used to represent the cropped regions from screen
     var startOffsetX by remember { mutableStateOf(0f) }
     var endOffsetX by remember { mutableStateOf(0f) }
@@ -131,261 +152,334 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
         //When the user has selected a photo, its URI is returned here
         photoUri = uri
     }
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(Color.Magenta)){
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
+    )
 
-    Box(
-        modifier = Modifier
-            .background(Color.White)
-            .fillMaxHeight(0.6f)
-            .fillMaxWidth()
-            .pointerInput(Unit)
-            {
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetContent = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(
+                    onClick = { /*TODO*/ },
+                    colors = ButtonDefaults.buttonColors(Color.Black),
+                    modifier = Modifier.wrapContentSize()
+                ) {
+                    Text(
+                        text = "Summary",
+                        fontSize = 15.sp,
+                        color = Color.LightGray,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .clickable {
 
-                detectTapGestures(onDoubleTap =  { change ->
-                    //setting coordinates of selected images
-                    if (focus) {
-                        startOffsetX = change.x + 20
-                        startOffsetY = change.y + 20
-                        endOffsetX = change.x + 300
-                        endOffsetY = change.y + 300
-                    }
-                }) { }
+                            }
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Divider(
+                        color = Color.Gray,
+                        modifier = Modifier
+                            .width(36.dp)
+                            .height(5.dp)
+                            .background(Color.Gray, shape = RoundedCornerShape(4.dp))
+                    )
+                }
+
+                Button(
+                    onClick = { /*TODO*/ },
+                    colors = ButtonDefaults.buttonColors(Color.Black),
+                    modifier = Modifier.wrapContentSize()
+                ) {
+                    Text(
+                        text = "Meaning",
+                        fontSize = 15.sp,
+                        color = Color.LightGray,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .clickable {
+
+                            }
+                    )
+                }
             }
+            ChatScreen(chatViewModel = chatViewModel, navController = navController, chatViewModelWithImage = chatViewModelWithImage , viewModel = viewModel)
+        },
+        sheetPeekHeight = 80.dp, // Set this to the desired height to show a peek of the bottom sheet
+        sheetGesturesEnabled = true,
+        sheetElevation = 8.dp,
+        sheetShape = RoundedCornerShape(40.dp),
+        sheetBackgroundColor = Color.DarkGray,
 
-            .pointerInput(Unit) {
+    ) { innerPadding ->
+        // Pass the necessary parameters to your main content
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Magenta)){
 
-                detectDragGestures() { change, point ->
-                    if (focus) {
-                        val distanceToStart = euclideanDistance(
-                            startOffsetX,
-                            startOffsetY,
-                            change.position.x,
-                            change.position.y
-                        )
-                        val distanceToEnd = euclideanDistance(
-                            startOffsetX,
-                            endOffsetY,
-                            change.position.x,
-                            change.position.y
-                        )
-                        val distanceToStartEnd = euclideanDistance(
-                            endOffsetX,
-                            startOffsetY,
-                            change.position.x,
-                            change.position.y
-                        )
-                        val distanceToEndEnd = euclideanDistance(
-                            endOffsetX,
-                            endOffsetY,
-                            change.position.x,
-                            change.position.y
-                        )
+            Box(
+                modifier = Modifier
+                    .background(Color.White)
+                    .fillMaxHeight(0.6f)
+                    .fillMaxWidth()
+                    .pointerInput(Unit)
+                    {
 
-                        val minDistance = minOf(
-                            distanceToStart,
-                            distanceToEnd,
-                            distanceToStartEnd,
-                            distanceToEndEnd
-                        )
-                        when (minDistance) {
-                            distanceToStart -> {
-                                startOffsetX = change.position.x
-                                startOffsetY = change.position.y
+                        detectTapGestures(onDoubleTap = { change ->
+                            //setting coordinates of selected images
+                            if (focus) {
+                                startOffsetX = change.x + 20
+                                startOffsetY = change.y + 20
+                                endOffsetX = change.x + 300
+                                endOffsetY = change.y + 300
                             }
+                        }) { }
+                    }
 
-                            distanceToEnd -> {
-                                startOffsetX = change.position.x
-                                endOffsetY = change.position.y
-                            }
+                    .pointerInput(Unit) {
 
-                            distanceToStartEnd -> {
-                                endOffsetX = change.position.x
-                                startOffsetY = change.position.y
-                            }
+                        detectDragGestures() { change, point ->
+                            if (focus) {
+                                val distanceToStart = euclideanDistance(
+                                    startOffsetX,
+                                    startOffsetY,
+                                    change.position.x,
+                                    change.position.y
+                                )
+                                val distanceToEnd = euclideanDistance(
+                                    startOffsetX,
+                                    endOffsetY,
+                                    change.position.x,
+                                    change.position.y
+                                )
+                                val distanceToStartEnd = euclideanDistance(
+                                    endOffsetX,
+                                    startOffsetY,
+                                    change.position.x,
+                                    change.position.y
+                                )
+                                val distanceToEndEnd = euclideanDistance(
+                                    endOffsetX,
+                                    endOffsetY,
+                                    change.position.x,
+                                    change.position.y
+                                )
 
-                            distanceToEndEnd -> {
-                                endOffsetX = change.position.x
-                                endOffsetY = change.position.y
+                                val minDistance = minOf(
+                                    distanceToStart,
+                                    distanceToEnd,
+                                    distanceToStartEnd,
+                                    distanceToEndEnd
+                                )
+                                when (minDistance) {
+                                    distanceToStart -> {
+                                        startOffsetX = change.position.x
+                                        startOffsetY = change.position.y
+                                    }
+
+                                    distanceToEnd -> {
+                                        startOffsetX = change.position.x
+                                        endOffsetY = change.position.y
+                                    }
+
+                                    distanceToStartEnd -> {
+                                        endOffsetX = change.position.x
+                                        startOffsetY = change.position.y
+                                    }
+
+                                    distanceToEndEnd -> {
+                                        endOffsetX = change.position.x
+                                        endOffsetY = change.position.y
+                                    }
+                                }
                             }
                         }
                     }
-                }
-            }
-    ) {
+            ) {
 
-        Column() {
+                Column() {
 
-Box() {
+                    Box() {
 
-    DisplayImageFromUri(photoUri = photoUri,focus=focus)
-    DisplayRotatedImage(photoTaken = photoTaken, degrees = 90f,focus=focus)
-    //Do use this for seeing the cropped region real time
+                        DisplayImageFromUri(photoUri = photoUri,focus=focus)
+                        DisplayRotatedImage(photoTaken = photoTaken, degrees = 90f,focus=focus)
+                        //Do use this for seeing the cropped region real time
 //    Image(modifier = Modifier
 //        .padding(0.dp)
 //        ,bitmap = imageBitmap, contentDescription = "Bitmap Image",                contentScale = ContentScale.Crop
 //    )
-}
-        }
+                    }
+                }
 
 //Whatever you select from the upper box gets drawn by this into a particular size
-        Canvas(modifier = Modifier.fillMaxWidth().zIndex(2f)) {
-            Log.d("MainActivity", "DONE")
-            val topLeftX = startOffsetX
-            val topLeftY = startOffsetY
-            val bottomRightX = endOffsetX
-            val bottomRightY = endOffsetY
+                Canvas(modifier = Modifier
+                    .fillMaxWidth()
+                    .zIndex(2f)) {
+                    Log.d("MainActivity", "DONE")
+                    val topLeftX = startOffsetX
+                    val topLeftY = startOffsetY
+                    val bottomRightX = endOffsetX
+                    val bottomRightY = endOffsetY
 
-            val rectangleTopLeft = Offset(topLeftX, topLeftY)
-            if ((bottomRightX != 0f && bottomRightY != 0f)) {
-                drawRect(
-                    color = Color.Blue.copy(alpha = 0.3f),
-                    topLeft = rectangleTopLeft,
-                    size = Size(abs(bottomRightX - topLeftX), abs(bottomRightY - topLeftY))
-                )
-            }
-        }
-    }
-        //just some neccesary vals and vars
-        var text by remember {
-            mutableStateOf("")
-        }
-        var handleText: (String) -> Unit = { updatedText ->
-            text = updatedText
-
-        }
-        val snackbarHostState = SnackbarHostState()
-        val coroutineScope = rememberCoroutineScope()
-        //
-
-        Row(modifier=Modifier){
-            Button(
-                onClick = {
-                    //On button press, launch the photo picker
-                    launcher.launch(
-                        PickVisualMediaRequest(
-                            //Here we request only photos. Change this to .ImageAndVideo if you want videos too.
-                            //Or use .VideoOnly if you only want videos.
-                            mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
+                    val rectangleTopLeft = Offset(topLeftX, topLeftY)
+                    if ((bottomRightX != 0f && bottomRightY != 0f)) {
+                        drawRect(
+                            color = Color.Blue.copy(alpha = 0.3f),
+                            topLeft = rectangleTopLeft,
+                            size = Size(abs(bottomRightX - topLeftX), abs(bottomRightY - topLeftY))
                         )
-                    )
-                }
-            ) {
-                Text("Select Photo")
-            }
-            Button(
-                onClick = {
-                    if(focus==true)
-                    {
-                        startOffsetX=0f
-                        startOffsetY=0f
-                        endOffsetX=0f
-                        endOffsetY=0f
                     }
+                }
+            }
+            //just some neccesary vals and vars
+            var text by remember {
+                mutableStateOf("")
+            }
+            var handleText: (String) -> Unit = { updatedText ->
+                text = updatedText
+
+            }
+            val snackbarHostState = SnackbarHostState()
+            val coroutineScope = rememberCoroutineScope()
+            //
+
+            Row(modifier=Modifier){
+                Button(
+                    onClick = {
+                        //On button press, launch the photo picker
+                        launcher.launch(
+                            PickVisualMediaRequest(
+                                //Here we request only photos. Change this to .ImageAndVideo if you want videos too.
+                                //Or use .VideoOnly if you only want videos.
+                                mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
+                            )
+                        )
+                    }
+                ) {
+                    Text("Select Photo")
+                }
+                Button(
+                    onClick = {
+                        if(focus==true)
+                        {
+                            startOffsetX=0f
+                            startOffsetY=0f
+                            endOffsetX=0f
+                            endOffsetY=0f
+                        }
+                        else
+                        {
+                            startOffsetX=300f
+                            startOffsetY=300f
+                            endOffsetX=600f
+                            endOffsetY=600f
+                        }
+                        //On button press, launch the photo picker
+                        focus=!focus
+
+                    }
+                ) {
+                    if(focus==false){
+                        Text("Crop")}
                     else
                     {
-                        startOffsetX=300f
-                        startOffsetY=300f
-                        endOffsetX=600f
-                        endOffsetY=600f
+                        Text("Stop Crop")
                     }
-                    //On button press, launch the photo picker
-                    focus=!focus
-
                 }
-            ) {
                 if(focus==false){
-                    Text("Crop")}
+                    Text("Zoom Enabled/Crop Disabled",color=Color.Black)}
                 else
                 {
-                    Text("Stop Crop")
+                    Text("Zoom Disabled/Crop Enabled",color=Color.Black)
                 }
             }
-            if(focus==false){
-                Text("Zoom Enabled/Crop Disabled",color=Color.Black)}
-            else
-            {
-                Text("Zoom Disabled/Crop Enabled",color=Color.Black)
-            }
-        }
-        Row() {
-            //Crop an image
-            Button(onClick = {
-                captureSelectedRegion(window,startOffsetX,startOffsetY,endOffsetX,endOffsetY,{selectedBitmap=it})
-            })
-            {
-                Text(text = "select Image Cropped")
+            Row() {
+                //Crop an image
+                Button(onClick = {
+                    captureSelectedRegion(window,startOffsetX,startOffsetY,endOffsetX,endOffsetY,{selectedBitmap=it})
+                })
+                {
+                    Text(text = "select Image Cropped")
 
-            }
-            //Text Recognition using MLkit
+                }
+                //Text Recognition using MLkit
 
-            val context = LocalContext.current
-            Button(
-                onClick = {
-                    if (selectedBitmap.height == 1 && selectedBitmap.width == 1) {
-                        Toast.makeText(
-                            context,
-                            "Select a Region and press select image cropped",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } else {
-                        textViewModel.performTextRecognition(selectedBitmap, handleText)
-                        coroutineScope.launch {
-                            // Display Snackbar with the recognized text
-                            delay(2000)
-                            dictionaryViewModel.word = text
-                            snackbarHostState.showSnackbar(
-                                message = text,
-                                actionLabel = "Dismiss"
-                            )
+                val context = LocalContext.current
+                Button(
+                    onClick = {
+                        if (selectedBitmap.height == 1 && selectedBitmap.width == 1) {
+                            Toast.makeText(
+                                context,
+                                "Select a Region and press select image cropped",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
+                            textViewModel.performTextRecognition(selectedBitmap, handleText)
+                            coroutineScope.launch {
+                                // Display Snackbar with the recognized text
+                                delay(2000)
+                                dictionaryViewModel.word = text
+                                snackbarHostState.showSnackbar(
+                                    message = text,
+                                    actionLabel = "Dismiss"
+                                )
 
 
+                            }
                         }
-                    }
-                },
-                content = {
-                    Text(text = "Extract text")
+                    },
+                    content = {
+                        Text(text = "Extract text")
 
-                }
-            )
-        }
+                    }
+                )
+            }
 //Text Recognition done
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.Black)) {
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.Black)) {
                 Log.d("12MainActivit y","inside")
 
 
                 Column {
                     Column(modifier=Modifier){
-Row() {
+                        Row() {
 
 
-    Button(
-        onClick = {
-            dictionaryViewModel.getMeaning()
+                            Button(
+                                onClick = {
+                                    dictionaryViewModel.getMeaning()
 
-        },
-        modifier = Modifier
-    ) {
-        Text("Get Meaning")
-    }
-    Button(
-        onClick = { navController.navigate(Screen.CameraScreen.route) },
-        modifier = Modifier
-    ) {
-        Text("Camera")
-    }
-    Button(onClick = { /*TODO*/
-        summaryViewModel.questioning("Summarize this"+ text)
-        // Display Snackbar with the recognized text
+                                },
+                                modifier = Modifier
+                            ) {
+                                Text("Get Meaning")
+                            }
+                            Button(
+                                onClick = { navController.navigate(Screen.CameraScreen.route) },
+                                modifier = Modifier
+                            ) {
+                                Text("Camera")
+                            }
+                            Button(onClick = { /*TODO*/
+                                summaryViewModel.questioning("Summarize this"+ text)
+                                // Display Snackbar with the recognized text
 
-    }) {
-        Text("Get Summary")
+                            }) {
+                                Text("Get Summary")
 
-    }
-}
+                            }
+                        }
                         Row() {
                             Button(onClick = {dictionaryViewModel.saveMeaning()}) {
                                 Text("Save Meaning")
@@ -395,22 +489,22 @@ Row() {
                                 Text("Save Summary")
                             }
                         }
-                        
+
                         Row() {
                             Button(onClick = {navController.navigate(Screen.MeaningScreen.route)}) {
                                 Text("View Meaning")
-                                
+
                             }
 
                             Button(onClick = {navController.navigate(Screen.SummaryScreen.route)}) {
                                 Text("View Summary")
                             }
-
-                            Button(onClick = {navController.navigate(Screen.ChatScreen.route)}) {
-                                Text("Chat")
-                            }
+//
+//                            Button(onClick = {navController.navigate(Screen.ChatScreen.route)}) {
+//                                Text("Chat")
+//                            }
                         }
-}
+                    }
 
                     //Summary part
 
@@ -422,7 +516,7 @@ Row() {
                             Text(modifier = Modifier
                                 .height(130.dp)
                                 .verticalScroll(scroll),
-                              text="Summary ::"+ appUiState.outputText
+                                text="Summary ::"+ appUiState.outputText
                             )}
                         is DiscussUiState.Loading ->
                         {
@@ -449,30 +543,30 @@ Row() {
                     }
                     //Summary part over
 
-                //Display word Meaning
-                val meaningsAndDefinitions: List<String> =
-                    dictionaryViewModel.response?.flatMap { response ->
-                        response.meanings.flatMap { meaning ->
-                            meaning.definitions.map { definition ->
-                                definition.definition
+                    //Display word Meaning
+                    val meaningsAndDefinitions: List<String> =
+                        dictionaryViewModel.response?.flatMap { response ->
+                            response.meanings.flatMap { meaning ->
+                                meaning.definitions.map { definition ->
+                                    definition.definition
+                                }
                             }
-                        }
-                    } ?: emptyList()
-val meaningsScroll= rememberScrollState()
+                        } ?: emptyList()
+                    val meaningsScroll= rememberScrollState()
                     var wordMeaning="Word Meaning ::" +meaningsAndDefinitions.joinToString("\n")
                     if(dictionaryViewModel.wrongWord==true)
                     {
                         wordMeaning="No such word found"
                     }
-                Text(
-                    text = wordMeaning,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 5.dp)
-                        .height(120.dp)
-                        .background(Color.DarkGray)
-                        .verticalScroll(meaningsScroll)
-                )
+                    Text(
+                        text = wordMeaning,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 5.dp)
+                            .height(120.dp)
+                            .background(Color.DarkGray)
+                            .verticalScroll(meaningsScroll)
+                    )
 
                 }
                 //snackbar for displaying text
@@ -480,8 +574,11 @@ val meaningsScroll= rememberScrollState()
 
                 SnackbarHost(snackbarHostState)
 
+            }
         }
-}
+    }
+
+
 }
 
 fun rotateBitmap(source: Bitmap, degrees: Float): Bitmap {
