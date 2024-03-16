@@ -2,6 +2,8 @@ package com.example.imgselect
 
 
 sealed class Screen(val route:String) {
+    object WebViewScreen:Screen("web_view_screen")
+
     object MainScreen:Screen("main_screen")
     object CameraScreen:Screen("camera_screen")
 

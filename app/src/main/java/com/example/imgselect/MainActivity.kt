@@ -82,6 +82,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.dictionary.model.DictionaryViewModel
@@ -98,9 +99,14 @@ import java.lang.Math.abs
 import kotlin.math.sqrt
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterialApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val chatViewModel = viewModel<ChatViewModel>()
+            val summaryViewModel = viewModel<SummaryViewModel>()
+            val chatViewModelWithImage = viewModel<ChatViewModelWithImage>()
+            val typewriterViewModel = viewModel<TypewriterViewModel>()
             ImgselectTheme {
                 if(!hasCameraPermission())
                 {
@@ -108,12 +114,86 @@ class MainActivity : ComponentActivity() {
                         this, arrayOf(android.Manifest.permission.CAMERA),0
                     )
                 }
+//                var navController= rememberNavController()
+
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-Navigation(window = window, applicationContext =applicationContext )
+                    val scaffoldState = rememberBottomSheetScaffoldState(
+                        bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
+                    )
+
+                    BottomSheetScaffold(
+                        scaffoldState = scaffoldState,
+                        sheetContent = {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Button(
+                                    onClick = { /*TODO*/ },
+                                    colors = ButtonDefaults.buttonColors(Color.Black),
+                                    modifier = Modifier.wrapContentSize()
+                                ) {
+                                    Text(
+                                        text = "Summary",
+                                        fontSize = 15.sp,
+                                        color = Color.LightGray,
+                                        modifier = Modifier
+                                            .padding(horizontal = 16.dp)
+                                            .clickable {
+
+                                            }
+                                    )
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Divider(
+                                        color = Color.Gray,
+                                        modifier = Modifier
+                                            .width(36.dp)
+                                            .height(5.dp)
+                                            .background(Color.Gray, shape = RoundedCornerShape(4.dp))
+                                    )
+                                }
+
+                                Button(
+                                    onClick = { /*TODO*/ },
+                                    colors = ButtonDefaults.buttonColors(Color.Black),
+                                    modifier = Modifier.wrapContentSize()
+                                ) {
+                                    Text(
+                                        text = "Meaning",
+                                        fontSize = 15.sp,
+                                        color = Color.LightGray,
+                                        modifier = Modifier
+                                            .padding(horizontal = 16.dp)
+                                            .clickable {
+
+                                            }
+                                    )
+                                }
+                            }
+                            ChatScreen(chatViewModel = chatViewModel, chatViewModelWithImage = chatViewModelWithImage , viewModel = typewriterViewModel)
+                        },
+                        sheetPeekHeight = 80.dp, // Set this to the desired height to show a peek of the bottom sheet
+                        sheetGesturesEnabled = true,
+                        sheetElevation = 8.dp,
+                        sheetShape = RoundedCornerShape(40.dp),
+                        sheetBackgroundColor = Color.DarkGray,
+
+                        ) { innerPadding ->
+Navigation(window = window, applicationContext =applicationContext)
+
+                }
 
                 }
             }
@@ -156,72 +236,72 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
         bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     )
 
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        sheetContent = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    onClick = { /*TODO*/ },
-                    colors = ButtonDefaults.buttonColors(Color.Black),
-                    modifier = Modifier.wrapContentSize()
-                ) {
-                    Text(
-                        text = "Summary",
-                        fontSize = 15.sp,
-                        color = Color.LightGray,
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .clickable {
-
-                            }
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Divider(
-                        color = Color.Gray,
-                        modifier = Modifier
-                            .width(36.dp)
-                            .height(5.dp)
-                            .background(Color.Gray, shape = RoundedCornerShape(4.dp))
-                    )
-                }
-
-                Button(
-                    onClick = { /*TODO*/ },
-                    colors = ButtonDefaults.buttonColors(Color.Black),
-                    modifier = Modifier.wrapContentSize()
-                ) {
-                    Text(
-                        text = "Meaning",
-                        fontSize = 15.sp,
-                        color = Color.LightGray,
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .clickable {
-
-                            }
-                    )
-                }
-            }
-            ChatScreen(chatViewModel = chatViewModel, navController = navController, chatViewModelWithImage = chatViewModelWithImage , viewModel = viewModel)
-        },
-        sheetPeekHeight = 80.dp, // Set this to the desired height to show a peek of the bottom sheet
-        sheetGesturesEnabled = true,
-        sheetElevation = 8.dp,
-        sheetShape = RoundedCornerShape(40.dp),
-        sheetBackgroundColor = Color.DarkGray,
-
-    ) { innerPadding ->
+//    BottomSheetScaffold(
+//        scaffoldState = scaffoldState,
+//        sheetContent = {
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(16.dp),
+//                horizontalArrangement = Arrangement.SpaceBetween
+//            ) {
+//                Button(
+//                    onClick = { /*TODO*/ },
+//                    colors = ButtonDefaults.buttonColors(Color.Black),
+//                    modifier = Modifier.wrapContentSize()
+//                ) {
+//                    Text(
+//                        text = "Summary",
+//                        fontSize = 15.sp,
+//                        color = Color.LightGray,
+//                        modifier = Modifier
+//                            .padding(horizontal = 16.dp)
+//                            .clickable {
+//
+//                            }
+//                    )
+//                }
+//
+//                Box(
+//                    modifier = Modifier
+//                        .padding(16.dp),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    Divider(
+//                        color = Color.Gray,
+//                        modifier = Modifier
+//                            .width(36.dp)
+//                            .height(5.dp)
+//                            .background(Color.Gray, shape = RoundedCornerShape(4.dp))
+//                    )
+//                }
+//
+//                Button(
+//                    onClick = { /*TODO*/ },
+//                    colors = ButtonDefaults.buttonColors(Color.Black),
+//                    modifier = Modifier.wrapContentSize()
+//                ) {
+//                    Text(
+//                        text = "Meaning",
+//                        fontSize = 15.sp,
+//                        color = Color.LightGray,
+//                        modifier = Modifier
+//                            .padding(horizontal = 16.dp)
+//                            .clickable {
+//
+//                            }
+//                    )
+//                }
+//            }
+//            ChatScreen(chatViewModel = chatViewModel, navController = navController, chatViewModelWithImage = chatViewModelWithImage , viewModel = viewModel)
+//        },
+//        sheetPeekHeight = 80.dp, // Set this to the desired height to show a peek of the bottom sheet
+//        sheetGesturesEnabled = true,
+//        sheetElevation = 8.dp,
+//        sheetShape = RoundedCornerShape(40.dp),
+//        sheetBackgroundColor = Color.DarkGray,
+//
+//    ) { innerPadding ->
         // Pass the necessary parameters to your main content
         Column(modifier = Modifier
             .fillMaxSize()
@@ -338,6 +418,7 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
                             topLeft = rectangleTopLeft,
                             size = Size(abs(bottomRightX - topLeftX), abs(bottomRightY - topLeftY))
                         )
+
                     }
                 }
             }
@@ -443,6 +524,8 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
 
                     }
                 )
+                Button(onClick = {navController.navigate(Screen.WebViewScreen.route)})
+                {Text("WebView")}
             }
 //Text Recognition done
             Box(modifier = Modifier
@@ -580,7 +663,7 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
 
 
 
-            }
+           // }
         }
 
 

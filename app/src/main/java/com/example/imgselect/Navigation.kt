@@ -41,7 +41,10 @@ fun Navigation(window: Window,applicationContext: Context)
         }
 
         composable(route = Screen.ChatScreen.route) {
-            ChatScreen(navController = navController , chatViewModel = chatViewModel , chatViewModelWithImage = chatViewModelWithImage , viewModel = typewriterViewModel)
+            ChatScreen(  chatViewModel = chatViewModel , chatViewModelWithImage = chatViewModelWithImage , viewModel = typewriterViewModel)
+        }
+        composable(route = Screen.WebViewScreen.route) {
+            WebViewScreen()
         }
 
     }

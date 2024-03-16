@@ -88,7 +88,7 @@ import java.nio.file.WatchEvent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(chatViewModel: ChatViewModel , navController: NavController , chatViewModelWithImage: ChatViewModelWithImage , viewModel: TypewriterViewModel) {
+fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewModelWithImage , viewModel: TypewriterViewModel) {
     //val messages = remember { mutableStateListOf<ChatQueryResponse>() }
     var sendButtonEnabled = remember { mutableStateOf(false)}
     val messageQuery = remember { mutableStateListOf<ChatQuery>()}
@@ -208,7 +208,9 @@ fun ChatScreen(chatViewModel: ChatViewModel , navController: NavController , cha
                                 painter = painterResource(id = R.drawable.baseline_attach_file_24),
                                 contentDescription = null,
                                 modifier = Modifier
-                                    .clickable { navController.navigate(Screen.SummaryScreen.route) }
+                                    .clickable {
+                                      //  navController.navigate(Screen.SummaryScreen.route)
+                                    }
                                     .size(30.dp)
                             )
 
