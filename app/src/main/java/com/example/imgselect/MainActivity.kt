@@ -478,8 +478,12 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
                             }) {
                                 Text("Get Summary")
 
+
                             }
                         }
+    }
+
+}
                         Row() {
                             Button(onClick = {dictionaryViewModel.saveMeaning()}) {
                                 Text("Save Meaning")
@@ -568,18 +572,17 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
                             .verticalScroll(meaningsScroll)
                     )
 
+            SnackbarHost(snackbarHostState)
                 }
+
                 //snackbar for displaying text
 //word meaning over
 
-                SnackbarHost(snackbarHostState)
+
 
             }
         }
-    }
 
-
-}
 
 fun rotateBitmap(source: Bitmap, degrees: Float): Bitmap {
     val matrix = Matrix()
