@@ -11,6 +11,7 @@ val medTeal = Color(0xFF006A63)
 val lightBar = Color(0xFFE8ECEF)
 val lighterPurple = Color(0xFFD8B9FF)
 val darkBar = Color(0xFF161616) // using this
+val lightblue= Color(0xFFD4EFDF)
 
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)

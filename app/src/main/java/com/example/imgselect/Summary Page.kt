@@ -49,12 +49,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import com.example.imgselect.ui.theme.Purple80
+import com.example.imgselect.ui.theme.lightblue
+import com.example.imgselect.ui.theme.lighterYellow
 import androidx.compose.material3.AlertDialogDefaults as AlertDialogDefaults
 
 @Composable
@@ -66,16 +70,21 @@ fun SummaryScreen(){
     ) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ){
             HeadlineText()
-            MySearchBar( placeHolder ="Search..." )
+            Spacer(modifier = Modifier.size(14.dp))
+            MySearchBar( placeHolder ="Search date,title" )
+            Spacer(modifier = Modifier.size(20.dp))
             SortAndSearch()
-            summaryCard(cardColor = Color.Cyan)
-            summaryCard(cardColor = Color.Magenta)
-            summaryCard(cardColor = Color.Blue)
+            Spacer(modifier = Modifier.size(20.dp))
+            summaryCard(cardColor = Purple80)
+            Spacer(modifier = Modifier.size(16.81.dp))
+            summaryCard(cardColor = lightblue)
+            Spacer(modifier = Modifier.size(16.81.dp))
+            summaryCard(cardColor = Purple80)
+            Spacer(modifier = Modifier.size(16.81.dp))
         }
     }
 }
@@ -99,45 +108,41 @@ fun MySearchBar(
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(cornerRadius.dp))
-            .border(
-                BorderStroke(
-                    0.1.dp,
-                    SolidColor(MaterialTheme.colorScheme.onSurface)
-                ),
-                RoundedCornerShape(12.dp)
-            ),
+            .fillMaxWidth(),
         contentAlignment = Alignment.Center
-    ){
+    )
+    {
 
 
         var text= remember {
             mutableStateOf("")
         }
-    OutlinedTextField(
-        value = text.value,
-        onValueChange = {
-           text.value= it
-        },
-        modifier = Modifier.width(320.dp),
-        placeholder = {
-            Text(
-                text = placeHolder
-            )
-        },
-
-        trailingIcon = {
-            IconButton(onClick = { }) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = null,
-                    modifier = modifier.size(22.dp)
+        OutlinedTextField(
+            value = text.value,
+            onValueChange = {
+                text.value= it
+            }, modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .background(Color.Black, RoundedCornerShape(24.dp))
+                .padding(horizontal = 20.dp)
+                .border(1.dp, Color.White, RoundedCornerShape(20.dp)),
+            placeholder = {
+                Text(
+                    text = placeHolder
                 )
-            }
-        },
-    )
-}
+            },
+            colors = TextFieldDefaults.textFieldColors(
+               textColor = Color.White
+            ),
+
+            trailingIcon = {
+                IconButton(onClick = { }) {
+                    Icon(painter = painterResource(id = R.drawable.search), contentDescription ="Search" )
+                }
+            },
+        )
+    }
 }
 @Composable
 fun SortAndSearch(){
@@ -149,16 +154,16 @@ fun SortAndSearch(){
     }
     Row(modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 10.dp),
+        .padding(horizontal = 20.dp),
         horizontalArrangement = Arrangement.SpaceBetween) {
         Button(onClick = { isDialog=true },
             modifier = Modifier
-                .padding(20.dp)) {
+                .height(32.dp)) {
             Text(text = " Sort By ")
         }
         Button(onClick = {OnDialog = true },
             modifier = Modifier
-                .padding(20.dp)) {
+                .height(32.dp)) {
             Text(text = "Search By")
         }
     }
@@ -166,66 +171,97 @@ fun SortAndSearch(){
         AlertDialog(onDismissRequest = { isDialog=false}, confirmButton = { Button(
             onClick = {isDialog=false },
             modifier = Modifier
-                .padding(6.dp)
+                .height(32.dp)
+        ) {
+            Row {
+                Icon(painter = painterResource(id = R.drawable.vector__1_), contentDescription = "Book")
+                Spacer(modifier = Modifier.size(4.dp))
+                Text(text = "Ascending")
+            }
 
-            ) {
-            Text(text = " Ascending")
         } }
             ,dismissButton = { Button(
                 onClick = { isDialog=false},
                 modifier = Modifier
-                    .padding(6.dp)
+                    .height(32.dp)
             ) {
-                Text(text = "Descending")
+                Row {
+                    Icon(painter = painterResource(id = R.drawable.vector__1_), contentDescription = "Book")
+                    Spacer(modifier = Modifier.size(4.dp))
+                    Text(text = "Descending")
+                }
+
             }}, title = {Text(text = "Sort By")},
             containerColor = Color.Black,
-            titleContentColor = Color.White
-            )
+            titleContentColor = Color.White,
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false
+            ),
+            modifier = Modifier.size(320.dp,140.dp)
+        )
     }
     if (OnDialog){
         AlertDialog(onDismissRequest = { OnDialog=false}, confirmButton = { Button(
             onClick = {OnDialog=false },
             modifier = Modifier
-                .padding(20.dp)
+                .padding(horizontal = 16.dp)
+                .height(32.dp)
+
         ) {
-            Text(text = " Date")
+            Row {
+                Icon(painter = painterResource(id = R.drawable.vector__1_), contentDescription = "Book")
+                Spacer(modifier = Modifier.size(4.dp))
+                Text(text = "Date ")
+            }
+
         } }
             , dismissButton = { Button(
                 onClick = { OnDialog=false},
-                        modifier = Modifier
-                        .padding(20.dp)
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .height(32.dp)
             ) {
-                Text(text = "Topic")
+                Row {
+                    Icon(painter = painterResource(id = R.drawable.vector__1_), contentDescription = "Book")
+                    Spacer(modifier = Modifier.size(4.dp))
+                    Text(text = "Topic")
+                }
+
             }}, title = {Text(text = "Search By")},
-           containerColor = Color.Black,
-            titleContentColor = Color.White
-                   )
+            containerColor = Color.Black,
+            titleContentColor = Color.White,
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false
+            ),
+            modifier = Modifier.size(320.dp,140.dp)
+        )
 
     }
 }
 @Composable
-fun summaryCard(cardColor: Color
-){
+fun summaryCard(cardColor: Color){
     Card(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(horizontal = 16.dp)
             .fillMaxWidth()
-            .height(200.dp),
+            .height(197.dp),
         colors = CardDefaults.cardColors(
             containerColor = cardColor)
     ) {
-        Column {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(text = "Stop digging", fontSize = 40.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "If you find you have dug yourself into o hole stap digging. If you find you have dug yourself into a hole....stop....", fontSize = 20.sp)
+        Column (modifier = Modifier.padding(horizontal = 27.dp, vertical = 24.dp)){
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Absolute.SpaceBetween) {
+                Text(text = "Stop Digging", fontSize = 24.sp, fontWeight = FontWeight.Medium)
+                Icon(painter = painterResource(id = R.drawable.generic), contentDescription = "Summary type")
             }
-            Row(modifier = Modifier.padding(end = 10.dp, start = 180.dp)) {
-                Text(text = "Date-14-03-2024", fontSize = 20.sp)
+            Spacer(modifier = Modifier.height(39.dp))
+            Text(text = "If you find you have dug yourself into o hole stap digging. If you find you have dug yourself into a hole.... stop.....")
+            Spacer(modifier = Modifier.height(28.dp))
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End){
+                Text(text = "Date-14-03-2024", fontSize = 12.sp, fontWeight = FontWeight.Medium)
             }
         }
+
     }
 }
 
