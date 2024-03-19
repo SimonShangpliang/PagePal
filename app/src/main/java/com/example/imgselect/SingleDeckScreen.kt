@@ -73,12 +73,49 @@ fun MainScreen2(){
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
     val screenWidth = configuration.screenWidthDp.dp
-    val state = rememberPagerState {3} /// change this accordingly (change 4)
+    val state = rememberPagerState (pageCount = { cardReverse.size}, initialPage = cardReverse.size-1)
+    Box(modifier = Modifier
+        .padding(vertical = 30.dp)
+        .fillMaxWidth(),
+        contentAlignment = Alignment.Center)
+    {
+        HorizontalPager(state = state, beyondBoundsPageCount = 4, pageSpacing = -(screenWidth/2), reverseLayout = true,
+        ){ page_index->
+            singleCard(
+                term=cardsPage[page_index].term,
+                definition=cardsPage[page_index].definition,
+                modifier = Modifier
+
+                    .graphicsLayer {
+                        rotationZ =
+                            if (state.offsetForPage(page_index) > 0) state.offsetForPage(
+                                page_index
+                            ) * 2 else 0f
+                        translationX =
+                            if (state.offsetForPage(page_index) > 0) (state.offsetForPage(
+                                page_index
+                            )) * -(screenWidth.toPx() / 2 - 50) - (screenWidth.toPx() / 20) else (state.offsetForPage(
+                                page_index
+                            )) * (screenWidth.toPx() / 2) - (screenWidth.toPx() / 20)
+                        translationY = if (state.offsetForPage(page_index) > 0) abs(
+                            state.offsetForPage(page_index)
+                        ) * 20 else 0f
+//                        shadowElevation = pagerState.pageCount - abs(pagerState.offsetForPage(page_index))
+                        alpha = 1f
+
+                    }
+            )
+        }
 
 
-
-
+    }
 }
+
+
+
+
+
+
 
 
 @Composable
