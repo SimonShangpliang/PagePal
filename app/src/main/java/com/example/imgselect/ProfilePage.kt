@@ -338,11 +338,17 @@ fun InterestButton(name: String, selected: Boolean) {
                     ),
                 color = Color.White
             )
-            Icon(
-                painter = painterResource(id = R.drawable.uil_plus_circle),
-                contentDescription = null,
+            if (_selected){
+                Icon(
+                    painter = painterResource(id = R.drawable.checked),
+                    contentDescription = null,)
+            }
+            else{
+                Icon(
+                    painter = painterResource(id = R.drawable.uil_plus_circle),
+                    contentDescription = null,)
+            }
 
-                )
         }
     }
 }
