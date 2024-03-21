@@ -40,11 +40,13 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
+import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.rememberBottomSheetScaffoldState
@@ -161,7 +163,10 @@ class MainActivity : ComponentActivity() {
                                         modifier = Modifier
                                             .width(36.dp)
                                             .height(5.dp)
-                                            .background(Color.Gray, shape = RoundedCornerShape(4.dp))
+                                            .background(
+                                                Color.Gray,
+                                                shape = RoundedCornerShape(4.dp)
+                                            )
                                     )
                                 }
 
@@ -232,9 +237,6 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
         //When the user has selected a photo, its URI is returned here
         photoUri = uri
     }
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
-    )
 
 //    BottomSheetScaffold(
 //        scaffoldState = scaffoldState,
@@ -306,6 +308,28 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
         Column(modifier = Modifier
             .fillMaxSize()
             .background(Color.Magenta)){
+
+            if(summaryViewModel.dialogVisible) {
+                AlertDialog(
+                    onDismissRequest = { summaryViewModel.dialogVisible = false },
+                    title = {Text("Enter a title")},
+                    text = {
+                        TextField(
+                            value = summaryViewModel.title,
+                            onValueChange = {summaryViewModel.title = it},
+                            label = {Text("Title")}
+                        )
+                    },
+                    confirmButton = {
+                        Button(onClick = {
+                            summaryViewModel.dialogVisible = false
+                            summaryViewModel.saveSummaryWithImage(selectedBitmap , title = summaryViewModel.title)
+                        }) {
+                            Text("OK")
+                        }
+                    }
+                )
+            }
 
             Box(
                 modifier = Modifier
@@ -435,9 +459,16 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
             //
 
             Row(modifier=Modifier){
+                Button(onClick = {
+                    summaryViewModel.dialogVisible = true
+                    //summaryViewModel.saveSummaryWithImage(selectedBitmap)
+                }) {
+                    Text("Save Summary")
+                }
                 Button(
                     onClick = {
                         //On button press, launch the photo picker
+                        summaryViewModel.output = ""
                         launcher.launch(
                             PickVisualMediaRequest(
                                 //Here we request only photos. Change this to .ImageAndVideo if you want videos too.
@@ -477,12 +508,12 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
                         Text("Stop Crop")
                     }
                 }
-                if(focus==false){
-                    Text("Zoom Enabled/Crop Disabled",color=Color.Black)}
-                else
-                {
-                    Text("Zoom Disabled/Crop Enabled",color=Color.Black)
-                }
+//                if(focus==false){
+//                    Text("Zoom Enabled/Crop Disabled",color=Color.Black)}
+//                else
+//                {
+//                    Text("Zoom Disabled/Crop Enabled",color=Color.Black)
+//                }
             }
             Row() {
                 //Crop an image
@@ -572,9 +603,7 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
                                 Text("Save Meaning")
                             }
 
-                            Button(onClick = { summaryViewModel.saveSummaryWithImage(selectedBitmap) }) {
-                                Text("Save Summary")
-                            }
+
                         }
 
                         Row() {

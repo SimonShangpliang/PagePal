@@ -2,6 +2,7 @@ package com.example.imgselect.data
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 
@@ -19,6 +20,9 @@ interface LocalStorageDao {
 
     @Query("SELECT * FROM content_table_summary")
     fun readAllSummary(): LiveData<List<Summary>>
+
+    @Delete
+    fun deleteSummary(summary: Summary)
 
 
 }

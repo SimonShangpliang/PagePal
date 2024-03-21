@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Meaning::class , Summary::class] , version = 2 , exportSchema = false)
+@Database(entities = [Meaning::class , Summary::class] , version = 3 , exportSchema = false)
 abstract class LocalStorageDatabase: RoomDatabase() {
 
 

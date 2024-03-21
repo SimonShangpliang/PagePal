@@ -19,5 +19,7 @@ data class Summary(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val summary: String?,
-    val image: ByteArray?
+    val image: ByteArray?,
+    val time: String = "",
+    val title: String = ""
 )

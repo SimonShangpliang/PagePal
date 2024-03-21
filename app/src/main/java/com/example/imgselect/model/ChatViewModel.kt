@@ -45,14 +45,19 @@ class ChatViewModel: ViewModel() {
 
     fun getResponseFromChatBot() {
         viewModelScope.launch {
-            //Log.d("finalQuery" , imageText)
-            val updatedMessages = _messages.value.orEmpty() + ChatQueryResponse(query, true , System.currentTimeMillis())
-            _messages.value = updatedMessages
-            val responseText = generativeModel.generateContent(query).text.toString()
-            val updatedResponse = _messages.value.orEmpty() + ChatQueryResponse(responseText , false , System.currentTimeMillis())
-            _messages.value = updatedResponse
-            _response.postValue(responseText)
-            Log.d("ChatViewModel", "Response updated to: $response")
+            try {
+                //Log.d("finalQuery" , imageText)
+                val updatedMessages = _messages.value.orEmpty() + ChatQueryResponse(query, true , System.currentTimeMillis())
+                _messages.value = updatedMessages
+                val responseText = generativeModel.generateContent(query).text.toString()
+                val updatedResponse = _messages.value.orEmpty() + ChatQueryResponse(responseText , false , System.currentTimeMillis())
+                _messages.value = updatedResponse
+                _response.postValue(responseText)
+                Log.d("ChatViewModel", "Response updated to: $response")
+            } catch(e: Exception) {
+                Log.e("getResponseFromChatBot", "Error generating content: ${e.message}", e)
+            }
+
         }
     }
 

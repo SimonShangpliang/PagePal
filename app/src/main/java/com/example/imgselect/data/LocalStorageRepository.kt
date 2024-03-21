@@ -16,5 +16,9 @@ class LocalStorageRepository(private val localStorageDao: LocalStorageDao) {
         localStorageDao.addSummary(summary)
     }
 
+    fun deleteSummary(summary: Summary) {
+        localStorageDao.deleteSummary(summary)
+    }
+
 
 }

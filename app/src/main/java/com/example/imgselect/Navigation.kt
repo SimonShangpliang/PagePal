@@ -37,7 +37,8 @@ fun Navigation(window: Window,applicationContext: Context)
             MeaningListScreen(meaningList = dictionaryViewModel.getMeaningList())
         }
         composable(route = Screen.SummaryScreen.route) {
-            SummaryScreen(summaryList = summaryViewModel.getSummaryList() , navController = navController , chatViewModel = chatViewModel , chatViewModelWithImage = chatViewModelWithImage)
+            //SummaryScreen(summaryList = summaryViewModel.getSummaryList() , navController = navController , chatViewModel = chatViewModel , chatViewModelWithImage = chatViewModelWithImage)
+            SummaryScreen(summaryList = summaryViewModel.getSummaryList(), navController = navController , summaryViewModel = summaryViewModel)
         }
 
         composable(route = Screen.ChatScreen.route) {

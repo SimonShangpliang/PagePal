@@ -21,6 +21,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.lang.Exception
+import java.text.SimpleDateFormat
+import java.util.Calendar
+
 
 class SummaryViewModel(application: Application): AndroidViewModel(application) {
 
@@ -31,6 +34,9 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
 
     private val readAllSummary: LiveData<List<Summary>>
     private val repository: LocalStorageRepository
+
+    var dialogVisible: Boolean by mutableStateOf(false)
+    var title: String by mutableStateOf("")
     init{
         val config= generationConfig {temperature=0.70f  }
         generativeModel= GenerativeModel(
@@ -73,11 +79,21 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
 
     }
 
-    fun saveSummaryWithImage(image: Bitmap?) {
+
+    fun saveSummaryWithImage(image: Bitmap? , title: String) {
         viewModelScope.launch(Dispatchers.IO) {
+            val current = Calendar.getInstance()
+            val dateFormat = SimpleDateFormat("yyyy/MM/dd")
+            val date = dateFormat.format(current.time)
             val imageByte = image?.toBytes()
-            val content = Summary(0,output,imageByte)
+            val content = Summary(0,output,imageByte , "${date}" , title)
             repository.addSummary(content)
+        }
+    }
+
+    fun deleteSummary(summary: Summary) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteSummary(summary)
         }
     }
 
