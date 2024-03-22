@@ -24,11 +24,12 @@ fun Navigation(window: Window,applicationContext: Context)
     val summaryViewModel = viewModel<SummaryViewModel>()
     val chatViewModelWithImage = viewModel<ChatViewModelWithImage>()
     val typewriterViewModel = viewModel<TypewriterViewModel>()
+    val textRecognitionViewModel= viewModel<TextRecognitionViewModel>()
     NavHost(navController = navController, startDestination =Screen.MainScreen.route )
     {
 
         composable(route=Screen.MainScreen.route) {
-           MainScreen(window,navController,photoViewModel,chatViewModel, chatViewModelWithImage , viewModel = typewriterViewModel)
+           MainScreen(window,navController,photoViewModel,chatViewModel, chatViewModelWithImage , viewModel = typewriterViewModel,textRecognitionViewModel)
         }
         composable(route=Screen.CameraScreen.route) {
             CameraScreen(applicationContext = applicationContext,photoViewModel)
@@ -45,7 +46,7 @@ fun Navigation(window: Window,applicationContext: Context)
             ChatScreen(  chatViewModel = chatViewModel , chatViewModelWithImage = chatViewModelWithImage , viewModel = typewriterViewModel)
         }
         composable(route = Screen.WebViewScreen.route) {
-            WebViewScreen()
+            WebViewScreen( window=window,navController = navController,textRecognitionViewModel,dictionaryViewModel)
         }
 
     }

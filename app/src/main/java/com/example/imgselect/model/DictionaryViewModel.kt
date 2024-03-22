@@ -18,11 +18,14 @@ import com.example.imgselect.data.LocalStorageDatabase
 import com.example.imgselect.data.LocalStorageRepository
 import com.example.imgselect.data.Meaning
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull.content
 import retrofit2.HttpException
 import java.io.IOException
+import kotlin.coroutines.resumeWithException
 import kotlin.reflect.KProperty
 
 class DictionaryViewModel(application: Application) : AndroidViewModel(application) {
@@ -40,26 +43,53 @@ class DictionaryViewModel(application: Application) : AndroidViewModel(applicati
         readAllMeaning = repository.readAllMeaning
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    suspend fun processResponse(): List<WordData>? {
+        return suspendCancellableCoroutine { continuation ->
+            val result = response
+//                ?.flatMap { response ->
+//                response.meanings.flatMap { meaning ->
+//                    meaning.definitions.map { definition ->
+//                        definition.definition
+//                    }
+//                }
+//            } ?: emptyList()
 
-    fun getMeaning() {
-        viewModelScope.launch {
-            try {
-                wrongWord = false
-                response = DictionaryApi.retrofitService.getMeaning(word)
-                Log.d(TAG , "Raw Json Response: $response")
+            // Resuming coroutine with the result
+            continuation.resume(result, onCancellation = {
 
-
-            } catch(e: IOException) {
-                Log.d(TAG , "its an error")
-
-            } catch(e: HttpException) {
-                Log.d(TAG , "Word doesn't exist")
-
-                wrongWord = true
-            }
+            })
 
         }
     }
+
+    suspend fun getMeaning(): List<WordData> {
+        val sanitizedWord = word.filter { it.isLetter() || it.isWhitespace() }
+
+        return suspendCancellableCoroutine { continuation ->
+            val job = viewModelScope.launch {
+                try {
+                    wrongWord = false
+                    response = DictionaryApi.retrofitService.getMeaning(sanitizedWord)
+                    Log.d(TAG , "Raw Json Response: $response")
+                    continuation.resume(response ?: emptyList(), onCancellation = {})
+                } catch(e: IOException) {
+                    Log.d(TAG , "its an error")
+                    continuation.resumeWithException(e)
+                } catch(e: HttpException) {
+                    Log.d(TAG , "Word doesn't exist")
+                    wrongWord = true
+                    continuation.resume(emptyList(), onCancellation = {}) // or handle differently based on your requirement
+                }
+            }
+
+            // Register a cancellation callback
+            continuation.invokeOnCancellation {
+                job.cancel() // Cancel the coroutine job if the continuation is cancelled
+            }
+        }
+    }
+
 
     fun saveMeaning() {
         viewModelScope.launch(Dispatchers.IO) {
