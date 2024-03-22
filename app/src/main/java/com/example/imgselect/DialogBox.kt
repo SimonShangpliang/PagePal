@@ -1,8 +1,11 @@
 package com.example.imgselect
 
+import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,10 +16,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -27,21 +39,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.imgselect.DictionaryNetwork.Definition
+import com.example.imgselect.DictionaryNetwork.Meaning
 import com.example.imgselect.DictionaryNetwork.WordData
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
 fun WordMeaningDialog(
     setShowDialog: (Boolean) -> Unit,
-    listMeaning:List<WordData>?,
+    initialListMeaning: List<WordData>?,
     onResponse: (String) -> Unit,
 
     onButton: (Boolean) -> Unit
 ) {
-    val gradientBrush = Brush.linearGradient(
-        colors = listOf(Color.Green, Color.Cyan)
 
-    )
+    var listMeaning by remember { mutableStateOf(initialListMeaning) }
+
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
@@ -95,12 +108,35 @@ fun WordMeaningDialog(
                                 )
                                 meanings.forEach { meaning ->
                                     meaning.definitions.forEach { definition ->
-                                        Text(
-                                            text = "Definition: ${definition.definition}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = Color.White,
-                                            modifier = Modifier.padding(16.dp)
-                                        )
+                                        Row(modifier = Modifier.padding(16.dp)) {
+                                            Text(
+                                                text = "Definition: ${definition.definition}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = Color.White,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            RadioButton(
+                                                selected = definition.isSelected,
+                                                onClick = { /* Handle click event */
+                                                    listMeaning = listMeaning?.map { wordData ->
+                                                        val updatedMeanings = wordData.meanings.map { meaning ->
+                                                            val updatedDefinitions = meaning.definitions.map { def ->
+                                                                if (def == definition) {
+                                                                    def.copy(isSelected = !def.isSelected)
+                                                                } else {
+                                                                    def
+                                                                }
+                                                            }
+                                                            meaning.copy(definitions = updatedDefinitions)
+                                                        }
+                                                        wordData.copy(meanings = updatedMeanings)
+                                                    }
+                                                }
+                                            )
+
+
+
+                                        }
                                         definition.example?.let {
                                             Text(
                                                 text = "Example: $it",
@@ -140,14 +176,12 @@ fun WordMeaningDialog(
                         .background(Color(0xff141414))
                         .fillMaxSize()
                 ) {
+                    Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically){
                     Button(
                         onClick = {
+// here you will give the response back from user selected meanings using listMeaning State
 
-                            setShowDialog(false)
-//                            sharedPreferences.edit()
-//                                .putString("OpenStatus", "done")
-//                                .apply()
-                            onResponse("done")
+
                         },
                         shape = RoundedCornerShape(50.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -157,12 +191,38 @@ fun WordMeaningDialog(
                         ),
                         modifier = Modifier
                             .height(50.dp)
-                            .align(Alignment.Center)
 
                     ) {
                         Text(
-                            text = "Done", color = Color.Black,
+                            text = "Save", color = Color.Black,
                         )
+                    }
+                        Button(
+                            onClick = {
+
+                                setShowDialog(false)
+//                            sharedPreferences.edit()
+//                                .putString("OpenStatus", "done")
+//                                .apply()
+//                            val selectedDefs = selectedDefinitions.values.flatten()
+//                            //onResponse(selectedDefs)
+//                            Log.d("main",selectedDefs.toString())
+                                onResponse("done")
+                            },
+                            shape = RoundedCornerShape(50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                // Change the background color here
+                                contentColor = Color.White,
+                                containerColor = Color.Green// Change the text color here
+                            ),
+                            modifier = Modifier
+                                .height(50.dp)
+
+                        ) {
+                            Text(
+                                text = "Done", color = Color.Black,
+                            )
+                        }
                     }
                 }
             }
