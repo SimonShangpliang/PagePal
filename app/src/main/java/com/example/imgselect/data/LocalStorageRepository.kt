@@ -1,6 +1,8 @@
 package com.example.imgselect.data
 
 import androidx.lifecycle.LiveData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class LocalStorageRepository(private val localStorageDao: LocalStorageDao) {
 
@@ -31,6 +33,16 @@ class LocalStorageRepositoryForChats(private val localStorageDaoForChats: LocalS
     }
 
     val readAllChat: LiveData<List<Chat>> = localStorageDaoForChats.readAllChat()
+
+    suspend fun getChat(chatId: Int): Chat {
+        return  withContext(Dispatchers.IO) {
+            localStorageDaoForChats.getChat(chatId)
+        }
+
+    }
+    fun deleteChat(chat: Chat) {
+        localStorageDaoForChats.deleteChat(chat)
+    }
 
 
 }

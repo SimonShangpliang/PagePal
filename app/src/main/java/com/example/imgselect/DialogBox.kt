@@ -24,6 +24,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +43,7 @@ import androidx.compose.ui.window.Dialog
 import com.example.imgselect.DictionaryNetwork.Definition
 import com.example.imgselect.DictionaryNetwork.Meaning
 import com.example.imgselect.DictionaryNetwork.WordData
+import com.example.imgselect.model.SummaryViewModel
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
@@ -236,8 +238,11 @@ fun WordMeaningDialog(
 @Composable
 fun SummaryDialog(
     setShowDialog: (Boolean) -> Unit,
-    Summary:String) {
-    Dialog(onDismissRequest = { setShowDialog(false) }) {
+    Summary:String,
+) {
+
+    Dialog(onDismissRequest = { setShowDialog(false) }
+    ) {
         Surface(
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.height(700.dp),

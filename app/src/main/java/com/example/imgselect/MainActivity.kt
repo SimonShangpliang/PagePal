@@ -721,7 +721,7 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
                 //Crop an image
                 Button(onClick = {
                     CoroutineScope(Dispatchers.IO).launch{
-                 //   captureSelectedRegion(window,startOffsetX,startOffsetY,endOffsetX,endOffsetY,{selectedBitmap=it})
+                    //captureSelectedRegion(window,startOffsetX,startOffsetY,endOffsetX,endOffsetY,{selectedBitmap=it})
                        }
                 })
                 {

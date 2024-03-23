@@ -36,4 +36,10 @@ interface LocalStorageDaoForChats {
 
     @Query("SELECT * FROM content_table_chatbot")
     fun readAllChat(): LiveData<List<Chat>>
+
+    @Query("SELECT * FROM content_table_chatbot WHERE id = :chatId")
+    fun getChat(chatId: Int): Chat
+
+    @Delete
+    fun deleteChat(chat: Chat)
 }

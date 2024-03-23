@@ -250,10 +250,14 @@ fun SortAndSearch(){
 
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun summaryCard(title: String, date: String, summary: String, delete:() -> Unit){
     val colors = listOf(lightblue , lighterPurple , lighterYellow)
     val randomColor = colors[Random.nextInt(colors.size)]
+    var isSelected  = remember {
+        mutableStateOf(false)
+    }
     Card(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -261,24 +265,35 @@ fun summaryCard(title: String, date: String, summary: String, delete:() -> Unit)
             //.height(197.dp)
         ,
         colors = CardDefaults.cardColors(
-            containerColor = randomColor)
+            containerColor = randomColor),
+        onClick = {!isSelected.value}
     ) {
         Column (modifier = Modifier.padding(horizontal = 27.dp, vertical = 24.dp)){
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Absolute.SpaceBetween) {
                 Text(text = title, fontSize = 24.sp, fontWeight = FontWeight.Medium , color = Color.Black)
                 Row(horizontalArrangement = Arrangement.Absolute.SpaceBetween , modifier = Modifier.width(70.dp)) {
                     Icon(painter = painterResource(id = R.drawable.generic), contentDescription = "Summary type" , tint = Color.Black , modifier = Modifier.size(30.dp))
-                    Icon(painter = painterResource(id = R.drawable.baseline_delete_24), contentDescription = "delete" , tint = Color.Black , modifier = Modifier.clickable { delete() }.size(30.dp))
+                    Icon(painter = painterResource(id = R.drawable.baseline_delete_24), contentDescription = "delete" , tint = Color.Black , modifier = Modifier
+                        .clickable { delete() }
+                        .size(30.dp))
                 }
             }
 
             Spacer(modifier = Modifier.height(39.dp))
-            Text(
-                text = summary,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-                color = Color.Black
-            )
+            if(isSelected.value) {
+                Text(
+                    text = summary,
+                    color = Color.Black
+                )
+            } else {
+                Text(
+                    text = summary,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    color = Color.Black
+                )
+            }
+
             Spacer(modifier = Modifier.height(28.dp))
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End){

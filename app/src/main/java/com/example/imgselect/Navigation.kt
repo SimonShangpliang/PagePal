@@ -3,11 +3,17 @@ package com.example.imgselect
 import android.content.Context
 import android.view.Window
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.dictionary.model.DictionaryViewModel
+import com.example.imgselect.data.Chat
 import com.example.imgselect.model.ChatViewModel
 import com.example.imgselect.model.ChatViewModelWithImage
 import com.example.imgselect.model.PhotoTakenViewModel
@@ -50,8 +56,26 @@ fun Navigation(window: Window,applicationContext: Context)
         }
         
         composable(route = Screen.ChatListScreen.route) {
-            SavedChatsScreen(chatList = chatViewModel.getChatList())
+            SavedChatsScreen(chatList = chatViewModel.getChatList() , chatViewModel = chatViewModel) { chat ->
+                navController.navigate("${Screen.FullChatScreen.route}/${chat.id}")
+            }
         }
+
+        composable(route = "${Screen.FullChatScreen.route}/{chatId}") { backStackEntry ->
+            val chatId = backStackEntry.arguments?.getString("chatId")?.toInt()
+            var chat by remember { mutableStateOf<Chat?>(null) }
+
+            LaunchedEffect(chatId) {
+                chatId?.let {
+                    chat = chatViewModel.getChat(it)
+                }
+            }
+
+            chat?.let { FullChatScreen(it) }
+        }
+
+
+
 
     }
 }

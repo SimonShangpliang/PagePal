@@ -1,7 +1,9 @@
 package com.example.imgselect.model
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -21,7 +23,9 @@ import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.generationConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonNull.content
+
 
 class ChatViewModel(application: Application): AndroidViewModel(application) {
 
@@ -63,13 +67,34 @@ class ChatViewModel(application: Application): AndroidViewModel(application) {
 
     fun saveChat(chat: Chat) {
         viewModelScope.launch(Dispatchers.IO) {
-            repositoryForChats.addChat(chat)
+            val existingChat = repositoryForChats.getChat(chat.id)
+            if(existingChat != null) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(getApplication<Application>().applicationContext , "The Chat is already saved", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                repositoryForChats.addChat(chat)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(getApplication<Application>().applicationContext , "Chat saved", Toast.LENGTH_SHORT).show()
+                }
+            }
+
         }
     }
 //
     fun getChatList() : LiveData<List<Chat>> {
         val chatList = repositoryForChats.readAllChat
         return chatList
+    }
+
+    fun deleteChat(chat:Chat) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repositoryForChats.deleteChat(chat)
+        }
+    }
+
+    suspend fun getChat(chatId: Int): Chat {
+        return repositoryForChats.getChat(chatId)
     }
 
 
