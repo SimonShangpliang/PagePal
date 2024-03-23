@@ -41,7 +41,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         val config= generationConfig {temperature=0.70f  }
         generativeModel= GenerativeModel(
             modelName = "gemini-pro",
-            apiKey = "AIzaSyDt-sDiRFzo203g38_safthogeiXCZFTqM",
+            apiKey = "AIzaSyAOgrCj3x9WE8JoSDB5yuoGqH7m4Rn0IWI",
             generationConfig = config
         )
 

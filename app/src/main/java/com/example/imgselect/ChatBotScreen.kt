@@ -71,15 +71,19 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.imgselect.data.Chat
 import com.example.imgselect.model.ChatViewModel
 import com.example.imgselect.model.ChatViewModelWithImage
 import com.example.imgselect.model.TextRecognitionViewModel
+import com.example.imgselect.ui.theme.lighterYellow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -88,7 +92,7 @@ import java.nio.file.WatchEvent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewModelWithImage , viewModel: TypewriterViewModel) {
+fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewModelWithImage , viewModel: TypewriterViewModel ) {
     //val messages = remember { mutableStateListOf<ChatQueryResponse>() }
     var sendButtonEnabled = remember { mutableStateOf(false)}
     val messageQuery = remember { mutableStateListOf<ChatQuery>()}
@@ -143,6 +147,19 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
         Column(modifier = Modifier
             .fillMaxSize()
             ) {
+            Row() {
+                Button(
+                    onClick = {
+                        val content = Chat(0,message = combinedMessage)
+                        chatViewModel.saveChat(content)
+                    }
+                ) {
+                    Text(
+                        text = "Save Chat"
+                    )
+                }
+
+            }
 
             MessagesList(messages = sortedCombinedMessages, viewModel = viewModel)
 
@@ -160,7 +177,8 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 56.dp, max = 200.dp)
-                        .verticalScroll(rememberScrollState()).wrapContentSize(),
+                        .verticalScroll(rememberScrollState())
+                        .wrapContentSize(),
                     placeholder = { Text(
                         text = "What's on your mind",
                         modifier = Modifier.fillMaxHeight(),
@@ -209,7 +227,7 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                                 contentDescription = null,
                                 modifier = Modifier
                                     .clickable {
-                                      //  navController.navigate(Screen.SummaryScreen.route)
+                                        // navController.navigate(Screen.SummaryScreen.route)
                                     }
                                     .size(30.dp)
                             )
@@ -356,6 +374,50 @@ fun MessagesList(messages: List<ChatQueryResponse>, viewModel: TypewriterViewMod
     }
 }
 
+@Composable
+fun SavedChatsScreen(chatList: LiveData<List<Chat>>) {
+    val chats by chatList.observeAsState(initial = emptyList())
+    LazyColumn {
+        items(chats) {chat->
+            ChatRow(chat = chat)
+        }
+    }
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ChatRow(chat: Chat) {
+    Column() {
+        Card(
+            onClick = { /*TODO*/ },
+            colors = CardDefaults.cardColors(lighterYellow),
+            modifier = Modifier.padding(16.dp)
+        ) {
+            chat.message?.get(0)?.message?.let {
+                Text(
+                    text = it,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = Color.DarkGray,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            chat.message?.get(1)?.message?.let {
+                Text(
+                    text = it,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    color = Color.DarkGray,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+    }
+}
 
 data class ChatQueryResponse(
     val message: String? = null,

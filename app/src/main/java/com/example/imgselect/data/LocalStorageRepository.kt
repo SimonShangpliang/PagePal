@@ -12,6 +12,7 @@ class LocalStorageRepository(private val localStorageDao: LocalStorageDao) {
 
     val readAllSummary: LiveData<List<Summary>> = localStorageDao.readAllSummary()
 
+
     suspend fun addSummary(summary: Summary) {
         localStorageDao.addSummary(summary)
     }
@@ -19,6 +20,17 @@ class LocalStorageRepository(private val localStorageDao: LocalStorageDao) {
     fun deleteSummary(summary: Summary) {
         localStorageDao.deleteSummary(summary)
     }
+
+
+
+}
+
+class LocalStorageRepositoryForChats(private val localStorageDaoForChats: LocalStorageDaoForChats) {
+    fun addChat(chat: Chat) {
+        localStorageDaoForChats.addChat(chat)
+    }
+
+    val readAllChat: LiveData<List<Chat>> = localStorageDaoForChats.readAllChat()
 
 
 }

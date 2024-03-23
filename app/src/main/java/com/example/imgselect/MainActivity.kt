@@ -1,4 +1,5 @@
 package com.example.imgselect
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -620,6 +621,19 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
 //                                Text("Chat")
 //                            }
                         }
+
+                Button(
+                    onClick = {
+                        chatViewModel.getChatList()
+                        navController.navigate(Screen.ChatListScreen.route)
+
+                    }
+                ) {
+                    Text(
+                        text = "View Chats"
+                    )
+
+                }
                     }
 
                     //Summary part

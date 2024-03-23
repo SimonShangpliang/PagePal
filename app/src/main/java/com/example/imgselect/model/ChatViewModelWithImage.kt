@@ -30,7 +30,7 @@ class ChatViewModelWithImage: ViewModel() {
         val config = generationConfig { temperature = 0.70f }
         generativeModel = GenerativeModel(
             modelName = "gemini-pro-vision",
-            apiKey = "AIzaSyAcjltECY8ja_imWzStrDcULxdN5gihbyY",
+            apiKey = "AIzaSyAOgrCj3x9WE8JoSDB5yuoGqH7m4Rn0IWI",
             generationConfig = config
         )
         Log.d("gemini" , "gemini-pro-vision is initialized")

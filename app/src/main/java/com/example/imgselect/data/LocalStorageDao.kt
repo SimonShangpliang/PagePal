@@ -25,4 +25,15 @@ interface LocalStorageDao {
     fun deleteSummary(summary: Summary)
 
 
+
+
+}
+
+@Dao
+interface LocalStorageDaoForChats {
+    @Insert
+    fun addChat(chat: Chat)
+
+    @Query("SELECT * FROM content_table_chatbot")
+    fun readAllChat(): LiveData<List<Chat>>
 }

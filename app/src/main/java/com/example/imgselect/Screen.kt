@@ -13,5 +13,7 @@ sealed class Screen(val route:String) {
 
     object ChatScreen: Screen("chat_screen")
 
+    object ChatListScreen: Screen("chat_list_screen")
+
 
 }
