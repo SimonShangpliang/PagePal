@@ -35,7 +35,14 @@ data class Chat(
     val id: Int = 0,
     val message: List<ChatQueryResponse>?
 )
+@Entity(tableName = "content_table_webHistory")
+data class Web(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val website: String?,
+    val date: Long = System.currentTimeMillis() // Default value is current timestamp
 
+)
 class Converters {
     private val gson = Gson()
 

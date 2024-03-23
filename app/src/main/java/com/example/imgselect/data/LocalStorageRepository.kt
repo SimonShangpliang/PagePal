@@ -53,3 +53,15 @@ class LocalStorageRepositoryForChats(private val localStorageDaoForChats: LocalS
 
 
 }
+
+class LocalStorageRepositoryForWeb(private val webDao: WebDao) {
+    fun addWeb(web: Web) {
+        webDao.addWeb(web)
+    }
+
+    val readAllWeb: LiveData<List<Web>> = webDao.readAllWeb()
+
+    fun deleteWeb(web: Web) {
+        webDao.deleteWeb(web)
+    }
+}

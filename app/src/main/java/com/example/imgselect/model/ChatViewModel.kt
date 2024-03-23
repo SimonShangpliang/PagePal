@@ -99,13 +99,13 @@ class ChatViewModel(application: Application): AndroidViewModel(application) {
 
 
 
-    fun getResponseFromChatBot() {
+    fun getResponseFromChatBot(onText:(String)->Unit) {
         viewModelScope.launch {
             try {
                 //Log.d("finalQuery" , imageText)
                 val updatedMessages = _messages.value.orEmpty() + ChatQueryResponse(query, true , System.currentTimeMillis())
                 _messages.value = updatedMessages
-                val responseText = generativeModel.generateContent(query).text.toString()
+               val responseText = generativeModel.generateContent(query).text.toString()
                 val updatedResponse = _messages.value.orEmpty() + ChatQueryResponse(responseText , false , System.currentTimeMillis())
                 _messages.value = updatedResponse
                 _response.postValue(responseText)

@@ -46,3 +46,15 @@ interface LocalStorageDaoForChats {
     @Delete
     fun deleteChat(chat: Chat)
 }
+
+@Dao
+interface WebDao {
+    @Insert
+    fun addWeb(web: Web)
+
+    @Query("SELECT * FROM content_table_webHistory")
+    fun readAllWeb(): LiveData<List<Web>>
+
+    @Delete
+    fun deleteWeb(web: Web)
+}

@@ -20,6 +20,7 @@ import com.example.imgselect.model.ChatViewModelWithImage
 import com.example.imgselect.model.PhotoTakenViewModel
 import com.example.imgselect.model.SummaryViewModel
 import com.example.imgselect.model.TextRecognitionViewModel
+import com.example.imgselect.model.WebHistoryViewModel
 
 @Composable
 fun Navigation(window: Window,applicationContext: Context)
@@ -32,6 +33,7 @@ fun Navigation(window: Window,applicationContext: Context)
     val chatViewModelWithImage = viewModel<ChatViewModelWithImage>()
     val typewriterViewModel = viewModel<TypewriterViewModel>()
     val textRecognitionViewModel= viewModel<TextRecognitionViewModel>()
+
     NavHost(navController = navController, startDestination =Screen.MainScreen.route )
     {
 

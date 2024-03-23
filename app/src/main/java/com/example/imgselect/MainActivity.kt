@@ -213,7 +213,6 @@ class MainActivity : ComponentActivity() {
 
 
             val chatViewModel = viewModel<ChatViewModel>()
-            val summaryViewModel = viewModel<SummaryViewModel>()
             val chatViewModelWithImage = viewModel<ChatViewModelWithImage>()
             val typewriterViewModel = viewModel<TypewriterViewModel>()
             val dictionaryViewModel = viewModel<DictionaryViewModel>()
@@ -226,6 +225,7 @@ class MainActivity : ComponentActivity() {
             var summaryText by remember{
                 mutableStateOf("Sample summary text")
             }
+            var summaryViewModel=viewModel<SummaryViewModel>()
             ImgselectTheme {
                 if(!hasCameraPermission())
                 {
@@ -317,6 +317,7 @@ if(summaryDialog)
                                             }.await()
                                             summaryDialog = true
                                             summaryText = textResponse
+
                                             Log.d("MainAct", textResponse)
                                             summaryViewModel.questioning(summaryText)
                                         }
@@ -462,6 +463,7 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
     var focus by remember{
         mutableStateOf(false)
     }
+    val context= LocalContext.current
     //The launcher we will use for the PickVisualMedia contract.
     //When .launch()ed, this will display the photo picker.
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -650,10 +652,7 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
                         DisplayImageFromUri(photoUri = photoUri,focus=focus)
                         DisplayRotatedImage(photoTaken = photoTaken, degrees = 90f,focus=focus)
                         //Do use this for seeing the cropped region real time
-//    Image(modifier = Modifier
-//        .padding(0.dp)
-//        ,bitmap = imageBitmap, contentDescription = "Bitmap Image",                contentScale = ContentScale.Crop
-//    )
+
                     }
                 }
 
@@ -689,7 +688,10 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
             val snackbarHostState = SnackbarHostState()
             val coroutineScope = rememberCoroutineScope()
             //
-
+            Image(modifier = Modifier
+                .padding(0.dp).zIndex(4f)
+                ,bitmap = imageBitmap, contentDescription = "Bitmap Image",                contentScale = ContentScale.Crop
+            )
             Row(modifier=Modifier){
                 Button(onClick = {
                     summaryViewModel.dialogVisible = true
@@ -752,6 +754,8 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
                 Button(onClick = {
                     CoroutineScope(Dispatchers.IO).launch{
                     //captureSelectedRegion(window,startOffsetX,startOffsetY,endOffsetX,endOffsetY,{selectedBitmap=it})
+             selectedBitmap=      captureSelectedRegion(context ,window,startOffsetX,startOffsetY,endOffsetX,endOffsetY)
+
                        }
                 })
                 {
@@ -1093,7 +1097,7 @@ fun DisplayRotatedImage(photoTaken: Bitmap?, degrees: Float, modifier: Modifier 
 
     }
 }
-suspend fun captureSelectedRegion(
+suspend fun captureSelectedRegion(context:Context,
     window: Window,
     startOffsetX: Float,
     startOffsetY: Float,
@@ -1102,7 +1106,7 @@ suspend fun captureSelectedRegion(
 ): Bitmap {
     val width = Math.abs(startOffsetX - endOffsetX)
     val height = Math.abs(startOffsetY - endOffsetY)
-
+    val statusBarHeight = getStatusBarHeight(context)
     if (width.toInt() <= 0 || height.toInt() <= 0) {
         throw IllegalArgumentException("Invalid region dimensions")
     }
@@ -1111,9 +1115,9 @@ suspend fun captureSelectedRegion(
         val bitmap = Bitmap.createBitmap(width.toInt(), height.toInt(), Bitmap.Config.ARGB_8888)
         val sourceRect = Rect(
             startOffsetX.toInt(),
-            startOffsetY.toInt() + 80,
+            startOffsetY.toInt() + statusBarHeight,
             endOffsetX.toInt(),
-            endOffsetY.toInt() + 80
+            endOffsetY.toInt() + statusBarHeight
         )
         val handler = Handler(Looper.getMainLooper())
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

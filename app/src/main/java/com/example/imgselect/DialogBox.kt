@@ -8,21 +8,31 @@ import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.animateValueAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
@@ -39,6 +49,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.ExperimentalTextApi
@@ -54,6 +65,12 @@ import com.example.imgselect.model.DiscussUiState
 import com.example.imgselect.model.SummaryViewModel
 import kotlinx.coroutines.delay
 import kotlin.streams.toList
+import com.example.imgselect.data.Summary
+import com.example.imgselect.data.Web
+import com.example.imgselect.model.WebHistoryViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
@@ -398,6 +415,111 @@ fun String.splitToCodePoints(): List<String> {
 
 
 
+
+
+
+
+@OptIn(ExperimentalTextApi::class)
+@Composable
+fun WebHistoryDialog(
+    setShowDialog: (Boolean) -> Unit,
+   history :List<Web>,
+    webHistoryViewModel: WebHistoryViewModel,
+    setUrl:(String)->Unit
+) {
+
+    Dialog(onDismissRequest = { setShowDialog(false) }
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.height(700.dp),
+            color = Color.White
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .background(Color(0xff1E1E1E))
+                        .fillMaxHeight(0.88f)
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = "History",
+                        style = TextStyle(
+                            fontFamily = MaterialTheme.typography.titleSmall.fontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 32.sp),
+                        color = Color.White,
+
+                        modifier = Modifier
+                            .padding(20.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        modifier = Modifier.fillMaxSize(), // Ensure the LazyColumn takes up all available space
+
+                    ) {
+                        items(history.sortedByDescending { it.date }){ web ->
+                            Box(
+                                modifier = Modifier
+                                    .background(Color.Black)
+                                    .clickable{
+                                      setUrl(web.website?:"www.google.com")
+                                    }
+                                    .padding(8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row() {
+                                    Text(text = web.website ?: "Unknown Website", color = Color.White, maxLines = 1,modifier=Modifier.fillMaxWidth(0.8f))
+                                    IconButton(onClick = {
+                                        CoroutineScope(Dispatchers.IO).launch{
+                                            webHistoryViewModel.deleteWeb(web)
+
+                                        }
+                                    }) {
+                                        Icon(Icons.Default.Delete,"delete",tint=Color.White)
+                                    }
+                                }
+                            }                        }
+                    }
+
+
+                }
+
+
+
+                Box(
+                    modifier = Modifier
+                        .background(Color(0xff141414))
+                        .fillMaxSize()
+                ) {
+                    Button(
+                        onClick = {
+
+                            setShowDialog(false)
+
+                        },
+                        shape = RoundedCornerShape(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            // Change the background color here
+                            contentColor = Color.White,
+                            containerColor = Color.Green// Change the text color here
+                        ),
+                        modifier = Modifier
+                            .height(50.dp)
+                            .align(Alignment.Center)
+
+                    ) {
+                        Text(
+                            text = "Done", color = Color.Black,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 
 
 

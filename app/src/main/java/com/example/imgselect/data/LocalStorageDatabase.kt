@@ -10,11 +10,12 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Meaning::class , Summary::class] , version = 5 , exportSchema = false)
+@Database(entities = [Meaning::class , Summary::class, Web::class] , version = 6, exportSchema = false)
 abstract class LocalStorageDatabase: RoomDatabase() {
 
 
     abstract fun userDao() : LocalStorageDao
+    abstract fun webDao(): WebDao // Add a DAO for the Web entity
 
     companion object {
 

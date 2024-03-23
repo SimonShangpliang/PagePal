@@ -239,7 +239,10 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                 Button(onClick = {
                     // Add message to list and clear input field
                     if(chatViewModelWithImage.imageList.isEmpty()) {
-                        chatViewModel.getResponseFromChatBot()
+                        chatViewModel.getResponseFromChatBot({
+                            Log.d("main",it)
+                        })
+
                         query.value = chatViewModel.query
                         messageQuery.add(ChatQuery(query = chatViewModel.query))
                         chatViewModel.query = ""

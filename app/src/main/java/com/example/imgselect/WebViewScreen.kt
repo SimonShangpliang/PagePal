@@ -16,6 +16,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -31,9 +32,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -42,11 +49,13 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
@@ -61,6 +70,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
@@ -70,11 +80,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.dictionary.model.DictionaryViewModel
 import com.example.imgselect.DictionaryNetwork.WordData
+import com.example.imgselect.data.Web
 import com.example.imgselect.model.TextRecognitionViewModel
 import com.example.imgselect.model.TextResult
+import com.example.imgselect.model.WebHistoryViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -91,6 +104,9 @@ fun WebViewScreen(window:Window,navController: NavController,textViewModel:TextR
     var modifier:Modifier by remember {
         mutableStateOf(Modifier)
     }
+
+      val webHistoryViewModel =viewModel<WebHistoryViewModel>()
+
 
     val setModifier: (Modifier) -> Unit = { modi ->
         modifier = modi
@@ -109,14 +125,51 @@ fun WebViewScreen(window:Window,navController: NavController,textViewModel:TextR
         if(!urlList.contains(url)){
 
             urlList.add(newURl)
-        currIndexPage+=1
+
+            val newWeb = Web(website = url, date = System.currentTimeMillis())
+            if(!newURl.contentEquals("https://www.google.com/")){
+                CoroutineScope(Dispatchers.IO).launch {
+
+                    webHistoryViewModel.addWeb(newWeb)
+                }}
+
+            currIndexPage+=1
+        }
+    }
+    val webViewHolder = remember { WebViewHolder(context,setLoading,setUrl) }
+
+    val setUrlHistory: (String) -> Unit = { newURl ->
+        Log.d("MainActivity","String set")
+webViewHolder.loadUrl(newURl)
+        url = newURl
+        if(!urlList.contains(url)){
+
+            urlList.add(newURl)
+
+            val newWeb = Web(website = url, date = System.currentTimeMillis())
+            if(!newURl.contentEquals("https://www.google.com/")){
+                CoroutineScope(Dispatchers.IO).launch {
+
+                    webHistoryViewModel.addWeb(newWeb)
+                }}
+
+            currIndexPage+=1
         }
     }
     LaunchedEffect(Unit )
     {
-        urlList.add("www.google.com")
+        urlList.add("https://www.google.com/")
     }
-    val webViewHolder = remember { WebViewHolder(context,setLoading,setUrl) }
+
+    DisposableEffect(Unit) {
+        // This block of code will be executed when the composable is removed from the composition
+        onDispose {
+           webViewHolder.close()
+        }
+    }
+    var webHistory by remember {
+        mutableStateOf(false)
+    }
 //val disp=LocalOnBackPressedDispatcherOwner.current
 //    DisposableEffect(Unit) {
 //        val dispatcher = disp?.onBackPressedDispatcher
@@ -147,6 +200,7 @@ fun WebViewScreen(window:Window,navController: NavController,textViewModel:TextR
     // State to track if WebView is loading
 //    val isLoading by viewModel.isLoading
     //val imageBitmap: ImageBitmap = selectedBitmap!!.asImageBitmap()
+    val webListHistory by webHistoryViewModel.webHistory.observeAsState(emptyList())
 
     var box by remember { mutableStateOf(emptyList<TextResult>()) }
     Surface {
@@ -160,7 +214,10 @@ fun WebViewScreen(window:Window,navController: NavController,textViewModel:TextR
 
             }
             else{
-
+if(webHistory)
+{
+    WebHistoryDialog(setShowDialog = { webHistory = it }, webListHistory,webHistoryViewModel,setUrlHistory)
+}
                 Column {
                 Row(modifier = Modifier
                     .fillMaxWidth()
@@ -176,49 +233,77 @@ fun WebViewScreen(window:Window,navController: NavController,textViewModel:TextR
                                 isLoading = true
                                 webViewHolder.loadUrl(url)
                             }
-                        )
+                        ), trailingIcon = {
+if(url!=""){IconButton(onClick = { url=""
+
+}) {
+    Icon(Icons.Default.Clear,"clear",tint=Color.White)
+
+}}
+                        }
+
 
                     )
-                    Row (){
-                        Button(modifier=Modifier.size(30.dp),
-                            onClick = {
-                                // Set loading state to true when clicking the button
-                                // Load the URL
-                                webViewHolder.close()
-                             navController.navigate(Screen.MainScreen.route)
-                            }
-                        ) {
-                            Text("B")
-                        }
-                        val coroutineScope = rememberCoroutineScope()
-
-                        Button(modifier=Modifier.size(30.dp),
-                            onClick = {
-                                // Set loading state to true when clicking the button
-                                // Load the URL
-
-//                                captureEntireScreen(context,window,screenWidth,screenHeight,{selectedBitmap=it})
-//                                captureSelectedRegion(window,0f,0f,screenWidth.toFloat(),screenHeight.toFloat(),{selectedBitmap=it})
-
-
-                            }
-                        ) {
-                            Text("B")
-                        }
-                        Button(modifier=Modifier.size(30.dp),
+                    Row (verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxSize()){
+                        IconButton(modifier=Modifier.size(30.dp),
                             onClick = {
                                 // Set loading state to true when clicking the button
                                 // Load the URL
                                 isLoading = true
                                 webViewHolder.loadUrl(url)
                                 if(!urlList.contains(url)){
-                                currIndexPage++;
-                                urlList.add(url)}
+                                    currIndexPage++;
+                                    urlList.add(url)
+                                    if(!url.contentEquals("https://www.google.com/")){
+
+                                        val newWeb = Web(website = url, date = System.currentTimeMillis())
+                                   CoroutineScope(Dispatchers.IO).launch {             webHistoryViewModel.addWeb(newWeb)
+                                    }}
+                                }
                             }
                         ) {
-                            Text("R")
+                            if (isLoading) {
+                                CircularProgressIndicator()
+                            }else{
+                            Icon(Icons.Default.Refresh,"refresh",tint=Color.White)}
                         }
+
+
+                        IconButton(
+                            onClick = {
+                                // Set loading state to true when clicking the button
+                                // Load the URL
+                                if (currIndexPage > 0) {
+                                    currIndexPage = currIndexPage - 1
+                                    urlList.removeLast()
+                                }
+                                urlList.forEach { it ->
+                                    Log.d("main", it)
+                                }
+
+                                url = urlList[currIndexPage]
+                                webViewHolder.loadUrl(url)
+                            },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .align(Alignment.CenterVertically)
+                        ) {
+
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        }
+
+                        IconButton(modifier=Modifier.size(30.dp),
+                            onClick = {
+webHistory=true
+
+                                //History
+                            }
+                        ) {
+                            Icon(painter= painterResource(id = R.drawable.baseline_manage_history_24),"refresh",tint=Color.White)
+                        }
+
                     }
+
                     Button(modifier=Modifier.size(30.dp),
                         onClick = {
 //                            if (focus == true) {
@@ -252,9 +337,7 @@ fun WebViewScreen(window:Window,navController: NavController,textViewModel:TextR
                     }
                 }
                 // Show loading text if WebView is loading
-                if (isLoading) {
-                    CircularProgressIndicator()
-              }
+
 //                    Image(modifier = Modifier
 //        .padding(0.dp)
 //        ,bitmap = imageBitmap, contentDescription = "Bitmap Image",                contentScale = ContentScale.Crop
@@ -345,42 +428,6 @@ if(showDialog)
     Log.d("main",listMeaning.toString())
     WordMeaningDialog(setShowDialog = {showDialog=it},listMeaning,onResponse = {}, onButton = {} )
 }
-//Box(modifier=Modifier.fillMaxSize().background(Color.Black)){
-//    Image(
-//        bitmap = bitmap.asImageBitmap(),
-//        contentDescription = null,
-//        contentScale = ContentScale.FillWidth,
-//        modifier = Modifier.fillMaxSize()
-//    )
-
-//    Canvas(modifier = Modifier.zIndex(3f)) {
-//        textResults.forEach { result ->
-//Log.d("Main",result.toString())
-//            val boundingBox = result.boundingBox
-//
-//            // Convert bounding box coordinates to pixels
-//            val left = boundingBox!!.left.toFloat()
-//            val top = boundingBox!!.top.toFloat()
-//            val right = boundingBox!!.right.toFloat()
-//            val bottom = boundingBox!!.bottom.toFloat()
-//
-//            // Draw bounding box rectangle
-//            drawRect(
-//                color = Color(255, 0, 0, 50), // Red color with 50% opacity
-//                style = Fill,
-//                topLeft = Offset(left, top-80),
-//                size = Size(right - left, bottom - top)
-//            )
-//
-//            // Draw bounding box rectangle
-//            drawRect(
-//                color = Color.Red,
-//                style = Stroke(width = 2.dp.toPx()),
-//                topLeft = Offset(left, top-80),
-//                size = Size(right - left, bottom - top)
-//            )
-////        }
-//    }}
 
     Box(modifier = Modifier
         .fillMaxSize()
