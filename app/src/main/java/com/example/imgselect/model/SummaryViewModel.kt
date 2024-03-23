@@ -37,6 +37,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
 
     var dialogVisible: Boolean by mutableStateOf(false)
     var title: String by mutableStateOf("")
+    var animationFinished: Boolean by mutableStateOf(false)
     init{
         val config= generationConfig {temperature=0.70f  }
         generativeModel= GenerativeModel(
@@ -107,6 +108,10 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     fun getSummaryList() : LiveData<List<Summary>> {
         val summaryList = repository.readAllSummary
         return summaryList
+    }
+
+    suspend fun getSummary(summaryId: Int): Summary {
+        return repository.getSummary(summaryId = summaryId)
     }
 }
 sealed interface DiscussUiState{

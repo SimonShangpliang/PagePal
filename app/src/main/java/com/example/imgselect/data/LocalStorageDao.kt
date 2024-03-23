@@ -24,6 +24,9 @@ interface LocalStorageDao {
     @Delete
     fun deleteSummary(summary: Summary)
 
+    @Query("SELECT * FROM content_table_summary WHERE id = :summaryId")
+    fun getSummary(summaryId: Int): Summary
+
 
 
 

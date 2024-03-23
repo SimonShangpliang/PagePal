@@ -1,6 +1,12 @@
 package com.example.imgselect
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.animateValueAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +30,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,7 +50,10 @@ import androidx.compose.ui.window.Dialog
 import com.example.imgselect.DictionaryNetwork.Definition
 import com.example.imgselect.DictionaryNetwork.Meaning
 import com.example.imgselect.DictionaryNetwork.WordData
+import com.example.imgselect.model.DiscussUiState
 import com.example.imgselect.model.SummaryViewModel
+import kotlinx.coroutines.delay
+import kotlin.streams.toList
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
@@ -239,7 +249,10 @@ fun WordMeaningDialog(
 fun SummaryDialog(
     setShowDialog: (Boolean) -> Unit,
     Summary:String,
+    summaryViewModel: SummaryViewModel
 ) {
+
+    val appUiState=summaryViewModel.uiState.collectAsState().value
 
     Dialog(onDismissRequest = { setShowDialog(false) }
     ) {
@@ -270,17 +283,14 @@ fun SummaryDialog(
                             .align(Alignment.CenterHorizontally)
                     )
 
-                    Text(
-                        text = Summary,
-                        style = TextStyle(
-                            fontFamily = MaterialTheme.typography.titleSmall.fontFamily,
-                            fontSize = 18.sp),
-                        color = Color.White,
+                    when(appUiState) {
+                        is DiscussUiState.Success->TypewriterText(texts = listOf(Summary))
+                        is DiscussUiState.Loading-> Text(text = "Summary::Loading" , modifier = Modifier.padding(16.dp))
+                        else-> Text(text = "Summary::Error" , modifier = Modifier.padding(16.dp))
+                    }
 
-                        modifier = Modifier
-                            .padding(20.dp)
-                            .align(Alignment.CenterHorizontally)
-                    )
+
+
 
 
 
@@ -288,10 +298,13 @@ fun SummaryDialog(
 
 
 
-                Box(
+                Row(
                     modifier = Modifier
                         .background(Color(0xff141414))
                         .fillMaxSize()
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Button(
                         onClick = {
@@ -307,11 +320,34 @@ fun SummaryDialog(
                         ),
                         modifier = Modifier
                             .height(50.dp)
-                            .align(Alignment.Center)
+                            //.align(Alignment.Start)
 
                     ) {
                         Text(
                             text = "Done", color = Color.Black,
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+
+                            setShowDialog(false)
+                            summaryViewModel.dialogVisible = true
+
+                        },
+                        shape = RoundedCornerShape(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            // Change the background color here
+                            contentColor = Color.White,
+                            containerColor = Color.Green// Change the text color here
+                        ),
+                        modifier = Modifier
+                            .height(50.dp)
+                        //.align(Alignment.Start)
+
+                    ) {
+                        Text(
+                            text = "Save", color = Color.Black,
                         )
                     }
                 }
@@ -319,6 +355,51 @@ fun SummaryDialog(
         }
     }
 }
+
+@Composable
+fun TypewriterText(texts: List<String>, durationMillis: Int = 2000) {
+    var currentText by remember { mutableStateOf("") }
+    var textIndex by remember { mutableStateOf(0) }
+    var charIndex by remember { mutableStateOf(0) }
+
+    LaunchedEffect(texts) {
+        while (textIndex < texts.size) {
+            if (charIndex < texts[textIndex].length) {
+                currentText += texts[textIndex][charIndex]
+                charIndex++
+                delay(160)
+            } else {
+                delay(durationMillis.toLong())
+                textIndex++
+                charIndex = 0
+                if (textIndex < texts.size) {
+                    currentText = ""
+                }
+            }
+        }
+    }
+
+    Text(
+        text = currentText,
+        modifier = Modifier.padding(16.dp)
+    )
+}
+
+
+
+@RequiresApi(Build.VERSION_CODES.N)
+fun String.splitToCodePoints(): List<String> {
+    return codePoints()
+        .toList()
+        .map {
+            String(Character.toChars(it))
+        }
+}
+
+
+
+
+
 
 
 

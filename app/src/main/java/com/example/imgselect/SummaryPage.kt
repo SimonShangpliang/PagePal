@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -52,13 +53,16 @@ import com.example.imgselect.model.SummaryViewModel
 import com.example.imgselect.ui.theme.lightblue
 import com.example.imgselect.ui.theme.lighterPurple
 import com.example.imgselect.ui.theme.lighterYellow
+import java.nio.file.Files.delete
 import kotlin.random.Random
 
 @Composable
-fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavController , summaryViewModel: SummaryViewModel){
+fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavController , summaryViewModel: SummaryViewModel , goToSummaryListPage: (Summary) -> Unit){
 
     val summarylist by summaryList.observeAsState(initial  = emptyList())
     Log.d("SummaryList" , "${summaryList}")
+    val colors = listOf(lightblue, lighterPurple, lighterYellow)
+
     Surface(
 
         modifier = Modifier.fillMaxSize(),
@@ -82,19 +86,32 @@ fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavContro
 //            summaryCard(cardColor = Purple80)
 //            Spacer(modifier = Modifier.size(16.81.dp))
             LazyColumn {
-                items(summarylist) {summary ->
-                    summary.summary?.let {
-                        summaryCard(
-                            title = summary.title ,
-                            date = summary.time ,
-                            summary = it,
-                            delete = {summaryViewModel.deleteSummary(summary)}
+//                items(summarylist) {summary ->
+//                    summary?.let {
+//                        summaryCard(
+//                            summary = it,
+//                            delete = {summaryViewModel.deleteSummary(summary)},
+//                            goToSummaryListPage = {goToSummaryListPage(summary)},
+//                            color =
+//                        )
+//                        if(summarylist.indexOf(summary) == summarylist.size-1) {
+//                            Spacer(modifier = Modifier.size(80.dp))
+//                        }
+//                        Spacer(modifier = Modifier.size(20.dp))
+//                    }
+//                }
+
+                itemsIndexed(summarylist) {index,summary ->
+                    summaryCard(
+                            summary = summary,
+                            delete = {summaryViewModel.deleteSummary(summary)},
+                            goToSummaryListPage = {goToSummaryListPage(summary)},
+                            color = colors[index % colors.size]
                         )
-                        if(summarylist.indexOf(summary) == summarylist.size-1) {
+                    if(summarylist.indexOf(summary) == summarylist.size-1) {
                             Spacer(modifier = Modifier.size(80.dp))
                         }
                         Spacer(modifier = Modifier.size(20.dp))
-                    }
                 }
             }
         }
@@ -252,9 +269,9 @@ fun SortAndSearch(){
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun summaryCard(title: String, date: String, summary: String, delete:() -> Unit){
-    val colors = listOf(lightblue , lighterPurple , lighterYellow)
-    val randomColor = colors[Random.nextInt(colors.size)]
+fun summaryCard(summary: Summary, delete:() -> Unit , goToSummaryListPage: (Summary)-> Unit , color: Color){
+//    val colors = listOf(lightblue , lighterPurple , lighterYellow)
+//    val randomColor = colors[Random.nextInt(colors.size)]
     var isSelected  = remember {
         mutableStateOf(false)
     }
@@ -265,12 +282,15 @@ fun summaryCard(title: String, date: String, summary: String, delete:() -> Unit)
             //.height(197.dp)
         ,
         colors = CardDefaults.cardColors(
-            containerColor = randomColor),
-        onClick = {!isSelected.value}
+            containerColor = color),
+        onClick = {
+            !isSelected.value
+            goToSummaryListPage(summary)
+        }
     ) {
         Column (modifier = Modifier.padding(horizontal = 27.dp, vertical = 24.dp)){
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Absolute.SpaceBetween) {
-                Text(text = title, fontSize = 24.sp, fontWeight = FontWeight.Medium , color = Color.Black)
+                Text(text = summary.title, fontSize = 24.sp, fontWeight = FontWeight.Medium , color = Color.Black)
                 Row(horizontalArrangement = Arrangement.Absolute.SpaceBetween , modifier = Modifier.width(70.dp)) {
                     Icon(painter = painterResource(id = R.drawable.generic), contentDescription = "Summary type" , tint = Color.Black , modifier = Modifier.size(30.dp))
                     Icon(painter = painterResource(id = R.drawable.baseline_delete_24), contentDescription = "delete" , tint = Color.Black , modifier = Modifier
@@ -281,27 +301,71 @@ fun summaryCard(title: String, date: String, summary: String, delete:() -> Unit)
 
             Spacer(modifier = Modifier.height(39.dp))
             if(isSelected.value) {
-                Text(
-                    text = summary,
-                    color = Color.Black
-                )
+                summary.summary?.let {
+                    Text(
+                        text = it,
+                        color = Color.Black
+                    )
+                }
             } else {
-                Text(
-                    text = summary,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    color = Color.Black
-                )
+                summary.summary?.let {
+                    Text(
+                        text = it,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        color = Color.Black
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(28.dp))
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End){
-                Text(text = date, fontSize = 12.sp, fontWeight = FontWeight.Medium , color = Color.Black)
+                Text(text = summary.time, fontSize = 12.sp, fontWeight = FontWeight.Medium , color = Color.Black)
             }
         }
 
     }
+}
+
+@Composable
+fun SummaryListPage(summary: Summary) {
+
+    Card(
+        colors = CardDefaults.cardColors(lighterYellow),
+        modifier = Modifier.padding(16.dp).fillMaxWidth()
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceAround,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = summary.title,
+                modifier = Modifier.padding(16.dp),
+                color = Color.Black,
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = summary.time,
+                modifier = Modifier.padding(16.dp),
+                color = Color.Black,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        summary?.summary?.let {
+            Text(
+                text = it,
+                modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                color = Color.DarkGray,
+                fontSize = 16.sp
+            )
+        }
+    }
+
 }
 
 

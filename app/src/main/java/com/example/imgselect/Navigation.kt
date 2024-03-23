@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.dictionary.model.DictionaryViewModel
 import com.example.imgselect.data.Chat
+import com.example.imgselect.data.Summary
 import com.example.imgselect.model.ChatViewModel
 import com.example.imgselect.model.ChatViewModelWithImage
 import com.example.imgselect.model.PhotoTakenViewModel
@@ -45,7 +46,9 @@ fun Navigation(window: Window,applicationContext: Context)
         }
         composable(route = Screen.SummaryScreen.route) {
             //SummaryScreen(summaryList = summaryViewModel.getSummaryList() , navController = navController , chatViewModel = chatViewModel , chatViewModelWithImage = chatViewModelWithImage)
-            SummaryScreen(summaryList = summaryViewModel.getSummaryList(), navController = navController , summaryViewModel = summaryViewModel)
+            SummaryScreen(summaryList = summaryViewModel.getSummaryList(), navController = navController , summaryViewModel = summaryViewModel){summary->
+                navController.navigate("${Screen.FullSummaryList.route}/${summary.id}")
+            }
         }
 
         composable(route = Screen.ChatScreen.route) {
@@ -72,6 +75,19 @@ fun Navigation(window: Window,applicationContext: Context)
             }
 
             chat?.let { FullChatScreen(it) }
+        }
+
+        composable(route = "${Screen.FullSummaryList.route}/{summaryId}") {backStackEntry->
+            val summaryId = backStackEntry.arguments?.getString("summaryId")?.toInt()
+            var summary by remember { mutableStateOf<Summary?>(null)}
+
+            LaunchedEffect(summaryId) {
+                summaryId?.let {
+                    summary = summaryViewModel.getSummary(summaryId)
+                }
+            }
+            
+            summary?.let { SummaryListPage(summary = summary!!)}
         }
 
 

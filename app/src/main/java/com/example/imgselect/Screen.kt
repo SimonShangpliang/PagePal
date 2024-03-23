@@ -17,5 +17,7 @@ sealed class Screen(val route:String) {
 
     object FullChatScreen: Screen("full_chat_screen")
 
+    object FullSummaryList: Screen("full_summary_list")
+
 
 }

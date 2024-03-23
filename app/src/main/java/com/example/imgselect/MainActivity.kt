@@ -246,10 +246,39 @@ class MainActivity : ComponentActivity() {
                     val scaffoldState = rememberBottomSheetScaffoldState(
                         bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
                     )
+                    val appUiState=summaryViewModel.uiState.collectAsState().value
+
 if(summaryDialog)
 {
-    SummaryDialog(setShowDialog ={summaryDialog=it} ,summaryText )
+    when(appUiState) {
+        is DiscussUiState.Success -> SummaryDialog(setShowDialog ={summaryDialog=it} , Summary = "Summary ::"+ appUiState.outputText  , summaryViewModel)
+        is DiscussUiState.Loading -> SummaryDialog(setShowDialog = {summaryDialog = it}, Summary = "Summary ::Loading" , summaryViewModel)
+        else -> {
+            SummaryDialog(setShowDialog = {summaryDialog = it} , Summary = "Summary::Error" , summaryViewModel) }
+    }
+
 }
+                    if(summaryViewModel.dialogVisible) {
+                        AlertDialog(
+                            onDismissRequest = { summaryViewModel.dialogVisible = false },
+                            title = {Text("Enter a title")},
+                            text = {
+                                TextField(
+                                    value = summaryViewModel.title,
+                                    onValueChange = {summaryViewModel.title = it},
+                                    label = {Text("Title")}
+                                )
+                            },
+                            confirmButton = {
+                                Button(onClick = {
+                                    summaryViewModel.dialogVisible = false
+                                    summaryViewModel.saveSummaryWithImage(selectedBitmap , title = summaryViewModel.title)
+                                }) {
+                                    Text("OK")
+                                }
+                            }
+                        )
+                    }
                     BottomSheetScaffold(
                         scaffoldState = scaffoldState,
                         sheetContent = {
@@ -286,9 +315,10 @@ if(summaryDialog)
                                                 )
 
                                             }.await()
-                                            summaryDialog=true
-                                            summaryText=textResponse
+                                            summaryDialog = true
+                                            summaryText = textResponse
                                             Log.d("MainAct", textResponse)
+                                            summaryViewModel.questioning(summaryText)
                                         }
                                     }
                                 ) {

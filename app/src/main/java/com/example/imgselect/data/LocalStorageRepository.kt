@@ -23,6 +23,13 @@ class LocalStorageRepository(private val localStorageDao: LocalStorageDao) {
         localStorageDao.deleteSummary(summary)
     }
 
+    suspend fun getSummary(summaryId: Int): Summary {
+        return  withContext(Dispatchers.IO) {
+            localStorageDao.getSummary(summaryId)
+        }
+
+    }
+
 
 
 }
