@@ -1,3 +1,4 @@
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,7 +28,9 @@ fun DictionaryScreen(dictionaryViewModel: DictionaryViewModel = viewModel()) {
         )
 
         Button(
-            onClick = { dictionaryViewModel.getMeaning() },
+            onClick = {
+               // dictionaryViewModel.getMeaning()
+                      },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Get Meaning")
@@ -38,6 +41,7 @@ fun DictionaryScreen(dictionaryViewModel: DictionaryViewModel = viewModel()) {
                 response.meanings.flatMap { meaning ->
                     meaning.definitions.map { definition ->
                         definition.definition
+                        
                     }
                 }
             } ?: emptyList()

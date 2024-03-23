@@ -3,6 +3,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.graphics.Point
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
@@ -12,6 +13,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.PixelCopy
 import android.view.Window
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -67,6 +69,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -75,6 +79,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 
 import androidx.compose.ui.unit.dp
@@ -95,10 +100,18 @@ import com.example.imgselect.model.DiscussUiState
 import com.example.imgselect.model.PhotoTakenViewModel
 import com.example.imgselect.model.SummaryViewModel
 import com.example.imgselect.model.TextRecognitionViewModel
+import com.example.imgselect.model.TextResult
 import com.example.imgselect.ui.theme.ImgselectTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.lang.Math.abs
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 import kotlin.math.sqrt
 
 class MainActivity : ComponentActivity() {
@@ -106,16 +119,122 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+
+            val configuration = LocalConfiguration.current
+            val screenHeight = configuration.screenHeightDp
+            val screenWidth = configuration.screenWidthDp
+            val context = LocalContext.current
+
+            //coordinates
+            var startOffsetX by remember { mutableStateOf(0f) }
+            var endOffsetX by remember { mutableStateOf(0f) }
+            var startOffsetY by remember { mutableStateOf(0f) }
+            var endOffsetY by remember { mutableStateOf(0f) }
+            var focus by remember{
+                mutableStateOf(false)
+            }
+            var selectedBitmap by remember { mutableStateOf(createBitmap(1,1, config = Bitmap.Config.ARGB_8888)) }
+
+            val default_mod= Modifier
+                .pointerInput(Unit)
+                {
+
+                    detectTapGestures(onDoubleTap = { change ->
+                        //setting coordinates of selected images
+                        if (focus) {
+                            startOffsetX = change.x + 20
+                            startOffsetY = change.y + 20
+                            endOffsetX = change.x + 300
+                            endOffsetY = change.y + 300
+                        }
+                    }) { }
+                }
+                .pointerInput(Unit) {
+
+                    detectDragGestures() { change, point ->
+                        if (focus) {
+                            val distanceToStart = euclideanDistance(
+                                startOffsetX,
+                                startOffsetY,
+                                change.position.x,
+                                change.position.y
+                            )
+                            val distanceToEnd = euclideanDistance(
+                                startOffsetX,
+                                endOffsetY,
+                                change.position.x,
+                                change.position.y
+                            )
+                            val distanceToStartEnd = euclideanDistance(
+                                endOffsetX,
+                                startOffsetY,
+                                change.position.x,
+                                change.position.y
+                            )
+                            val distanceToEndEnd = euclideanDistance(
+                                endOffsetX,
+                                endOffsetY,
+                                change.position.x,
+                                change.position.y
+                            )
+
+                            val minDistance = minOf(
+                                distanceToStart,
+                                distanceToEnd,
+                                distanceToStartEnd,
+                                distanceToEndEnd
+                            )
+                            when (minDistance) {
+                                distanceToStart -> {
+                                    startOffsetX = change.position.x
+                                    startOffsetY = change.position.y
+                                }
+
+                                distanceToEnd -> {
+                                    startOffsetX = change.position.x
+                                    endOffsetY = change.position.y
+                                }
+
+                                distanceToStartEnd -> {
+                                    endOffsetX = change.position.x
+                                    startOffsetY = change.position.y
+                                }
+
+                                distanceToEndEnd -> {
+                                    endOffsetX = change.position.x
+                                    endOffsetY = change.position.y
+                                }
+                            }
+                        }
+                    }
+
+
+                }
+
+
             val chatViewModel = viewModel<ChatViewModel>()
             val summaryViewModel = viewModel<SummaryViewModel>()
             val chatViewModelWithImage = viewModel<ChatViewModelWithImage>()
             val typewriterViewModel = viewModel<TypewriterViewModel>()
+            val dictionaryViewModel = viewModel<DictionaryViewModel>()
+            val textViewModel = viewModel<TextRecognitionViewModel>()
+            val coroutineScope = rememberCoroutineScope()
+            var box by remember { mutableStateOf(emptyList<TextResult>()) }
+            var summaryDialog by remember{
+                mutableStateOf(false)
+            }
+            var summaryText by remember{
+                mutableStateOf("Sample summary text")
+            }
             ImgselectTheme {
                 if(!hasCameraPermission())
                 {
                     ActivityCompat.requestPermissions(
                         this, arrayOf(android.Manifest.permission.CAMERA),0
                     )
+                }
+                var meaning by remember{
+                    mutableStateOf(false)
                 }
 //                var navController= rememberNavController()
 
@@ -127,7 +246,10 @@ class MainActivity : ComponentActivity() {
                     val scaffoldState = rememberBottomSheetScaffoldState(
                         bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
                     )
-
+if(summaryDialog)
+{
+    SummaryDialog(setShowDialog ={summaryDialog=it} ,summaryText )
+}
                     BottomSheetScaffold(
                         scaffoldState = scaffoldState,
                         sheetContent = {
@@ -137,20 +259,47 @@ class MainActivity : ComponentActivity() {
                                     .padding(16.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Button(
-                                    onClick = { /*TODO*/ },
-                                    colors = ButtonDefaults.buttonColors(Color.Black),
-                                    modifier = Modifier.wrapContentSize()
+
+
+
+
+                                Box(modifier= Modifier
+                                    .clip(
+                                        RoundedCornerShape(20.dp)
+                                    )
+                                    .background(Color.Black)
+                                    .height(40.dp)
+                                    .clickable {
+                                        coroutineScope.launch {
+                                            selectedBitmap = async {
+                                                //     captureSelectedRegion(window, startOffsetX, startOffsetY, endOffsetX, endOffsetY)
+                                                captureEntireScreen(
+                                                    context = context,
+                                                    window,
+                                                    screenWidth,
+                                                    screenHeight
+                                                )
+                                            }.await()
+                                            val textResponse = async {
+                                                textViewModel.performOnlyTextRecognition(
+                                                    selectedBitmap
+                                                )
+
+                                            }.await()
+                                            summaryDialog=true
+                                            summaryText=textResponse
+                                            Log.d("MainAct", textResponse)
+                                        }
+                                    }
                                 ) {
                                     Text(
                                         text = "Summary",
                                         fontSize = 15.sp,
                                         color = Color.LightGray,
                                         modifier = Modifier
-                                            .padding(horizontal = 16.dp)
-                                            .clickable {
+                                            .padding(horizontal = 26.dp)
+                                            .align(Alignment.Center)
 
-                                            }
                                     )
                                 }
 
@@ -171,20 +320,46 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
 
-                                Button(
-                                    onClick = { /*TODO*/ },
-                                    colors = ButtonDefaults.buttonColors(Color.Black),
-                                    modifier = Modifier.wrapContentSize()
+
+                                Box(modifier= Modifier
+                                    .clip(
+                                        RoundedCornerShape(20.dp)
+                                    )
+                                    .background(if (meaning) Color.White else Color.Black)
+                                    .height(40.dp)
+                                    .clickable {
+                                        if (meaning == false) {
+                                            coroutineScope.launch {
+                                                selectedBitmap = async {
+                                                    //     captureSelectedRegion(window, startOffsetX, startOffsetY, endOffsetX, endOffsetY)
+                                                    captureEntireScreen(
+                                                        context = context,
+                                                        window,
+                                                        screenWidth,
+                                                        screenHeight
+                                                    )
+                                                }.await()
+                                                box = async {
+                                                    textViewModel.performTextRecognition(
+                                                        selectedBitmap
+                                                    )
+                                                }.await()
+                                                meaning = true
+                                                Log.d("MainAct", box.toString())
+                                            }
+                                        } else {
+                                            meaning = false
+                                        }
+                                    }
                                 ) {
                                     Text(
                                         text = "Meaning",
                                         fontSize = 15.sp,
                                         color = Color.LightGray,
                                         modifier = Modifier
-                                            .padding(horizontal = 16.dp)
-                                            .clickable {
+                                            .padding(horizontal = 26.dp)
+                                            .align(Alignment.Center)
 
-                                            }
                                     )
                                 }
                             }
@@ -197,8 +372,34 @@ class MainActivity : ComponentActivity() {
                         sheetBackgroundColor = Color.DarkGray,
 
                         ) { innerPadding ->
-Navigation(window = window, applicationContext =applicationContext)
-
+//                        Canvas(modifier = Modifier
+//                            .fillMaxWidth()
+//                            .zIndex(2f)) {
+//                            val topLeftX = startOffsetX
+//                            val topLeftY = startOffsetY
+//                            val bottomRightX = endOffsetX
+//                            val bottomRightY = endOffsetY
+//
+//                            val rectangleTopLeft = Offset(topLeftX, topLeftY)
+//                            if ((bottomRightX != 0f && bottomRightY != 0f)) {
+//                                drawRect(
+//                                    color = Color.Blue.copy(alpha = 0.3f),
+//                                    topLeft = rectangleTopLeft,
+//                                    size = Size(Math.abs(bottomRightX - topLeftX), Math.abs(bottomRightY - topLeftY))
+//                                )
+//
+//                            }
+//                        }
+                        Box(modifier=Modifier.fillMaxSize()) {
+                            Navigation(window = window, applicationContext = applicationContext)
+                         if(meaning){   DrawBoundingBoxes(
+                                selectedBitmap,
+                                textResults = box,
+                                dictionaryViewModel
+                            )}
+                        }
+//MainScreen2()
+//                        SummaryScreen()
                 }
 
                 }
@@ -214,14 +415,13 @@ Navigation(window = window, applicationContext =applicationContext)
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun MainScreen(window: Window,navController: NavController,photoViewModel: PhotoTakenViewModel , chatViewModel: ChatViewModel , chatViewModelWithImage: ChatViewModelWithImage , viewModel: TypewriterViewModel) {
+fun MainScreen(window: Window,navController: NavController,photoViewModel: PhotoTakenViewModel , chatViewModel: ChatViewModel , chatViewModelWithImage: ChatViewModelWithImage , viewModel: TypewriterViewModel,textViewModel:TextRecognitionViewModel) {
     //These are used to represent the cropped regions from screen
     var startOffsetX by remember { mutableStateOf(0f) }
     var endOffsetX by remember { mutableStateOf(0f) }
     var startOffsetY by remember { mutableStateOf(0f) }
     var endOffsetY by remember { mutableStateOf(0f) }
     var selectedBitmap by remember { mutableStateOf(createBitmap(1,1, config = Bitmap.Config.ARGB_8888)) }
-    val textViewModel=viewModel<TextRecognitionViewModel>()
     val dictionaryViewModel=viewModel<DictionaryViewModel>()
     val summaryViewModel=viewModel<SummaryViewModel>()
     //The URI of the photo that the user has picked
@@ -238,6 +438,7 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
         //When the user has selected a photo, its URI is returned here
         photoUri = uri
     }
+
 
 //    BottomSheetScaffold(
 //        scaffoldState = scaffoldState,
@@ -519,7 +720,9 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
             Row() {
                 //Crop an image
                 Button(onClick = {
-                    captureSelectedRegion(window,startOffsetX,startOffsetY,endOffsetX,endOffsetY,{selectedBitmap=it})
+                    CoroutineScope(Dispatchers.IO).launch{
+                 //   captureSelectedRegion(window,startOffsetX,startOffsetY,endOffsetX,endOffsetY,{selectedBitmap=it})
+                       }
                 })
                 {
                     Text(text = "select Image Cropped")
@@ -537,8 +740,9 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
                                 Toast.LENGTH_LONG
                             ).show()
                         } else {
-                            textViewModel.performTextRecognition(selectedBitmap, handleText)
                             coroutineScope.launch {
+                              //  textViewModel.performTextRecognition(selBi)
+
                                 // Display Snackbar with the recognized text
                                 delay(2000)
                                 dictionaryViewModel.word = text
@@ -573,7 +777,7 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
 
                             Button(
                                 onClick = {
-                                    dictionaryViewModel.getMeaning()
+                                   // dictionaryViewModel.getMeaning()
 
                                 },
                                 modifier = Modifier
@@ -859,44 +1063,83 @@ fun DisplayRotatedImage(photoTaken: Bitmap?, degrees: Float, modifier: Modifier 
 
     }
 }
-private fun captureSelectedRegion(
-    window:Window,
+suspend fun captureSelectedRegion(
+    window: Window,
     startOffsetX: Float,
     startOffsetY: Float,
     endOffsetX: Float,
-    endOffsetY: Float,
-    onCaptureResult: (Bitmap) -> Unit
-) {
-    var width=abs(startOffsetX -  endOffsetX)
-    var height= abs(startOffsetY - endOffsetY)
+    endOffsetY: Float
+): Bitmap {
+    val width = Math.abs(startOffsetX - endOffsetX)
+    val height = Math.abs(startOffsetY - endOffsetY)
 
+    if (width.toInt() <= 0 || height.toInt() <= 0) {
+        throw IllegalArgumentException("Invalid region dimensions")
+    }
 
-    var bitmap:Bitmap= createBitmap(1,1,Bitmap.Config.ARGB_8888)
-    if(width.toInt()>0&& height.toInt()>0){   bitmap  = Bitmap.createBitmap(width.toInt(), height.toInt(), Bitmap.Config.ARGB_8888)
-        var sourceRect: Rect? = Rect(0,0,0,0) // Initializing with default values
-        sourceRect = Rect(startOffsetX.toInt(), startOffsetY.toInt()+80, (endOffsetX).toInt(), (endOffsetY).toInt()+80)
+    return suspendCoroutine { continuation ->
+        val bitmap = Bitmap.createBitmap(width.toInt(), height.toInt(), Bitmap.Config.ARGB_8888)
+        val sourceRect = Rect(
+            startOffsetX.toInt(),
+            startOffsetY.toInt() + 80,
+            endOffsetX.toInt(),
+            endOffsetY.toInt() + 80
+        )
         val handler = Handler(Looper.getMainLooper())
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Use PixelCopy with Rect (API level 26+)
-
-            PixelCopy.request(window,sourceRect,bitmap,{copyResult->
+            PixelCopy.request(window, sourceRect, bitmap, { copyResult ->
                 if (copyResult == PixelCopy.SUCCESS) {
-                    // The specified screen content has been copied to the bitmap
-                    // Now you can use 'bitmap' as needed
-                   // selectedBitmap=bitmap
-onCaptureResult(bitmap)
-                    Log.d("MainActivity",bitmap.toString())
+                    continuation.resume(bitmap)
                 } else {
-
-                    Log.e("PixelCopy", "Failed to copy screen content")
+                    continuation.resumeWithException(RuntimeException("Failed to copy screen content"))
                 }
-
-            },handler)
-
+            }, handler)
         } else {
             // Use alternative methods for lower API levels
             // For instance, View.draw() or View.getDrawingCache()
-        }}
+            continuation.resumeWithException(RuntimeException("PixelCopy is not supported on this device"))
+        }
+    }
+}
+private fun getStatusBarHeight(context: Context): Int {
+    val resourceId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
+    return if (resourceId > 0) context.resources.getDimensionPixelSize(resourceId) else 0
+}
+suspend fun captureEntireScreen(
+    context: Context,
+    window: Window,
+    widthInDp: Int,
+    heightInDp: Int
+): Bitmap {
+    val displayMetrics = context.resources.displayMetrics
+    val width = (widthInDp * displayMetrics.density).toInt()
+    val height = (heightInDp * displayMetrics.density).toInt()
+    val statusBarHeight = getStatusBarHeight(context)
+
+    return suspendCancellableCoroutine { continuation ->
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val sourceRect = Rect(0, statusBarHeight.toInt(), width, height+statusBarHeight.toInt())
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Use PixelCopy with Rect (API level 26+)
+            val handler = Handler(Looper.getMainLooper())
+            PixelCopy.request(window, sourceRect, bitmap, { copyResult ->
+                if (copyResult == PixelCopy.SUCCESS) {
+                    continuation.resume(bitmap)
+                } else {
+                    continuation.resumeWithException(RuntimeException("Failed to copy screen content"))
+                }
+            }, handler)
+        } else {
+            continuation.resumeWithException(RuntimeException("PixelCopy is not supported on this device"))
+        }
+
+        // Cancellation handler if needed
+        continuation.invokeOnCancellation {
+            // Handle cancellation if needed
+        }
+    }
 }
 fun euclideanDistance(x1:Float, y1: Float, x2: Float, y2: Float): Float {
     val deltaX = x2 - x1
@@ -904,3 +1147,4 @@ fun euclideanDistance(x1:Float, y1: Float, x2: Float, y2: Float): Float {
 
     return sqrt(deltaX * deltaX + deltaY * deltaY).toFloat()
 }
+
