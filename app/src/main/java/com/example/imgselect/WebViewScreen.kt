@@ -83,11 +83,8 @@ import com.example.imgselect.DictionaryNetwork.WordData
 import com.example.imgselect.data.Web
 import com.example.imgselect.model.TextRecognitionViewModel
 import com.example.imgselect.model.TextResult
-<<<<<<< Updated upstream
 import com.example.imgselect.model.WebHistoryViewModel
-=======
 import com.example.imgselect.ui.theme.backgroundcolor
->>>>>>> Stashed changes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
