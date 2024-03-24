@@ -1,10 +1,13 @@
 package com.example.mytestapp
 
+import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,8 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,6 +30,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.smallTopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,7 +43,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LiveData
+import androidx.navigation.NavController
+import com.example.dictionary.model.DictionaryViewModel
+import com.example.imgselect.DictionaryNetwork.WordData
 import com.example.imgselect.R
+import com.example.imgselect.Screen
+import com.example.imgselect.data.Meaning
 import com.example.imgselect.deckUI
 import com.example.imgselect.shelf
 import com.example.imgselect.ui.theme.darkBar
@@ -74,9 +89,8 @@ val shelfRowList = mutableListOf<shelf>(
 
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
 @Composable
-fun flashCardLibrary() {
+fun flashCardLibrary(dictionaryViewModel: DictionaryViewModel , navController: NavController) {
     var presses by remember { mutableIntStateOf(0) }
     val isDark = true // it gonna be passed to the function
 
@@ -103,46 +117,156 @@ fun flashCardLibrary() {
             Image(painter=painterResource(id = R.drawable.searchbar3), contentDescription = "searchBar",modifier=Modifier.fillMaxWidth())
             // gonna be replaced by mayank"s searchBar Ui
 
-            shelfRow(shelfRowList = shelfRowList)
+            shelfRow(shelfRowList = dictionaryViewModel.getMeaningList() , dictionaryViewModel = dictionaryViewModel , navController = navController)
 
         }
     }
 }
-
 @Composable
-fun shelfRow(shelfRowList:MutableList<shelf>){
+fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: DictionaryViewModel , navController: NavController){
 
-    for (shelf in shelfRowList) {
-        val cardDeck = shelf.cardDeck
-        Column(){
-            Text(text =shelf.title,
-                color= lightBar,
-                fontWeight = FontWeight.Bold,
-                modifier= Modifier.padding(start=20.dp)
+    val meaningList by shelfRowList.observeAsState(initial  = emptyList())
+    val state = rememberScrollState()
+    meaningList.forEach { meaning->
+        dictionaryViewModel.setOfTitle.add(meaning.title)
+        dictionaryViewModel.setOfDates.add(meaning.date)
+        meaning.wordDetails?.forEach { word ->
+            dictionaryViewModel.setOfWords.add(word.word)
+        }
+    }
+        Column(
+            modifier = Modifier.verticalScroll(
+               state =  state,
+                enabled = true
             )
+        ){
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp).height(50.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text ="Title",
+                    color= lightBar,
+                    fontWeight = FontWeight.Bold,
+                    modifier= Modifier.padding(start=20.dp),
+                    fontSize = 25.sp
+                )
+
+                Image(
+                    painter = painterResource(id = R.drawable.frame_30),
+                    contentDescription = null,
+                    modifier = Modifier.size(100.dp).clickable {  }
+                )
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            LazyRow(modifier = Modifier,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(28.dp)
+            ) {
+                items(dictionaryViewModel.setOfTitle.toList()) {title->
+                    Log.d("Title" , title)
+                    ShelfItem(name = title) {word ->
+                        navController.navigate("${Screen.SingleDeckScreen.route}/${title}")
+
+
+                    }
+
+                }
+
+            }
+
+
+            Spacer(modifier = Modifier.height(50.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp).height(50.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text ="Date",
+                    color= lightBar,
+                    fontWeight = FontWeight.Bold,
+                    modifier= Modifier.padding(start=20.dp),
+                    fontSize = 25.sp
+                )
+
+                Image(
+                    painter = painterResource(id = R.drawable.frame_30),
+                    contentDescription = null,
+                    modifier = Modifier.size(100.dp).clickable {  }
+                )
+            }
             Spacer(modifier = Modifier.height(15.dp))
             LazyRow(modifier = Modifier,
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(28.dp)
             ) {
-                this.items(cardDeck) { deckUI  ->
-                    ShelfItem(
-                        name=deckUI.name,
-                        subname =deckUI.subtitle,
-                        term=deckUI.name,
-                    )
+                items(dictionaryViewModel.setOfDates.toList()) {date->
+                    Log.d("Title" , date)
+                    ShelfItem(name = date) {word ->
+                        navController.navigate("${Screen.SingleDeckScreen.route}/${date}")
+
+                    }
+
                 }
+
             }
+
+
+
+            Spacer(modifier = Modifier.height(50.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp).height(50.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text ="Words",
+                    color= lightBar,
+                    fontWeight = FontWeight.Bold,
+                    modifier= Modifier.padding(start=20.dp),
+                    fontSize = 25.sp
+                )
+
+                Image(
+                    painter = painterResource(id = R.drawable.frame_30),
+                    contentDescription = null,
+                    modifier = Modifier.size(100.dp).clickable {  }
+                )
+            }
+
+
+            Spacer(modifier = Modifier.height(25.dp))
+            LazyRow(modifier = Modifier,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(28.dp)
+            ) {
+                items(dictionaryViewModel.setOfWords.toList()) {word->
+                    Log.d("Title" , word)
+                    ShelfItem(name = word) {words ->
+                        navController.navigate("${Screen.SingleDeckScreen.route}/${word}")
+
+                    }
+
+                }
+
+            }
+
+            Spacer(modifier = Modifier.height(100.dp))
         }
 
 
-    }
+
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShelfItem(name: String,subname:String,term:String ){
-    Box(modifier=Modifier, contentAlignment = Alignment.TopStart){
+fun ShelfItem(name: String , goToOneDeck: (String)-> Unit){
+    Box(modifier=Modifier.clickable { goToOneDeck(name) }, contentAlignment = Alignment.TopStart){
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = lighterYellow,
@@ -154,7 +278,7 @@ fun ShelfItem(name: String,subname:String,term:String ){
                     scaleY = 1f,
                     rotationZ = 18f,
                     translationX = 20f,
-                )
+                ),
         ) {}
         Card(
             colors = CardDefaults.cardColors(
@@ -193,4 +317,10 @@ fun ShelfItem(name: String,subname:String,term:String ){
         }
 
     }
+}
+
+@Preview
+@Composable
+fun FlashcardLibraryPreview() {
+    //flashCardLibrary()
 }

@@ -97,7 +97,7 @@ fun Home() {
             selectedIcon = painterResource(R.drawable.picture_as_pdf),
             unselectedIcon= painterResource(id = R.drawable.picture_as_pdf_grey)
         )
-        
+
     )
 
     Scaffold(
@@ -135,7 +135,7 @@ fun Home() {
                                            )
                                    }
                                )
-                               
+
                            }
                        }
 

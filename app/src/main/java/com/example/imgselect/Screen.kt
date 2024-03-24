@@ -19,5 +19,7 @@ sealed class Screen(val route:String) {
 
     object FullSummaryList: Screen("full_summary_list")
 
+    object SingleDeckScreen: Screen("single_deck_screen")
+
 
 }

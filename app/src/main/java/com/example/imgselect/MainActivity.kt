@@ -846,10 +846,6 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
                         }
 
                         Row() {
-                            Button(onClick = {navController.navigate(Screen.MeaningScreen.route)}) {
-                                Text("View Meaning")
-
-                            }
 
                             Button(onClick = {navController.navigate(Screen.SummaryScreen.route)}) {
                                 Text("View Summary")
@@ -873,6 +869,11 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
 
                 }
                     }
+
+            Button(onClick = {navController.navigate(Screen.MeaningScreen.route)}) {
+                Text("View Meaning")
+
+            }
 
                     //Summary part
 

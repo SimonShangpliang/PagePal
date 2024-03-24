@@ -37,8 +37,8 @@ fun MeaningRow(meaning: Meaning) {
         .padding(10.dp)
         .fillMaxWidth()) {
         Column(modifier = Modifier.padding(10.dp)) {
-            meaning.word?.let { Text(it) }
-            meaning.meaning?.let { Text(it) }
+//            meaning.word?.let { Text(it) }
+//            meaning.meaning?.let { Text(it) }
 
         }
 

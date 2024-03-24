@@ -382,38 +382,40 @@ fun ChatRow(chat: Chat , goToFullChat: (Chat) -> Unit , deleteChat: () -> Unit) 
                 .padding(16.dp)
                 .fillMaxWidth()
         ) {
-            chat.message?.get(0)?.message?.let {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+            if(chat.message?.isNotEmpty() == true) {
+                chat.message?.get(0)?.message?.let {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = it,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            color = Color.DarkGray,
+                            modifier = Modifier.padding(16.dp)
+                        )
+
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_delete_24),
+                            contentDescription = null,
+                            modifier = Modifier.clickable { deleteChat() }.padding(16.dp),
+                            tint = Color.Black
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                chat.message?.get(1)?.message?.let {
                     Text(
                         text = it,
-                        maxLines = 2,
+                        maxLines = 3,
                         overflow = TextOverflow.Ellipsis,
                         color = Color.DarkGray,
                         modifier = Modifier.padding(16.dp)
                     )
-
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_delete_24),
-                        contentDescription = null,
-                        modifier = Modifier.clickable { deleteChat() }.padding(16.dp),
-                        tint = Color.Black
-                    )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            chat.message?.get(1)?.message?.let {
-                Text(
-                    text = it,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    color = Color.DarkGray,
-                    modifier = Modifier.padding(16.dp)
-                )
             }
         }
     }

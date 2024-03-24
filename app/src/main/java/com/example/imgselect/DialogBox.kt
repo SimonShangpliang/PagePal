@@ -58,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.dictionary.model.DictionaryViewModel
 import com.example.imgselect.DictionaryNetwork.Definition
 import com.example.imgselect.DictionaryNetwork.Meaning
 import com.example.imgselect.DictionaryNetwork.WordData
@@ -77,12 +78,10 @@ import kotlinx.coroutines.launch
 fun WordMeaningDialog(
     setShowDialog: (Boolean) -> Unit,
     initialListMeaning: List<WordData>?,
-    onResponse: (String) -> Unit,
-
-    onButton: (Boolean) -> Unit
+    dictionaryViewModel: DictionaryViewModel
 ) {
-
-    var listMeaning by remember { mutableStateOf(initialListMeaning) }
+    dictionaryViewModel.listMeaning = initialListMeaning
+    //var listMeaning by remember { mutableStateOf(initialListMeaning) }
 
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
@@ -113,7 +112,7 @@ fun WordMeaningDialog(
                             .align(Alignment.CenterHorizontally)
                     )
                     Text(
-                        text = listMeaning?.getOrNull(0)?.word ?: "No Word",
+                        text = dictionaryViewModel.listMeaning?.getOrNull(0)?.word ?: "No Word",
                         style = TextStyle(
                             fontFamily = MaterialTheme.typography.titleSmall.fontFamily,
                             fontSize = 23.sp
@@ -124,7 +123,7 @@ fun WordMeaningDialog(
                             .align(Alignment.CenterHorizontally)
                     )
 
-                    listMeaning?.forEach { wordData ->
+                    dictionaryViewModel.listMeaning?.forEach { wordData ->
                         Column(modifier = Modifier.fillMaxWidth()) {
                             wordData.meanings.groupBy { it.partOfSpeech }?.forEach { (partOfSpeech, meanings) ->
                                 Text(
@@ -147,7 +146,7 @@ fun WordMeaningDialog(
                                             RadioButton(
                                                 selected = definition.isSelected,
                                                 onClick = { /* Handle click event */
-                                                    listMeaning = listMeaning?.map { wordData ->
+                                                    dictionaryViewModel.listMeaning = dictionaryViewModel.listMeaning?.map { wordData ->
                                                         val updatedMeanings = wordData.meanings.map { meaning ->
                                                             val updatedDefinitions = meaning.definitions.map { def ->
                                                                 if (def == definition) {
@@ -208,7 +207,19 @@ fun WordMeaningDialog(
                     Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically){
                     Button(
                         onClick = {
+                            dictionaryViewModel.listMeaning?.forEach { worddata->
+                                worddata.meanings.forEach { meanings->
+                                    meanings.definitions.forEach { definitions->
+                                        Log.d("DefinitionsNew" , "${definitions.definition}")
+                                        Log.d("DefinitionsNew" , "${definitions.isSelected}")
+                                    }
+                                }
+                            }
 // here you will give the response back from user selected meanings using listMeaning State
+                            setShowDialog(false)
+                            dictionaryViewModel.dialogVisible = true
+
+//                            dictionaryViewModel.saveMeaning()
 
 
                         },
@@ -236,7 +247,7 @@ fun WordMeaningDialog(
 //                            val selectedDefs = selectedDefinitions.values.flatten()
 //                            //onResponse(selectedDefs)
 //                            Log.d("main",selectedDefs.toString())
-                                onResponse("done")
+                                //onResponse("done")
                             },
                             shape = RoundedCornerShape(50.dp),
                             colors = ButtonDefaults.buttonColors(

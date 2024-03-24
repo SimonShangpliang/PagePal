@@ -6,6 +6,7 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.example.imgselect.ChatQueryResponse
+import com.example.imgselect.DictionaryNetwork.WordData
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -14,8 +15,9 @@ import com.google.gson.reflect.TypeToken
 data class Meaning(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val word: String?,
-    val meaning: String?,
+    val wordDetails: List<WordData>? = listOf(),
+    val date: String = "",
+    val title: String
 
     )
 
@@ -55,6 +57,17 @@ class Converters {
     fun stringToChatQueryResponseList(data: String): List<ChatQueryResponse>? {
         val type = object : TypeToken<List<ChatQueryResponse>>() {}.type
         return gson.fromJson(data, type)
+    }
+
+    @TypeConverter
+    fun listOfWordDataToString(wordDataList: List<WordData>?): String {
+        return gson.toJson(wordDataList)
+    }
+
+    @TypeConverter
+    fun stringToListOfWordData(data: String): List<WordData>? {
+        val type = object : TypeToken<List<WordData>>() {}.type
+        return gson.fromJson(data , type)
     }
 }
 

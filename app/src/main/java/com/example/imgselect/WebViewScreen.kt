@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
@@ -90,6 +91,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -426,8 +429,35 @@ var showDialog by remember{
 if(showDialog)
 {
     Log.d("main",listMeaning.toString())
-    WordMeaningDialog(setShowDialog = {showDialog=it},listMeaning,onResponse = {}, onButton = {} )
+    WordMeaningDialog(setShowDialog = {showDialog=it},listMeaning, dictionaryViewModel )
 }
+
+    if(dictionaryViewModel.dialogVisible) {
+        AlertDialog(
+            onDismissRequest = { dictionaryViewModel.dialogVisible = false },
+            title = {Text("Enter a title")},
+            text = {
+                androidx.compose.material.TextField(
+                    value = dictionaryViewModel.title,
+                    onValueChange = {dictionaryViewModel.title = it},
+                    label = {Text("Title")}
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val current = Calendar.getInstance()
+                    val dateFormat = SimpleDateFormat("yyyy/MM/dd")
+                    val date = dateFormat.format(current.time)
+                    dictionaryViewModel.dialogVisible = false
+                    dictionaryViewModel.saveMeaning()
+                    dictionaryViewModel.setOfTitle.add(dictionaryViewModel.title)
+                    dictionaryViewModel.setOfDates.add(date)
+                }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
 
     Box(modifier = Modifier
         .fillMaxSize()

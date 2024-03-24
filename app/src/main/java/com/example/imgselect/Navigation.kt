@@ -21,6 +21,7 @@ import com.example.imgselect.model.PhotoTakenViewModel
 import com.example.imgselect.model.SummaryViewModel
 import com.example.imgselect.model.TextRecognitionViewModel
 import com.example.imgselect.model.WebHistoryViewModel
+import com.example.mytestapp.flashCardLibrary
 
 @Composable
 fun Navigation(window: Window,applicationContext: Context)
@@ -43,9 +44,7 @@ fun Navigation(window: Window,applicationContext: Context)
         composable(route=Screen.CameraScreen.route) {
             CameraScreen(applicationContext = applicationContext,photoViewModel)
         }
-        composable(route = Screen.MeaningScreen.route) {
-            MeaningListScreen(meaningList = dictionaryViewModel.getMeaningList())
-        }
+
         composable(route = Screen.SummaryScreen.route) {
             //SummaryScreen(summaryList = summaryViewModel.getSummaryList() , navController = navController , chatViewModel = chatViewModel , chatViewModelWithImage = chatViewModelWithImage)
             SummaryScreen(summaryList = summaryViewModel.getSummaryList(), navController = navController , summaryViewModel = summaryViewModel){summary->
@@ -90,6 +89,16 @@ fun Navigation(window: Window,applicationContext: Context)
             }
             
             summary?.let { SummaryListPage(summary = summary!!)}
+        }
+
+        composable(route = "${Screen.SingleDeckScreen.route}/{id}") {backStackEntry->
+            val id = backStackEntry.arguments?.getString("id")
+
+        }
+
+        composable(route = Screen.MeaningScreen.route) {
+            //MeaningListScreen(meaningList = dictionaryViewModel.getMeaningList())
+            flashCardLibrary(dictionaryViewModel = dictionaryViewModel , navController = navController)
         }
 
 

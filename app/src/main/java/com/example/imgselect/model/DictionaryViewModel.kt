@@ -25,6 +25,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull.content
 import retrofit2.HttpException
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import kotlin.coroutines.resumeWithException
 import kotlin.reflect.KProperty
 
@@ -36,6 +38,12 @@ class DictionaryViewModel(application: Application) : AndroidViewModel(applicati
     var response : List<WordData>? by mutableStateOf(null)
     var word: String by mutableStateOf("")
     var wrongWord: Boolean by mutableStateOf(false)
+    var listMeaning: List<WordData>? by mutableStateOf(listOf())
+    var title: String by mutableStateOf("Others")
+    var dialogVisible: Boolean by mutableStateOf(false)
+    var setOfTitle: MutableSet<String> = mutableSetOf()
+    var setOfDates: MutableSet<String> = mutableSetOf()
+    var setOfWords: MutableSet<String> = mutableSetOf()
 
     init {
         val localStorageDao = LocalStorageDatabase.getDatabase(application).userDao()
@@ -93,7 +101,10 @@ class DictionaryViewModel(application: Application) : AndroidViewModel(applicati
 
     fun saveMeaning() {
         viewModelScope.launch(Dispatchers.IO) {
-            val content = Meaning(0,word , response.toString())
+            val current = Calendar.getInstance()
+            val dateFormat = SimpleDateFormat("yyyy/MM/dd")
+            val date = dateFormat.format(current.time)
+            val content = Meaning(0, listMeaning , date , title)
             Log.d("word" , "${word}")
             Log.d("meaning" , "${response}")
             repository.addMeaning(content)

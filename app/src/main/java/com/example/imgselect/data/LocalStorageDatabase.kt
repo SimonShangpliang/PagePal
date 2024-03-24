@@ -10,7 +10,8 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Meaning::class , Summary::class, Web::class] , version = 6, exportSchema = false)
+@Database(entities = [Meaning::class , Summary::class, Web::class] , version = 8, exportSchema = false)
+@TypeConverters(Converters::class)
 abstract class LocalStorageDatabase: RoomDatabase() {
 
 
