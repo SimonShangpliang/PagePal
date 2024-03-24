@@ -4,12 +4,16 @@ import androidx.compose.ui.graphics.Color
 
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
+val outlinePurple = Color(0xFFD1C0EB)
+
 val Pink80 = Color(0xFFEFB8C8)
-val lighterTeal = Color(0xFF72F7EA)
-val lighterYellow= Color(0xFFFFFEAE)
-val medTeal = Color(0xFF006A63)
+val lighterTeal = Color(0xFFD4EFDF)
+val lighterYellow= Color(0xFFFFF2C5)
+val outlineYellow= Color(0xFFD6D6BE)
+
+val medTeal = Color(0xFFA9C5C4)
 val lightBar = Color(0xFFE8ECEF)
-val lighterPurple = Color(0xFFD8B9FF)
+val lighterPurple = Color(0xFFECE5FF)
 val darkBar = Color(0xFF161616) // using this
 val lightblue= Color(0xFFD4EFDF)
 
@@ -18,4 +22,6 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 val interestcolour =Color(0xFF424242)
+val interestcolour1 =Color(0xFF424242)
+
 val profileborder =Color(0xFFFFFFFF)

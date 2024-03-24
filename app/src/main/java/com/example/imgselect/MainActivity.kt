@@ -227,7 +227,8 @@ class MainActivity : ComponentActivity() {
             }
             var summaryViewModel=viewModel<SummaryViewModel>()
             ImgselectTheme {
-                if(!hasCameraPermission())
+
+                            if(!hasCameraPermission())
                 {
                     ActivityCompat.requestPermissions(
                         this, arrayOf(android.Manifest.permission.CAMERA),0
@@ -689,7 +690,8 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
             val coroutineScope = rememberCoroutineScope()
             //
             Image(modifier = Modifier
-                .padding(0.dp).zIndex(4f)
+                .padding(0.dp)
+                .zIndex(4f)
                 ,bitmap = imageBitmap, contentDescription = "Bitmap Image",                contentScale = ContentScale.Crop
             )
             Row(modifier=Modifier){
