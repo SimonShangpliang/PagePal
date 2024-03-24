@@ -1,6 +1,10 @@
 package com.example.mytestapp
 
+<<<<<<< Updated upstream
 import android.util.Log
+=======
+import androidx.compose.foundation.BorderStroke
+>>>>>>> Stashed changes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -44,20 +49,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+<<<<<<< Updated upstream
 import androidx.lifecycle.LiveData
 import androidx.navigation.NavController
 import com.example.dictionary.model.DictionaryViewModel
 import com.example.imgselect.DictionaryNetwork.WordData
+=======
+>>>>>>> Stashed changes
 import com.example.imgselect.R
 import com.example.imgselect.Screen
 import com.example.imgselect.data.Meaning
 import com.example.imgselect.deckUI
 import com.example.imgselect.shelf
 import com.example.imgselect.ui.theme.darkBar
+import com.example.imgselect.ui.theme.interestcolour1
 import com.example.imgselect.ui.theme.lightBar
 import com.example.imgselect.ui.theme.lighterPurple
 import com.example.imgselect.ui.theme.lighterTeal
 import com.example.imgselect.ui.theme.lighterYellow
+import com.example.imgselect.ui.theme.medTeal
+import com.example.imgselect.ui.theme.outlinePurple
+import com.example.imgselect.ui.theme.outlineYellow
 
 
 val headingSize = 6.dp
@@ -125,6 +137,7 @@ fun flashCardLibrary(dictionaryViewModel: DictionaryViewModel , navController: N
 @Composable
 fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: DictionaryViewModel , navController: NavController){
 
+<<<<<<< Updated upstream
     val meaningList by shelfRowList.observeAsState(initial  = emptyList())
     val state = rememberScrollState()
     meaningList.forEach { meaning->
@@ -199,10 +212,31 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
                 )
             }
             Spacer(modifier = Modifier.height(15.dp))
+=======
+    for (shelf in shelfRowList) {
+        val cardDeck = shelf.cardDeck
+        Column(){
+
+            Row(modifier=Modifier,){
+                Text(text =shelf.title,modifier=Modifier.padding(start=20.dp), textAlign= TextAlign.Start,color= lightBar, fontWeight = FontWeight.Bold,)
+                Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End){
+                    Text(text="Show All",color= lightBar,textAlign=TextAlign.End,fontSize = 11.5.sp,)
+                    Image(painter= painterResource(id =R.drawable.fa_solid_chevron_circle_right ),
+                        contentDescription = null,
+                        modifier= Modifier
+                            .padding(end = 13.dp,top=0.dp,start=2.dp),
+                        Alignment.TopEnd)
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
+
+>>>>>>> Stashed changes
             LazyRow(modifier = Modifier,
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(28.dp)
+                horizontalArrangement = Arrangement.spacedBy(38.dp)
             ) {
+<<<<<<< Updated upstream
                 items(dictionaryViewModel.setOfDates.toList()) {date->
                     Log.d("Title" , date)
                     ShelfItem(name = date) {time ->
@@ -210,6 +244,14 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
                         navController.navigate("${Screen.SingleDeckScreen.route}/${date}/${1}")
 
                     }
+=======
+                this.items(cardDeck) { deckUI  ->
+                    ShelfItem(
+                        name=deckUI.name,
+                        subname =deckUI.subtitle,
+                        term=deckUI.name,
+                    )
+>>>>>>> Stashed changes
 
                 }
 
@@ -266,41 +308,71 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+<<<<<<< Updated upstream
 fun ShelfItem(name: String , goToOneDeck: (String)-> Unit){
     Box(modifier=Modifier.clickable { goToOneDeck(name) }, contentAlignment = Alignment.TopStart){
+=======
+fun ShelfItem(name: String,subname:String,term:String ){
+    Column(modifier=Modifier){
+        Box(modifier=Modifier, contentAlignment = Alignment.Center){
+>>>>>>> Stashed changes
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = lighterYellow,
             ),
+            border = BorderStroke(1.dp,color= outlineYellow),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 6.dp
+            ),
             modifier = Modifier
-                .size(width = 130.dp, height = 170.dp)
+                .size(width = 130.dp, height = 155.dp)
                 .graphicsLayer(
                     scaleX = 1f,
                     scaleY = 1f,
+<<<<<<< Updated upstream
                     rotationZ = 18f,
                     translationX = 20f,
                 ),
+=======
+                    rotationZ = 7f,
+                    translationX = 105f,
+                    translationY = 0f,
+                )
+>>>>>>> Stashed changes
         ) {}
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = lighterTeal,
             ),
+            border = BorderStroke(1.dp,color= medTeal),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 6.dp
+            ),
             modifier = Modifier
-                .size(width = 130.dp, height = 170.dp)
+                .size(width = 130.dp, height = 168.dp)
                 .graphicsLayer(
                     scaleX = 1f,
                     scaleY = 1f,
-                    rotationZ = 13f,
-                    translationX = 6f,
-                )
+                    rotationZ = 4f,
+                    translationX = 70f,
+                    translationY = 0f,
+
+                    )
         ) {}
 
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = lighterPurple,
             ),
+            border = BorderStroke(1.dp,color= outlinePurple),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 10.dp
+            ),
             modifier = Modifier
                 .size(width = 150.dp, height = 180.dp)
+                .align(
+                    Alignment.Center
+                )
                 .graphicsLayer(
                     scaleX = 1f,
                     scaleY = 1f,
@@ -308,15 +380,36 @@ fun ShelfItem(name: String , goToOneDeck: (String)-> Unit){
 
 
             ) {
-            Text(
-                text = name,
-                modifier = Modifier
-                    .padding(16.dp),
-                textAlign = TextAlign.Center,
-                color = darkBar
-            )
+            Spacer(modifier=Modifier.height(6.dp))
+            Row(modifier=Modifier,){
+                Text(text ="1.",modifier=Modifier.padding(start=3.dp), textAlign= TextAlign.Start,color= interestcolour1, fontWeight = FontWeight.Bold,)
+                Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End){
+                    Image(painter= painterResource(id =R.drawable.generic ),
+                        contentDescription = null,
+                        modifier= Modifier
+                            .padding(end = 3.dp),
+                        Alignment.TopEnd)
+                }
+            }
         }
+            Text(text=name, textAlign = TextAlign.Center,modifier=Modifier.fillMaxWidth())
 
+       }
+        Spacer(modifier = Modifier.height(5.dp))
+        Text(text=name,modifier = Modifier
+            .padding(1.dp)
+            .fillMaxWidth(),
+            textAlign = TextAlign.Start,
+            fontWeight = FontWeight.SemiBold,
+            fontSize=14.sp,
+            color = lightBar)
+        Text(text=subname,modifier = Modifier
+            .padding(1.dp)
+            .fillMaxWidth(),
+            fontWeight = FontWeight.Light,
+            fontSize=10.sp,
+            textAlign = TextAlign.Start,
+            color = lightBar)
     }
 }
 

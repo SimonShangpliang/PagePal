@@ -104,7 +104,11 @@ import com.example.imgselect.model.SummaryViewModel
 import com.example.imgselect.model.TextRecognitionViewModel
 import com.example.imgselect.model.TextResult
 import com.example.imgselect.ui.theme.ImgselectTheme
+<<<<<<< Updated upstream
 import com.example.imgselect.ui.theme.backgroundcolor
+=======
+import com.example.mytestapp.flashCardLibrary
+>>>>>>> Stashed changes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -239,7 +243,9 @@ class MainActivity : ComponentActivity() {
             }
             var summaryViewModel=viewModel<SummaryViewModel>()
             ImgselectTheme {
+                flashCardLibrary()
 
+<<<<<<< Updated upstream
                             if(!hasCameraPermission())
                 {
                     ActivityCompat.requestPermissions(
@@ -572,6 +578,215 @@ setModifier(Modifier)
                 }
 
                 }
+=======
+//                            if(!hasCameraPermission())
+//                {
+//                    ActivityCompat.requestPermissions(
+//                        this, arrayOf(android.Manifest.permission.CAMERA),0
+//                    )
+//                }
+//                var meaning by remember{
+//                    mutableStateOf(false)
+//                }
+////                var navController= rememberNavController()
+//
+//                // A surface container using the 'background' color from the theme
+//                Surface(
+//                    modifier = Modifier.fillMaxSize(),
+//                    color = MaterialTheme.colorScheme.background
+//                ) {
+//                    val scaffoldState = rememberBottomSheetScaffoldState(
+//                        bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
+//                    )
+//                    val appUiState=summaryViewModel.uiState.collectAsState().value
+//
+//if(summaryDialog)
+//{
+//    when(appUiState) {
+//        is DiscussUiState.Success -> SummaryDialog(setShowDialog ={summaryDialog=it} , Summary = "Summary ::"+ appUiState.outputText  , summaryViewModel)
+//        is DiscussUiState.Loading -> SummaryDialog(setShowDialog = {summaryDialog = it}, Summary = "Summary ::Loading" , summaryViewModel)
+//        else -> {
+//            SummaryDialog(setShowDialog = {summaryDialog = it} , Summary = "Summary::Error" , summaryViewModel) }
+//    }
+//
+//}
+//                    if(summaryViewModel.dialogVisible) {
+//                        AlertDialog(
+//                            onDismissRequest = { summaryViewModel.dialogVisible = false },
+//                            title = {Text("Enter a title")},
+//                            text = {
+//                                TextField(
+//                                    value = summaryViewModel.title,
+//                                    onValueChange = {summaryViewModel.title = it},
+//                                    label = {Text("Title")}
+//                                )
+//                            },
+//                            confirmButton = {
+//                                Button(onClick = {
+//                                    summaryViewModel.dialogVisible = false
+//                                    summaryViewModel.saveSummaryWithImage(selectedBitmap , title = summaryViewModel.title)
+//                                }) {
+//                                    Text("OK")
+//                                }
+//                            }
+//                        )
+//                    }
+//                    BottomSheetScaffold(
+//                        scaffoldState = scaffoldState,
+//                        sheetContent = {
+//                            Row(
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .padding(16.dp),
+//                                horizontalArrangement = Arrangement.SpaceBetween
+//                            ) {
+//
+//
+//
+//
+//                                Box(modifier= Modifier
+//                                    .clip(
+//                                        RoundedCornerShape(20.dp)
+//                                    )
+//                                    .background(Color.Black)
+//                                    .height(40.dp)
+//                                    .clickable {
+//                                        coroutineScope.launch {
+//                                            selectedBitmap = async {
+//                                                //     captureSelectedRegion(window, startOffsetX, startOffsetY, endOffsetX, endOffsetY)
+//                                                captureEntireScreen(
+//                                                    context = context,
+//                                                    window,
+//                                                    screenWidth,
+//                                                    screenHeight
+//                                                )
+//                                            }.await()
+//                                            val textResponse = async {
+//                                                textViewModel.performOnlyTextRecognition(
+//                                                    selectedBitmap
+//                                                )
+//
+//                                            }.await()
+//                                            summaryDialog = true
+//                                            summaryText = textResponse
+//
+//                                            Log.d("MainAct", textResponse)
+//                                            summaryViewModel.questioning(summaryText)
+//                                        }
+//                                    }
+//                                ) {
+//                                    Text(
+//                                        text = "Summary",
+//                                        fontSize = 15.sp,
+//                                        color = Color.LightGray,
+//                                        modifier = Modifier
+//                                            .padding(horizontal = 26.dp)
+//                                            .align(Alignment.Center)
+//
+//                                    )
+//                                }
+//
+//                                Box(
+//                                    modifier = Modifier
+//                                        .padding(16.dp),
+//                                    contentAlignment = Alignment.Center
+//                                ) {
+//                                    Divider(
+//                                        color = Color.Gray,
+//                                        modifier = Modifier
+//                                            .width(36.dp)
+//                                            .height(5.dp)
+//                                            .background(
+//                                                Color.Gray,
+//                                                shape = RoundedCornerShape(4.dp)
+//                                            )
+//                                    )
+//                                }
+//
+//
+//                                Box(modifier= Modifier
+//                                    .clip(
+//                                        RoundedCornerShape(20.dp)
+//                                    )
+//                                    .background(if (meaning) Color.White else Color.Black)
+//                                    .height(40.dp)
+//                                    .clickable {
+//                                        if (meaning == false) {
+//                                            coroutineScope.launch {
+//                                                selectedBitmap = async {
+//                                                    //     captureSelectedRegion(window, startOffsetX, startOffsetY, endOffsetX, endOffsetY)
+//                                                    captureEntireScreen(
+//                                                        context = context,
+//                                                        window,
+//                                                        screenWidth,
+//                                                        screenHeight
+//                                                    )
+//                                                }.await()
+//                                                box = async {
+//                                                    textViewModel.performTextRecognition(
+//                                                        selectedBitmap
+//                                                    )
+//                                                }.await()
+//                                                meaning = true
+//                                                Log.d("MainAct", box.toString())
+//                                            }
+//                                        } else {
+//                                            meaning = false
+//                                        }
+//                                    }
+//                                ) {
+//                                    Text(
+//                                        text = "Meaning",
+//                                        fontSize = 15.sp,
+//                                        color = Color.LightGray,
+//                                        modifier = Modifier
+//                                            .padding(horizontal = 26.dp)
+//                                            .align(Alignment.Center)
+//
+//                                    )
+//                                }
+//                            }
+//                            ChatScreen(chatViewModel = chatViewModel, chatViewModelWithImage = chatViewModelWithImage , viewModel = typewriterViewModel)
+//                        },
+//                        sheetPeekHeight = 80.dp, // Set this to the desired height to show a peek of the bottom sheet
+//                        sheetGesturesEnabled = true,
+//                        sheetElevation = 8.dp,
+//                        sheetShape = RoundedCornerShape(40.dp),
+//                        sheetBackgroundColor = Color.DarkGray,
+//
+//                        ) { innerPadding ->
+////                        Canvas(modifier = Modifier
+////                            .fillMaxWidth()
+////                            .zIndex(2f)) {
+////                            val topLeftX = startOffsetX
+////                            val topLeftY = startOffsetY
+////                            val bottomRightX = endOffsetX
+////                            val bottomRightY = endOffsetY
+////
+////                            val rectangleTopLeft = Offset(topLeftX, topLeftY)
+////                            if ((bottomRightX != 0f && bottomRightY != 0f)) {
+////                                drawRect(
+////                                    color = Color.Blue.copy(alpha = 0.3f),
+////                                    topLeft = rectangleTopLeft,
+////                                    size = Size(Math.abs(bottomRightX - topLeftX), Math.abs(bottomRightY - topLeftY))
+////                                )
+////
+////                            }
+////                        }
+//                        Box(modifier=Modifier.fillMaxSize()) {
+//                            Navigation(window = window, applicationContext = applicationContext)
+//                         if(meaning){   DrawBoundingBoxes(
+//                                selectedBitmap,
+//                                textResults = box,
+//                                dictionaryViewModel
+//                            )}
+//                        }
+////MainScreen2()
+////                        SummaryScreen()
+//                }
+//
+//                }
+>>>>>>> Stashed changes
             }
 
         }
