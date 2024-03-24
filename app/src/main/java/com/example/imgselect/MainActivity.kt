@@ -315,11 +315,7 @@ focus=false
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-<<<<<<< Updated upstream
 
-
-=======
->>>>>>> Stashed changes
                                 Box(modifier= Modifier
                                     .clip(
                                         RoundedCornerShape(20.dp)
@@ -362,7 +358,6 @@ focus=false
                                 ) {
                                     Row (modifier=Modifier.fillMaxHeight(),verticalAlignment = Alignment.CenterVertically){
                                     Text(
-<<<<<<< Updated upstream
                                         text = if(cropDone) "Summary" else "Done",
                                         fontSize = 15.sp,
                                         color = Color.LightGray,
@@ -374,14 +369,7 @@ focus=false
                                             .align(Alignment.CenterVertically)
                                          //   .align(Alignment.Center)
 
-=======
-                                        text = "Summarize",
-                                        fontSize = 12.sp,
-                                        color = Color.LightGray,
-                                        modifier = Modifier
-                                            .padding(horizontal = 24.dp)
-                                            .align(Alignment.Center)
->>>>>>> Stashed changes
+
                                     )
                                         if(!cropDone)
                                         {
@@ -401,11 +389,9 @@ focus=false
                                     Divider(
                                         color = Color.Gray,
                                         modifier = Modifier
-<<<<<<< Updated upstream
+
                                             .width(120.dp)
-=======
-                                            .width(124.dp)
->>>>>>> Stashed changes
+
                                             .height(5.dp)
                                             .background(
                                                 Color.Gray,
@@ -446,7 +432,7 @@ focus=false
                                         }
                                     }
                                 ) {
-<<<<<<< Updated upstream
+
                                     Row (modifier=Modifier.fillMaxHeight(),verticalAlignment = Alignment.CenterVertically){
                                         Text(
                                             text = if(meaning)"Stop" else "Meaning",
@@ -468,18 +454,6 @@ focus=false
                                                 .align(Alignment.CenterVertically),circleSize = 10.dp, spaceBetween = 5.dp, travelDistance = 8.dp)
                                         }
                                     }
-=======
-                                    Text(
-                                        text = "Meaning",
-                                        fontSize = 12.sp,
-                                        color = Color.LightGray,
-                                        modifier = Modifier
-                                            .padding(horizontal = 24.dp)
-                                            .align(Alignment.Center)
-
-
-                                    )
->>>>>>> Stashed changes
                                 }
                             }
                             if(cropBox)
