@@ -58,6 +58,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -94,6 +95,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.dictionary.model.DictionaryViewModel
+import com.example.imgselect.animations.LoadingAnimation
 import com.example.imgselect.model.ChatViewModel
 import com.example.imgselect.model.ChatViewModelWithImage
 import com.example.imgselect.model.DiscussUiState
@@ -132,6 +134,12 @@ class MainActivity : ComponentActivity() {
             var endOffsetY by remember { mutableStateOf(0f) }
             var focus by remember{
                 mutableStateOf(false)
+            }
+            var modifier:Modifier by remember {
+                mutableStateOf(Modifier)
+            }
+            val setModifier: (Modifier) -> Unit = { modi ->
+                modifier = modi
             }
             var selectedBitmap by remember { mutableStateOf(createBitmap(1,1, config = Bitmap.Config.ARGB_8888)) }
 
@@ -225,6 +233,9 @@ class MainActivity : ComponentActivity() {
             var summaryText by remember{
                 mutableStateOf("Sample summary text")
             }
+            var cropBox by remember{
+                mutableStateOf(false)
+            }
             var summaryViewModel=viewModel<SummaryViewModel>()
             ImgselectTheme {
 
@@ -247,18 +258,27 @@ class MainActivity : ComponentActivity() {
                     val scaffoldState = rememberBottomSheetScaffoldState(
                         bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
                     )
-                    val appUiState=summaryViewModel.uiState.collectAsState().value
+                   // val appUiState=summaryViewModel.uiState.collectAsState().value
+                    var setZeroOffset by remember{ mutableStateOf(0) }
 
 if(summaryDialog)
 {
-    when(appUiState) {
-        is DiscussUiState.Success -> SummaryDialog(setShowDialog ={summaryDialog=it} , Summary = "Summary ::"+ appUiState.outputText  , summaryViewModel)
-        is DiscussUiState.Loading -> SummaryDialog(setShowDialog = {summaryDialog = it}, Summary = "Summary ::Loading" , summaryViewModel)
-        else -> {
-            SummaryDialog(setShowDialog = {summaryDialog = it} , Summary = "Summary::Error" , summaryViewModel) }
-    }
+
+            SummaryDialog(setShowDialog = {summaryDialog = it
+focus=false
+                Log.d("main","jere herere")
+                startOffsetX=0f
+                startOffsetY=0f
+                endOffsetX=0f
+                endOffsetY=0f
+                                          }, summaryViewModel,{setZeroOffset=it
+
+                                })
+
 
 }
+
+
                     if(summaryViewModel.dialogVisible) {
                         AlertDialog(
                             onDismissRequest = { summaryViewModel.dialogVisible = false },
@@ -280,17 +300,19 @@ if(summaryDialog)
                             }
                         )
                     }
+                    var setHeight by remember{ mutableStateOf(80.dp) }
+                    var cropDone by remember{ mutableStateOf(true) }
                     BottomSheetScaffold(
                         scaffoldState = scaffoldState,
                         sheetContent = {
+
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
+
                                     .padding(16.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-
-
 
 
                                 Box(modifier= Modifier
@@ -300,50 +322,72 @@ if(summaryDialog)
                                     .background(Color.Black)
                                     .height(40.dp)
                                     .clickable {
-                                        coroutineScope.launch {
-                                            selectedBitmap = async {
-                                                //     captureSelectedRegion(window, startOffsetX, startOffsetY, endOffsetX, endOffsetY)
-                                                captureEntireScreen(
-                                                    context = context,
-                                                    window,
-                                                    screenWidth,
-                                                    screenHeight
-                                                )
-                                            }.await()
-                                            val textResponse = async {
-                                                textViewModel.performOnlyTextRecognition(
-                                                    selectedBitmap
-                                                )
+                                        if (cropDone) {
+                                            cropBox = true
+                                            setHeight = 140.dp
+                                        } else {
 
-                                            }.await()
-                                            summaryDialog = true
-                                            summaryText = textResponse
+                                            coroutineScope.launch {
 
-                                            Log.d("MainAct", textResponse)
-                                            summaryViewModel.questioning(summaryText)
+                                                selectedBitmap = async {
+                                                    captureSelectedRegion(
+                                                        context,
+                                                        window,
+                                                        startOffsetX,
+                                                        startOffsetY,
+                                                        endOffsetX,
+                                                        endOffsetY
+                                                    )
+
+                                                }.await()
+                                                val textResponse = async {
+                                                    textViewModel.performOnlyTextRecognition(
+                                                        selectedBitmap
+                                                    )
+
+                                                }.await()
+                                                summaryDialog = true
+                                                summaryText = textResponse
+                                                cropDone = true
+                                                Log.d("MainAct", textResponse)
+                                                summaryViewModel.questioningSummary(summaryText)
+                                            }
                                         }
                                     }
                                 ) {
+                                    Row (modifier=Modifier.fillMaxHeight(),verticalAlignment = Alignment.CenterVertically){
                                     Text(
-                                        text = "Summary",
+                                        text = if(cropDone) "Summary" else "Done",
                                         fontSize = 15.sp,
                                         color = Color.LightGray,
                                         modifier = Modifier
-                                            .padding(horizontal = 26.dp)
-                                            .align(Alignment.Center)
+                                            .padding(
+                                                start = if (cropDone) 20.dp else 15.dp,
+                                                end = if (cropDone) 20.dp else 8.dp
+                                            )
+                                            .align(Alignment.CenterVertically)
+                                         //   .align(Alignment.Center)
 
                                     )
+                                        if(!cropDone)
+                                        {
+                                            LoadingAnimation(modifier= Modifier
+                                                .padding(end = 8.dp)
+                                                .align(Alignment.CenterVertically),circleSize = 10.dp, spaceBetween = 5.dp, travelDistance = 8.dp)
+                                        }
+                                    }
                                 }
 
                                 Box(
                                     modifier = Modifier
-                                        .padding(16.dp),
+                                        .padding(8.dp)
+                                        .align(Alignment.CenterVertically),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Divider(
                                         color = Color.Gray,
                                         modifier = Modifier
-                                            .width(36.dp)
+                                            .width(120.dp)
                                             .height(5.dp)
                                             .background(
                                                 Color.Gray,
@@ -357,7 +401,7 @@ if(summaryDialog)
                                     .clip(
                                         RoundedCornerShape(20.dp)
                                     )
-                                    .background(if (meaning) Color.White else Color.Black)
+                                    .background(Color.Black)
                                     .height(40.dp)
                                     .clickable {
                                         if (meaning == false) {
@@ -384,45 +428,134 @@ if(summaryDialog)
                                         }
                                     }
                                 ) {
-                                    Text(
-                                        text = "Meaning",
-                                        fontSize = 15.sp,
-                                        color = Color.LightGray,
-                                        modifier = Modifier
-                                            .padding(horizontal = 26.dp)
-                                            .align(Alignment.Center)
+                                    Row (modifier=Modifier.fillMaxHeight(),verticalAlignment = Alignment.CenterVertically){
+                                        Text(
+                                            text = if(meaning)"Stop" else "Meaning",
+                                            fontSize = 15.sp,
+                                            color = Color.LightGray,
+                                            modifier = Modifier
+                                                .padding(
+                                                    start = if (cropDone) 20.dp else 15.dp,
+                                                    end = if (cropDone) 20.dp else 8.dp
+                                                )
+                                                .align(Alignment.CenterVertically)
+                                            //   .align(Alignment.Center)
 
-                                    )
+                                        )
+                                        if(meaning)
+                                        {
+                                            LoadingAnimation(modifier= Modifier
+                                                .padding(end = 8.dp)
+                                                .align(Alignment.CenterVertically),circleSize = 10.dp, spaceBetween = 5.dp, travelDistance = 8.dp)
+                                        }
+                                    }
                                 }
+                            }
+                            if(cropBox)
+                            {
+Box(modifier= Modifier
+    .align(Alignment.CenterHorizontally)
+    .fillMaxWidth(0.95f)
+    .clip(
+        RoundedCornerShape(20.dp)
+    )
+    .background(Color.Black)
+   )
+{
+    Row(modifier= Modifier
+        .fillMaxWidth()
+        .padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween)
+    {
+OutlinedButton(onClick = {
+/*TODO*/
+    cropBox=false
+    setHeight=80.dp
+    cropDone=false
+                                if (focus == true) {
+                                startOffsetX = 0f
+                                startOffsetY = 0f
+                                endOffsetX = 0f
+                                endOffsetY = 0f
+                            } else {
+                                startOffsetX = 300f
+                                startOffsetY = 300f
+                                endOffsetX = 600f
+                                endOffsetY = 600f
+                            }
+                            focus = !focus
+                            Log.d("main",modifier.toString())
+                           if(focus===true)
+                           {
+                               Log.d("Main","herererer")
+                               setModifier(default_mod)
+                           }else
+                           {
+setModifier(Modifier)
+                           }
+
+}) {
+    Text(text = "Crop Region",color=Color.LightGray)
+}
+        OutlinedButton(onClick = {
+            coroutineScope.launch {
+                                            selectedBitmap = async {
+                                                //     captureSelectedRegion(window, startOffsetX, startOffsetY, endOffsetX, endOffsetY)
+                                                captureEntireScreen(
+                                                    context = context,
+                                                    window,
+                                                    screenWidth,
+                                                    screenHeight
+                                                )
+                                            }.await()
+                                            val textResponse = async {
+                                                textViewModel.performOnlyTextRecognition(
+                                                    selectedBitmap
+                                                )
+
+                                            }.await()
+                                            summaryDialog = true
+                                            summaryText = textResponse
+
+                                            Log.d("MainAct", textResponse)
+                                            summaryViewModel.questioningSummary(summaryText)}
+            cropBox=false
+            setHeight=80.dp
+        }) {
+            Text(text = "Full Screen",color=Color.LightGray)
+
+        }
+
+
+    }
+
+}
+
                             }
                             ChatScreen(chatViewModel = chatViewModel, chatViewModelWithImage = chatViewModelWithImage , viewModel = typewriterViewModel)
                         },
-                        sheetPeekHeight = 80.dp, // Set this to the desired height to show a peek of the bottom sheet
+                        sheetPeekHeight = setHeight, // Set this to the desired height to show a peek of the bottom sheet
                         sheetGesturesEnabled = true,
                         sheetElevation = 8.dp,
-                        sheetShape = RoundedCornerShape(40.dp),
-                        sheetBackgroundColor = Color.DarkGray,
-
+                        sheetShape = RoundedCornerShape(topStart=40.dp, topEnd = 40.dp),
+                        sheetBackgroundColor = Color.DarkGray
                         ) { innerPadding ->
-//                        Canvas(modifier = Modifier
-//                            .fillMaxWidth()
-//                            .zIndex(2f)) {
-//                            val topLeftX = startOffsetX
-//                            val topLeftY = startOffsetY
-//                            val bottomRightX = endOffsetX
-//                            val bottomRightY = endOffsetY
-//
-//                            val rectangleTopLeft = Offset(topLeftX, topLeftY)
-//                            if ((bottomRightX != 0f && bottomRightY != 0f)) {
-//                                drawRect(
-//                                    color = Color.Blue.copy(alpha = 0.3f),
-//                                    topLeft = rectangleTopLeft,
-//                                    size = Size(Math.abs(bottomRightX - topLeftX), Math.abs(bottomRightY - topLeftY))
-//                                )
-//
-//                            }
-//                        }
-                        Box(modifier=Modifier.fillMaxSize()) {
+                        Canvas(modifier = Modifier
+                            .fillMaxWidth()
+                            .zIndex(6f)
+
+                        ) {
+
+
+                            if ((endOffsetX != 0f &&  endOffsetY != 0f)) {
+                                drawRect(
+                                    color = Color.Blue.copy(alpha = 0.3f),
+                                    topLeft =  Offset(startOffsetX,startOffsetY),
+                                    size = Size(Math.abs(endOffsetX - startOffsetX), Math.abs(endOffsetY - startOffsetY))
+                                )
+
+                            }
+                        }
+                        Box(modifier=modifier) {
                             Navigation(window = window, applicationContext = applicationContext)
                          if(meaning){   DrawBoundingBoxes(
                                 selectedBitmap,
@@ -430,8 +563,7 @@ if(summaryDialog)
                                 dictionaryViewModel
                             )}
                         }
-//MainScreen2()
-//                        SummaryScreen()
+
                 }
 
                 }
@@ -571,112 +703,40 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
                     .background(Color.White)
                     .fillMaxHeight(0.6f)
                     .fillMaxWidth()
-                    .pointerInput(Unit)
-                    {
 
-                        detectTapGestures(onDoubleTap = { change ->
-                            //setting coordinates of selected images
-                            if (focus) {
-                                startOffsetX = change.x + 20
-                                startOffsetY = change.y + 20
-                                endOffsetX = change.x + 300
-                                endOffsetY = change.y + 300
-                            }
-                        }) { }
-                    }
-
-                    .pointerInput(Unit) {
-
-                        detectDragGestures() { change, point ->
-                            if (focus) {
-                                val distanceToStart = euclideanDistance(
-                                    startOffsetX,
-                                    startOffsetY,
-                                    change.position.x,
-                                    change.position.y
-                                )
-                                val distanceToEnd = euclideanDistance(
-                                    startOffsetX,
-                                    endOffsetY,
-                                    change.position.x,
-                                    change.position.y
-                                )
-                                val distanceToStartEnd = euclideanDistance(
-                                    endOffsetX,
-                                    startOffsetY,
-                                    change.position.x,
-                                    change.position.y
-                                )
-                                val distanceToEndEnd = euclideanDistance(
-                                    endOffsetX,
-                                    endOffsetY,
-                                    change.position.x,
-                                    change.position.y
-                                )
-
-                                val minDistance = minOf(
-                                    distanceToStart,
-                                    distanceToEnd,
-                                    distanceToStartEnd,
-                                    distanceToEndEnd
-                                )
-                                when (minDistance) {
-                                    distanceToStart -> {
-                                        startOffsetX = change.position.x
-                                        startOffsetY = change.position.y
-                                    }
-
-                                    distanceToEnd -> {
-                                        startOffsetX = change.position.x
-                                        endOffsetY = change.position.y
-                                    }
-
-                                    distanceToStartEnd -> {
-                                        endOffsetX = change.position.x
-                                        startOffsetY = change.position.y
-                                    }
-
-                                    distanceToEndEnd -> {
-                                        endOffsetX = change.position.x
-                                        endOffsetY = change.position.y
-                                    }
-                                }
-                            }
-                        }
-                    }
             ) {
 
                 Column() {
 
                     Box() {
 
-                        DisplayImageFromUri(photoUri = photoUri,focus=focus)
-                        DisplayRotatedImage(photoTaken = photoTaken, degrees = 90f,focus=focus)
+//                        DisplayImageFromUri(photoUri = photoUri,focus=focus)
+//                        DisplayRotatedImage(photoTaken = photoTaken, degrees = 90f,focus=focus)
                         //Do use this for seeing the cropped region real time
 
                     }
                 }
 
 //Whatever you select from the upper box gets drawn by this into a particular size
-                Canvas(modifier = Modifier
-                    .fillMaxWidth()
-                    .zIndex(2f)) {
-                    Log.d("MainActivity", "DONE")
-                    val topLeftX = startOffsetX
-                    val topLeftY = startOffsetY
-                    val bottomRightX = endOffsetX
-                    val bottomRightY = endOffsetY
-
-                    val rectangleTopLeft = Offset(topLeftX, topLeftY)
-                    if ((bottomRightX != 0f && bottomRightY != 0f)) {
-                        drawRect(
-                            color = Color.Blue.copy(alpha = 0.3f),
-                            topLeft = rectangleTopLeft,
-                            size = Size(abs(bottomRightX - topLeftX), abs(bottomRightY - topLeftY))
-                        )
-
-                    }
-                }
+//                Canvas(modifier = Modifier
+//                    .fillMaxWidth()
+//                    .zIndex(2f)) {
+//                    Log.d("MainActivity", "DONE")
+//                    val topLeftX = startOffsetX
+//                    val topLeftY = startOffsetY
+//                    val bottomRightX = endOffsetX
+//                    val bottomRightY = endOffsetY
+//
+//                    val rectangleTopLeft = Offset(topLeftX, topLeftY)
+//                    if ((bottomRightX != 0f && bottomRightY != 0f)) {
+//                        drawRect(
+//                            color = Color.Blue.copy(alpha = 0.3f),
+//                            topLeft = rectangleTopLeft,
+//                            size = Size(abs(bottomRightX - topLeftX), abs(bottomRightY - topLeftY))
+//                        )
+//
+//                    }
+//                }
             }
             //just some neccesary vals and vars
             var text by remember {
@@ -689,11 +749,12 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
             val snackbarHostState = SnackbarHostState()
             val coroutineScope = rememberCoroutineScope()
             //
-            Image(modifier = Modifier
-                .padding(0.dp)
-                .zIndex(4f)
-                ,bitmap = imageBitmap, contentDescription = "Bitmap Image",                contentScale = ContentScale.Crop
-            )
+
+//            Image(modifier = Modifier
+//                .padding(0.dp)
+//                .zIndex(4f)
+//                ,bitmap = imageBitmap, contentDescription = "Bitmap Image",                contentScale = ContentScale.Crop
+//            )
             Row(modifier=Modifier){
                 Button(onClick = {
                     summaryViewModel.dialogVisible = true
@@ -914,31 +975,8 @@ fun MainScreen(window: Window,navController: NavController,photoViewModel: Photo
                     //Summary part over
 
                     //Display word Meaning
-                    val meaningsAndDefinitions: List<String> =
-                        dictionaryViewModel.response?.flatMap { response ->
-                            response.meanings.flatMap { meaning ->
-                                meaning.definitions.map { definition ->
-                                    definition.definition
-                                }
-                            }
-                        } ?: emptyList()
-                    val meaningsScroll= rememberScrollState()
-                    var wordMeaning="Word Meaning ::" +meaningsAndDefinitions.joinToString("\n")
-                    if(dictionaryViewModel.wrongWord==true)
-                    {
-                        wordMeaning="No such word found"
-                    }
-                    Text(
-                        text = wordMeaning,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 5.dp)
-                            .height(120.dp)
-                            .background(Color.DarkGray)
-                            .verticalScroll(meaningsScroll)
-                    )
 
-            SnackbarHost(snackbarHostState)
+
                 }
 
                 //snackbar for displaying text

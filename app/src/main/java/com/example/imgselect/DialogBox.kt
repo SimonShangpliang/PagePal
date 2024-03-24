@@ -50,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.ExperimentalTextApi
@@ -61,6 +62,7 @@ import androidx.compose.ui.window.Dialog
 import com.example.imgselect.DictionaryNetwork.Definition
 import com.example.imgselect.DictionaryNetwork.Meaning
 import com.example.imgselect.DictionaryNetwork.WordData
+import com.example.imgselect.animations.LoadingAnimation
 import com.example.imgselect.model.DiscussUiState
 import com.example.imgselect.model.SummaryViewModel
 import kotlinx.coroutines.delay
@@ -265,13 +267,17 @@ fun WordMeaningDialog(
 @Composable
 fun SummaryDialog(
     setShowDialog: (Boolean) -> Unit,
-    Summary:String,
-    summaryViewModel: SummaryViewModel
+    summaryViewModel: SummaryViewModel,
+    setOffset: (Int)->Unit
 ) {
 
     val appUiState=summaryViewModel.uiState.collectAsState().value
 
-    Dialog(onDismissRequest = { setShowDialog(false) }
+    Dialog(onDismissRequest = {
+        setOffset(1)
+        setShowDialog(false)
+
+    }
     ) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -301,9 +307,9 @@ fun SummaryDialog(
                     )
 
                     when(appUiState) {
-                        is DiscussUiState.Success->TypewriterText(texts = listOf(Summary))
-                        is DiscussUiState.Loading-> Text(text = "Summary::Loading" , modifier = Modifier.padding(16.dp))
-                        else-> Text(text = "Summary::Error" , modifier = Modifier.padding(16.dp))
+                        is DiscussUiState.Success->TypewriterText(texts = listOf(appUiState.outputText))
+                        is DiscussUiState.Loading-> LoadingAnimation(modifier=Modifier.align(Alignment.CenterHorizontally))
+                        else-> TypewriterText(texts = listOf("Error in summarizing please try again") )
                     }
 
 
@@ -347,10 +353,10 @@ fun SummaryDialog(
 
                     Button(
                         onClick = {
-
-                            setShowDialog(false)
+                            setOffset(1)
                             summaryViewModel.dialogVisible = true
 
+                            setShowDialog(false)
                         },
                         shape = RoundedCornerShape(50.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -384,7 +390,7 @@ fun TypewriterText(texts: List<String>, durationMillis: Int = 2000) {
             if (charIndex < texts[textIndex].length) {
                 currentText += texts[textIndex][charIndex]
                 charIndex++
-                delay(160)
+                delay(10)
             } else {
                 delay(durationMillis.toLong())
                 textIndex++
@@ -464,8 +470,8 @@ fun WebHistoryDialog(
                             Box(
                                 modifier = Modifier
                                     .background(Color.Black)
-                                    .clickable{
-                                      setUrl(web.website?:"www.google.com")
+                                    .clickable {
+                                        setUrl(web.website ?: "www.google.com")
                                     }
                                     .padding(8.dp),
                                 contentAlignment = Alignment.Center
