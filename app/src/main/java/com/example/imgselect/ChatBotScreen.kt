@@ -177,42 +177,10 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                                 }
                             )
                         }
-                        else{
-                            IconButton(onClick = {
-                                // Add message to list and clear input field
-                                if(chatViewModelWithImage.imageList.isEmpty()) {
-                                    chatViewModel.getResponseFromChatBot()
-                                    query.value = chatViewModel.query
-                                    messageQuery.add(ChatQuery(query = chatViewModel.query))
-                                    chatViewModel.query = ""
-                                } else {
-                                    chatViewModelWithImage.getResponseFromChatBot()
-                                    query.value = chatViewModelWithImage.query
-                                    messageQuery.add(ChatQuery(query = chatViewModelWithImage.query))
-                                    chatViewModelWithImage.query = ""
-                                    //chatViewModelWithImage.imageList.clear()
-                                }
-
-                                //chatViewModel.imageText = ""
-                                //chatViewModel.isImageSelected = false
-
-                            },
-                                enabled = sendButtonEnabled.value,
-                                modifier = Modifier.background(Color.Transparent , CircleShape)) {
-                                Icon(painter = painterResource(id = R.drawable.search), contentDescription =null )
-                            }
-                        }
                     },
                     maxLines = Int.MAX_VALUE
 
                 )
-                Spacer(modifier = Modifier.width(7.dp))
-                IconButton(onClick = {},
-                    modifier = Modifier.background(Color.Transparent,CircleShape)
-                    ) {
-                   Icon(painter = painterResource(id = R.drawable._2px), contentDescription =null )
-
-<<<<<<< Updated upstream
                 Spacer(modifier = Modifier.width(10.dp))
                 Button(onClick = {
                     // Add message to list and clear input field
@@ -243,8 +211,7 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                         imageVector = Icons.Default.Search,
                         contentDescription = null,
                     )
-=======
->>>>>>> Stashed changes
+
                 }
 
             }
