@@ -83,7 +83,11 @@ import com.example.imgselect.DictionaryNetwork.WordData
 import com.example.imgselect.data.Web
 import com.example.imgselect.model.TextRecognitionViewModel
 import com.example.imgselect.model.TextResult
+<<<<<<< Updated upstream
 import com.example.imgselect.model.WebHistoryViewModel
+=======
+import com.example.imgselect.ui.theme.backgroundcolor
+>>>>>>> Stashed changes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -443,14 +447,14 @@ if(showDialog)
             val eighty=80.00/density
             // Draw highlighted area around the text
             Box(
-                modifier = Modifier
-                    .offset(x = left.dp, y = top.dp)
+                modifier = Modifier.offset(x = left.dp, y = top.dp)
                     .size(width = right.dp - left.dp, height = bottom.dp - top.dp)
                     .background(
-                        //if (index == clickedBoxIndex)
+//if (index == clickedBoxIndex)
                         Color(255, 0, 0, 50)
-                        //   else Color.Transparent
+//   else Color.Transparent
                     ) // Red color with 50% opacity
+
                     .clickable {
                         // Handle click event for this bounding box
                         //handleClick(result)
