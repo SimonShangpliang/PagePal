@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -33,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -163,9 +165,9 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(28.dp)
         ) {
-            items(dictionaryViewModel.setOfTitle.toList()) {title->
+            itemsIndexed(dictionaryViewModel.setOfTitle.toList()) {index,title->
                 Log.d("Title" , title)
-                ShelfItem(name = title) {word ->
+                ShelfItem(name = title , number = (index+1).toString()) {word ->
                     navController.navigate("${Screen.SingleDeckScreen.route}/${title}/${0}")
 
 
@@ -202,9 +204,9 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(28.dp)
         ) {
-            items(dictionaryViewModel.setOfDates.toList()) {date->
+            itemsIndexed(dictionaryViewModel.setOfDates.toList()) {index,date->
                 Log.d("Title" , date)
-                ShelfItem(name = date) {time ->
+                ShelfItem(name = date , number = (index+1).toString()) {time ->
                     Log.d("DateNavigation" , "${date}")
                     navController.navigate("${Screen.SingleDeckScreen.route}/${date}/${1}")
 
@@ -244,13 +246,20 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(28.dp)
         ) {
-            items(dictionaryViewModel.setOfWords.toList()) {word->
-                Log.d("Title" , word)
-                ShelfItem(name = word) {words ->
+//            items(dictionaryViewModel.setOfWords.toList()) {word->
+//                Log.d("Title" , word)
+//                ShelfItem(name = word) {words ->
+//                    navController.navigate("${Screen.SingleDeckScreen.route}/${word}/${2}")
+//
+//                }
+//
+//            }
+
+            itemsIndexed(dictionaryViewModel.setOfWords.toList()) {index,word->
+                ShelfItem(name = word , number = (index+1).toString()) {words ->
                     navController.navigate("${Screen.SingleDeckScreen.route}/${word}/${2}")
 
                 }
-
             }
 
         }
@@ -264,7 +273,7 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
 }
 
 @Composable
-fun ShelfItem(name: String, goToOneDeck: (String)-> Unit){
+fun ShelfItem(name: String,  number: String,goToOneDeck: (String)-> Unit ,){
     Column(modifier=Modifier){
         Box(modifier=Modifier.clickable { goToOneDeck(name) }, contentAlignment = Alignment.Center){
             Card(
@@ -327,7 +336,7 @@ fun ShelfItem(name: String, goToOneDeck: (String)-> Unit){
                 ) {
                 Spacer(modifier=Modifier.height(6.dp))
                 Row(modifier=Modifier,){
-                    Text(text ="1.",modifier=Modifier.padding(start=3.dp), textAlign= TextAlign.Start,color= interestcolour1, fontWeight = FontWeight.Bold,)
+                    Text(text =number+".",modifier=Modifier.padding(start=3.dp), textAlign= TextAlign.Start,color= interestcolour1, fontWeight = FontWeight.Bold,)
                     Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End){
                         Image(painter= painterResource(id =R.drawable.generic ),
                             contentDescription = null,
@@ -337,7 +346,7 @@ fun ShelfItem(name: String, goToOneDeck: (String)-> Unit){
                     }
                 }
             }
-            Text(text=name, textAlign = TextAlign.Center,modifier=Modifier.fillMaxWidth())
+            Text(text=name, textAlign = TextAlign.Center,modifier=Modifier.fillMaxWidth() , color = Color.Black)
 
         }
         Spacer(modifier = Modifier.height(5.dp))
