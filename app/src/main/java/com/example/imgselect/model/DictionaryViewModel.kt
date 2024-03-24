@@ -44,6 +44,7 @@ class DictionaryViewModel(application: Application) : AndroidViewModel(applicati
     var setOfTitle: MutableSet<String> = mutableSetOf()
     var setOfDates: MutableSet<String> = mutableSetOf()
     var setOfWords: MutableSet<String> = mutableSetOf()
+    var whichMeaning: Int by mutableStateOf(0)
 
     init {
         val localStorageDao = LocalStorageDatabase.getDatabase(application).userDao()

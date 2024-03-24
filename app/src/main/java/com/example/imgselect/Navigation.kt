@@ -1,6 +1,7 @@
 package com.example.imgselect
 
 import android.content.Context
+import android.util.Log
 import android.view.Window
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -91,10 +92,40 @@ fun Navigation(window: Window,applicationContext: Context)
             summary?.let { SummaryListPage(summary = summary!!)}
         }
 
-        composable(route = "${Screen.SingleDeckScreen.route}/{id}") {backStackEntry->
+        composable(route = "${Screen.SingleDeckScreen.route}/{id}/{identifier}") {backStackEntry->
             val id = backStackEntry.arguments?.getString("id")
+            val identifier = backStackEntry.arguments?.getString("identifier")?.toInt()
+
+            Log.d("Identifiers" , "${id}")
+            Log.d("Identifiers" , "${identifier}")
+
+            if (id != null) {
+                if (identifier != null) {
+                    SingleDeckScreen(basis = id, identifier = identifier, dictionaryViewModel = dictionaryViewModel, list = dictionaryViewModel.getMeaningList())
+                }
+            }
 
         }
+
+        composable(route = "${Screen.SingleDeckScreen.route}/{year}/{month}/{day}/{identifier}") { backStackEntry ->
+            val year = backStackEntry.arguments?.getString("year")
+            val month = backStackEntry.arguments?.getString("month")
+            val day = backStackEntry.arguments?.getString("day")
+            val identifier = backStackEntry.arguments?.getString("identifier")?.toInt()
+
+
+            // Assuming you want to use a format like "YYYY/MM/DD" for the date
+            val date = if (year != null && month != null && day != null) "$year/$month/$day" else null
+            Log.d("Date", "Date: $date")
+            Log.d("Identifiers", "Identifier: $identifier")
+
+            if (date != null && identifier != null) {
+                // Now you can use date and identifier as needed
+                SingleDeckScreen(basis = date, identifier = identifier, dictionaryViewModel = dictionaryViewModel, list = dictionaryViewModel.getMeaningList())
+            }
+        }
+
+
 
         composable(route = Screen.MeaningScreen.route) {
             //MeaningListScreen(meaningList = dictionaryViewModel.getMeaningList())

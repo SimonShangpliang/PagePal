@@ -30,5 +30,6 @@ data class WordData(
     val phonetic: String? = null,
     val phonetics: List<Phonetic>,
     val origin: String? = null,
-    val meanings: List<Meaning>
+    val meanings: List<Meaning>,
+    val time: Long = System.currentTimeMillis()
 )

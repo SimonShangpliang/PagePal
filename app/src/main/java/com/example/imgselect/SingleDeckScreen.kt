@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,9 +17,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,11 +32,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.modifier.modifierLocalConsumer
@@ -44,6 +50,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LiveData
+import com.example.dictionary.model.DictionaryViewModel
+import com.example.imgselect.DictionaryNetwork.Definition
+import com.example.imgselect.DictionaryNetwork.Meaning
+import com.example.imgselect.DictionaryNetwork.WordData
 import com.example.imgselect.ui.theme.darkBar
 import com.example.imgselect.ui.theme.lightBar
 import com.example.imgselect.ui.theme.lighterPurple
@@ -67,53 +78,23 @@ fun PagerState.offsetForPage(page: Int): Float{
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen2(){
+fun MainScreen2(mainList: List<WordData> , dictionaryViewModel: DictionaryViewModel){
+
     var index =0
     val cardsPageTitle ="Personal Notes"
-    val cardsPage = remember{
-        mutableStateListOf(
-            flashcard(
-                term="nostalgia",
-                definition ="a sentimental longing or wistful affection for a period in the past",
-            ),
-            flashcard(
-                term="fierce",
-                definition ="having or displaying an intense or ferocious aggressiveness",
-            ),
-            flashcard(
-                term="reign",
-                definition ="hold royal office; rule as monarch",
-            ),
-            flashcard(
-                term="reign1",
-                definition ="hold royal office; rule as monarch",
-            ),
-            flashcard(
-                term="reign2",
-                definition ="hold royal office; rule as monarch",
-            ),
-            flashcard(
-                term="reign3",
-                definition ="hold royal office; rule as monarch",
-            ),
-            flashcard(
-                term="reign4",
-                definition ="hold royal office; rule as monarch",
-            ),
-            flashcard(
-                term="reign5",
-                definition ="hold royal office; rule as monarch",
-            ),flashcard(
-                term="reign6",
-                definition ="hold royal office; rule as monarch",
-            ),flashcard(
-                term="reign7",
-                definition ="hold royal office; rule as monarch",
-            ),
+    val cardsPage  = mainList
+    Log.d("cardPage" , "${cardsPage}")
+//    var groupByIdentifier: Map<String , List<com.example.imgselect.data.Meaning>> = emptyMap()
+//    if(identifier == 1) {
+//        groupByIdentifier= cardsPage.filter { it.title != null }.groupBy { it.title!! }
+//    }
+//    else if(identifier == 1) {
+//        groupByIdentifier = cardsPage.filter { it.date != null }.groupBy { it.date!! }
+//    }
 
-            )
+//    var finalList: List<com.example.imgselect.data.Meaning>? = groupByIdentifier[basis]
+
         //// pass the list instead of this
-    }
     Log.d( "Lilac haze", "Your message 1")
     val cardReverse = cardsPage.reversed()
     val configuration = LocalConfiguration.current
@@ -132,8 +113,8 @@ fun MainScreen2(){
             HorizontalPager(state = state, beyondBoundsPageCount = 1, pageSpacing = -((screenWidth)/2), reverseLayout = true,
             ){ page_index->
                 singleCard(
-                    term=cardsPage[page_index].term,
-                    definition=cardsPage[page_index].definition,
+                    term=cardsPage[page_index].word,
+                    //definition=cardsPage[page_index].definition,
                     colorCard = if(index%3==0){
                         lighterTeal}else if(index%3==1){
                         lighterPurple}else{
@@ -161,7 +142,9 @@ fun MainScreen2(){
                             // shadowElevation = state.pageCount - abs(state.offsetForPage(page_index))
                             alpha = 1f
 
-                        }
+                        },
+                    data = cardsPage[page_index].meanings,
+                    dictionaryViewModel = dictionaryViewModel
                 )
                 index++
             }
@@ -179,11 +162,55 @@ fun MainScreen2(){
 
 
 @Composable
-fun singleCard(term:String,definition:String,modifier: Modifier,colorCard: Color,colorBorder:Color) {
+fun singleCard(term:String,modifier: Modifier,colorCard: Color,colorBorder:Color , data: List<Meaning> , dictionaryViewModel: DictionaryViewModel) {
 
-    Log.d( "Lilac haze", "Your message 2")
+    Log.d( "dataList", "${data}")
 
     var showDefinition = remember{ mutableStateOf(false) }
+    var whichMeaning = remember { mutableStateOf(0)}
+    val groupedByPartOfSpeech: Map<String, List<Meaning>> = data.filter { it.partOfSpeech != null }.groupBy { it.partOfSpeech!! }
+    var nouns: List<Meaning>? = groupedByPartOfSpeech["noun"]
+    var verbs: List<Meaning>? = groupedByPartOfSpeech["verb"]
+    var adjective: List<Meaning>? = groupedByPartOfSpeech["adjective"]
+
+    var finalNouns: MutableList<Definition> = mutableListOf()
+    if (nouns != null) {
+        nouns.forEach { noun->
+            noun.definitions.forEach { definition->
+                if(definition.isSelected) {
+                    finalNouns.add(definition)
+                }
+            }
+        }
+    }
+
+    var finalVerbs: MutableList<Definition> = mutableListOf()
+    if (verbs != null) {
+        verbs.forEach { verb->
+            verb.definitions.forEach { definition->
+                if(definition.isSelected) {
+                    finalVerbs.add(definition)
+                }
+            }
+        }
+    }
+
+
+
+    var finalAdjectives: MutableList<Definition> = mutableListOf()
+    if (adjective != null) {
+        adjective.forEach { adjectives->
+            adjectives.definitions.forEach { definition->
+                if(definition.isSelected) {
+                    finalAdjectives.add(definition)
+                }
+            }
+        }
+    }
+
+    Log.d("Noun" , "${nouns}")
+
+
 
     Box(modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center){
@@ -198,7 +225,10 @@ fun singleCard(term:String,definition:String,modifier: Modifier,colorCard: Color
         ){
             Column(
                 Modifier
-                    .clickable { showDefinition.value = !showDefinition.value }
+                    .clickable {
+                        whichMeaning.value = ((whichMeaning.value + 1) % 4)
+                        Log.d("whichMeaning", "${whichMeaning.value}")
+                    }
                     .height(460.dp)
                     .width(320.dp),
                 verticalArrangement = Arrangement.Center,
@@ -206,24 +236,179 @@ fun singleCard(term:String,definition:String,modifier: Modifier,colorCard: Color
 
 
                 ){
-                if(!showDefinition.value){
-                    Text(text = term)
+                if(whichMeaning.value == 0){
+                    Text(
+                        text = term,
+                        color = Color.Black
+                    )
                     Log.d( "Lilac haze", "Your message 3")
 
-                } else {
-                    Text(text = definition)
+                }
+                else if(whichMeaning.value == 1) {
+                    if (finalNouns != null && finalNouns.isNotEmpty()) {
+                        Text(
+                            text = "Noun",
+                            color = Color.Black
+                        )
+                        finalNouns.forEach { noun->
+                                    Column() {
+                                        Text(
+                                            text = noun.definition,
+                                            color = Color.Black
+                                        )
+
+                                        noun.example?.let {
+                                            Text(
+                                                text = "Examples:-",
+                                                color = Color.Black
+                                            )
+                                            Text(
+                                                text = it,
+                                                color = Color.Black
+                                            )
+                                        }
+                                    }
+
+
+                        }
+                    } else {
+                        whichMeaning.value = 2
+                    }
+
+
+                }
+                else if(whichMeaning.value == 2) {
+                    if(finalVerbs != null && finalVerbs.isNotEmpty()) {
+                        Log.d("Verbs" , "${finalVerbs}")
+                        Column {
+                            Text(
+                                text = "Verb",
+                                color = Color.Black
+                            )
+                            if (finalVerbs != null) {
+                                finalVerbs.forEach { verb->
+                                        Column() {
+                                                Text(
+                                                    text = verb.definition,
+                                                    color = Color.Black
+                                                )
+
+                                                verb.example?.let {
+                                                    Text(
+                                                        text = "Examples:-",
+                                                        color = Color.Black
+                                                    )
+                                                    Text(
+                                                        text = it,
+                                                        color = Color.Black
+                                                    )
+                                                }
+                                            }
+                                        }
+
+
+                            }
+                        }
+                    } else {
+                        whichMeaning.value = 3
+                    }
+
+                }
+
+                else if(whichMeaning.value == 3)
+                    if(finalAdjectives != null && finalAdjectives.isNotEmpty()) {
+                        Log.d("Adjective" , "${finalAdjectives}")
+                        Column {
+                            Text(
+                                text = "Adjectives",
+                                color = Color.Black
+                            )
+                            if (finalAdjectives != null) {
+                                finalAdjectives.forEach { adjective->
+                                            Column() {
+                                                Text(
+                                                    text = adjective.definition,
+                                                    color = Color.Black
+                                                )
+
+                                                adjective.example?.let {
+                                                    Text(
+                                                        text = "Examples:-",
+                                                        color = Color.Black
+                                                    )
+                                                    Text(
+                                                        text = it,
+                                                        color = Color.Black
+                                                    )
+                                                }
+                                            }
+                                        }
+
+
+                            }
+                        }
+                    } else {
+                        whichMeaning.value = 0
+                    }
+
                 }
             }
 
 
         }
     }
-}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
 @Composable
-fun SingleDeckScreen(){
+fun SingleDeckScreen(basis: String , identifier: Int , dictionaryViewModel: DictionaryViewModel , list: LiveData<List<com.example.imgselect.data.Meaning>>){
+    val usableList by list.observeAsState(initial = emptyList())
+    val listOfWords : MutableList<WordData> = mutableListOf()
+    usableList.forEach { meaning->
+        meaning.wordDetails?.forEach { word->
+            listOfWords.add(word)
+        }
+    }
+
+
+
+    var groupByIdentifier: Map<String , List<com.example.imgselect.data.Meaning>> = emptyMap()
+    var groupByIdentifier1: Map<String , List<WordData>> = emptyMap()
+    if(identifier == 0) {
+        groupByIdentifier= usableList.filter { it.title != null }.groupBy { it.title!! }
+    }
+    else if(identifier == 1) {
+        groupByIdentifier = usableList.filter { it.date != null }.groupBy { it.date!! }
+    }
+    else if(identifier == 2) {
+        groupByIdentifier1 =listOfWords.toList().filter { it.word != null }.groupBy { it.word!! }
+    }
+
+    var finalList: List<com.example.imgselect.data.Meaning>? = groupByIdentifier[basis]
+    Log.d("FinalList" , "${finalList}")
+
+    var finalUsableList: MutableList<WordData> = mutableListOf()
+
+    if (finalList != null) {
+        finalList.forEach { item->
+            item.wordDetails?.forEach { words->
+                finalUsableList.add(words)
+            }
+        }
+    }
+
+    if(identifier == 2) {
+        val wordList = groupByIdentifier1[basis]
+        if (wordList != null && wordList.isNotEmpty()) {
+            wordList.sortedBy { it.time } // replace 'timestamp' with your actual date or timestamp field
+            val mostRecentDefinition = wordList.last()
+            finalUsableList = mutableListOf(mostRecentDefinition)
+        }
+    }
+
+
+
+
 
     Scaffold(
 
@@ -236,7 +421,9 @@ fun SingleDeckScreen(){
                 navigationIcon = {
                     Image(painter= painterResource(id =R.drawable.bac ),
                         contentDescription = null,
-                        modifier= Modifier.padding(start=13.dp,top=5.dp).size(15.dp,20.dp)
+                        modifier= Modifier
+                            .padding(start = 13.dp, top = 5.dp)
+                            .size(15.dp, 20.dp)
                             ,
                         Alignment.TopStart
                     )
@@ -262,7 +449,8 @@ fun SingleDeckScreen(){
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            MainScreen2()
+            MainScreen2( mainList =  finalUsableList.toList() , dictionaryViewModel = dictionaryViewModel)
+            Log.d("finalUsableList" , "${finalUsableList.toList()}")
 
         }
     }

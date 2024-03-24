@@ -167,7 +167,7 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
                 items(dictionaryViewModel.setOfTitle.toList()) {title->
                     Log.d("Title" , title)
                     ShelfItem(name = title) {word ->
-                        navController.navigate("${Screen.SingleDeckScreen.route}/${title}")
+                        navController.navigate("${Screen.SingleDeckScreen.route}/${title}/${0}")
 
 
                     }
@@ -205,8 +205,9 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
             ) {
                 items(dictionaryViewModel.setOfDates.toList()) {date->
                     Log.d("Title" , date)
-                    ShelfItem(name = date) {word ->
-                        navController.navigate("${Screen.SingleDeckScreen.route}/${date}")
+                    ShelfItem(name = date) {time ->
+                        Log.d("DateNavigation" , "${date}")
+                        navController.navigate("${Screen.SingleDeckScreen.route}/${date}/${1}")
 
                     }
 
@@ -247,7 +248,7 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
                 items(dictionaryViewModel.setOfWords.toList()) {word->
                     Log.d("Title" , word)
                     ShelfItem(name = word) {words ->
-                        navController.navigate("${Screen.SingleDeckScreen.route}/${word}")
+                        navController.navigate("${Screen.SingleDeckScreen.route}/${word}/${2}")
 
                     }
 
