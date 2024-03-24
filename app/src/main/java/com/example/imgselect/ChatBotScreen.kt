@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -127,22 +130,17 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
             .fillMaxSize()
             ) {
             Row() {
-                Button(
+                IconButton(
                     onClick = {
                         val content = Chat(0,message = combinedMessage)
                         chatViewModel.saveChat(content)
-                    }
+                    },
+                    modifier = Modifier.background(Color.Transparent,CircleShape)
                 ) {
-                    Text(
-                        text = "Save Chat"
-                    )
+                    Icon(painter = painterResource(id = R.drawable.save_alt), contentDescription =null )
                 }
-
             }
-
             MessagesList(messages = sortedCombinedMessages, viewModel = viewModel)
-
-
             // Input field and send button
             Row(modifier = Modifier
                 .fillMaxWidth()
@@ -150,72 +148,22 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                 .padding(16.dp)
             )
             {
-                TextField(
+                OutlinedTextField(
                     value = if(chatViewModelWithImage.imageList.isEmpty()) {chatViewModel.query} else { chatViewModelWithImage.query},
                     onValueChange = { if(chatViewModelWithImage.imageList.isEmpty()) {chatViewModel.query = it} else {chatViewModelWithImage.query = it} },
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 56.dp, max = 200.dp)
                         .verticalScroll(rememberScrollState())
-                        .wrapContentSize(),
+                        .wrapContentSize()
+                        .border(1.dp, Color.White, RoundedCornerShape(20.dp))
+                        .width(328.dp),
                     placeholder = { Text(
-                        text = "What's on your mind",
+                        text = "Type in your question",
                         modifier = Modifier.fillMaxHeight(),
                         fontSize = 20.sp,
-
                     )} ,
                     singleLine = false,
-                    leadingIcon = {
-                        Column() {
-
-                                if(chatViewModelWithImage.isImageSelected) {
-//                                    chatViewModel.bitmap?.let {
-//                                        Image(
-//                                            bitmap = it,
-//                                            contentDescription = null,
-//                                            modifier = Modifier.size(50.dp)
-//                                        )
-//                                    }
-//                                    chatViewModelWithImage.imageList.forEach {
-//                                        if (it != null) {
-//                                            Image(
-//                                                bitmap = it.asImageBitmap(),
-//                                                contentDescription = null,
-//                                                modifier = Modifier.size(50.dp)
-//                                            )
-//                                        }
-//                                    }
-
-                                    LazyRow {
-                                        items(chatViewModelWithImage.imageList) {image->
-                                            if (image != null) {
-                                                Image(
-                                                    bitmap = image.asImageBitmap(),
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(30.dp),
-                                                    contentScale = ContentScale.Fit
-                                                )
-                                            }
-                                        }
-                                    }
-
-                                }
-
-                            Icon(
-                                painter = painterResource(id = R.drawable.baseline_attach_file_24),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .clickable {
-                                        // navController.navigate(Screen.SummaryScreen.route)
-                                    }
-                                    .size(30.dp)
-                            )
-
-
-
-                            }
-
-                    },
                     trailingIcon = {
                         if(chatViewModelWithImage.imageList.isNotEmpty()) {
                             Icon(
@@ -266,6 +214,7 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                         contentDescription = null,
                     )
                 }
+
             }
         }
 
@@ -317,13 +266,7 @@ fun TypewriterTextSingle(
             textAlign = TextAlign.Center
         )
     }
-
-
-
 }
-
-
-
 @Preview
 @Composable
 fun ChatScreenPreview() {
@@ -367,8 +310,6 @@ fun SavedChatsScreen(chatList: LiveData<List<Chat>>, chatViewModel: ChatViewMode
             }
         }
     }
-
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -415,6 +356,17 @@ fun ChatRow(chat: Chat , goToFullChat: (Chat) -> Unit , deleteChat: () -> Unit) 
                         color = Color.DarkGray,
                         modifier = Modifier.padding(16.dp)
                     )
+
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_delete_24),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .clickable { deleteChat() }
+                            .padding(16.dp),
+                        tint = Color.Black
+                    )
+
                 }
             }
         }
@@ -461,11 +413,6 @@ fun FullChatScreen(chat: Chat) {
 
         }
     }
-
-
-
-
-
 }
 
 data class ChatQueryResponse(

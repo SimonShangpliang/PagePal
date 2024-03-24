@@ -80,6 +80,36 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
 
     }
 
+    fun questioningSummary(userInput:String){
+        _uiState.value= DiscussUiState.Loading
+        val prompt=userInput
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val content= content{
+
+                    text("Summarize this"+prompt)
+                }
+
+               var op= generativeModel.generateContent(content).text?:"No text Generated"
+                _uiState.value = DiscussUiState.Success(op)
+                Log.d("MainActivity","Response done")
+
+//                generativeModel.generateContentStream(content).collect{
+//output+=it.text
+//                    _uiState.value =HomeUiState.Success(output)
+//                }
+                Log.d("MainActivity",output)
+
+            }catch (e: Exception){
+                _uiState.value=
+                    DiscussUiState.Error(e.localizedMessage ?: "Error in Generating content")
+                Log.d("MainActivity",e.localizedMessage)
+            }
+
+        }
+
+    }
+
 
     fun saveSummaryWithImage(image: Bitmap? , title: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -109,7 +139,9 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         val summaryList = repository.readAllSummary
         return summaryList
     }
-
+    fun resetUiState() {
+        _uiState.value = DiscussUiState.Initial
+    }
     suspend fun getSummary(summaryId: Int): Summary {
         return repository.getSummary(summaryId = summaryId)
     }
