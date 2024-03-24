@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -163,7 +164,7 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
         Spacer(modifier = Modifier.height(20.dp))
         LazyRow(modifier = Modifier,
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(28.dp)
+            horizontalArrangement = Arrangement.spacedBy(58.dp)
         ) {
             itemsIndexed(dictionaryViewModel.setOfTitle.toList()) {index,title->
                 Log.d("Title" , title)
@@ -171,7 +172,9 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
                     navController.navigate("${Screen.SingleDeckScreen.route}/${title}/${0}")
 
 
+
                 }
+
 
             }
 
@@ -202,7 +205,7 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
         Spacer(modifier = Modifier.height(15.dp))
         LazyRow(modifier = Modifier,
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(28.dp)
+            horizontalArrangement = Arrangement.spacedBy(58.dp)
         ) {
             itemsIndexed(dictionaryViewModel.setOfDates.toList()) {index,date->
                 Log.d("Title" , date)
@@ -244,7 +247,7 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
         Spacer(modifier = Modifier.height(25.dp))
         LazyRow(modifier = Modifier,
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(28.dp)
+            horizontalArrangement = Arrangement.spacedBy(58.dp)
         ) {
 //            items(dictionaryViewModel.setOfWords.toList()) {word->
 //                Log.d("Title" , word)
