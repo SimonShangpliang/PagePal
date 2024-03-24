@@ -177,10 +177,12 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                                 }
                             )
                         }
+
                     },
                     maxLines = Int.MAX_VALUE
 
                 )
+
                 Spacer(modifier = Modifier.width(10.dp))
                 Button(onClick = {
                     // Add message to list and clear input field
@@ -211,7 +213,6 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                         imageVector = Icons.Default.Search,
                         contentDescription = null,
                     )
-
                 }
 
             }
