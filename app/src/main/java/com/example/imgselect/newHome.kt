@@ -56,17 +56,19 @@ import com.example.imgselect.ui.theme.outlinePurple
 import com.example.imgselect.ui.theme.outlineYellow
 import kotlin.math.abs
 import android.util.Log
+import androidx.compose.material.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.navigation.NavController
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 //@Preview(showBackground = true)
 @Composable
-fun Home() {
+fun Home(navController: NavController) {
     var presses by remember { mutableIntStateOf(0) }
     val RecentList= mutableListOf<recent>(
         recent("Design","ME101"),
@@ -83,19 +85,24 @@ fun Home() {
     }
     val items = listOf(
         BottomNavigationItem(
-            title="ChatBot",
+            title="Website",
             selectedIcon = painterResource(id = R.drawable.globe),
-            unselectedIcon = painterResource(id = R.drawable.globe_grey)
+            unselectedIcon = painterResource(id = R.drawable.globe_grey),
+            route=Screen.WebViewScreen.route
         ),
         BottomNavigationItem(
             title = "Camera",
             selectedIcon = painterResource(id = R.drawable.photo_camera),
-            unselectedIcon = painterResource(id = R.drawable.photo_camera_grey)
+            unselectedIcon = painterResource(id = R.drawable.photo_camera_grey),
+            route=Screen.CameraScreen.route
+
         ),
         BottomNavigationItem(
             title="PDF",
             selectedIcon = painterResource(R.drawable.picture_as_pdf),
-            unselectedIcon= painterResource(id = R.drawable.picture_as_pdf_grey)
+            unselectedIcon= painterResource(id = R.drawable.picture_as_pdf_grey),
+            route=Screen.PdfScreen.route
+
         )
 
     )
@@ -109,14 +116,15 @@ fun Home() {
                     titleContentColor = lightBar
                 ),
                 title = {
-                    Row(modifier=Modifier){
-                        Text(text="Welcome",modifier=Modifier, textAlign= TextAlign.Start)
-                        Image(painter= painterResource(id =R.drawable.profile_icon ),
-                            contentDescription = null,
-                            modifier= Modifier
-                                .fillMaxWidth()
-                                .padding(end = 13.dp),
-                            Alignment.TopEnd)
+                    Row(modifier=Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween){
+                        Text(text="Welcome",modifier=Modifier.padding(start=10.dp,top=10.dp), textAlign= TextAlign.Start)
+                        IconButton(
+modifier=Modifier.padding(end=10.dp,top=10.dp),
+                         onClick = { navController.navigate(Screen.ProfileScreen.route) }
+                         ){
+                            Icon(painter= painterResource(id =R.drawable.profile_icon ) , contentDescription ="profile" )
+                        }
+
 
                     }
                 }
@@ -126,7 +134,12 @@ fun Home() {
                            items.forEachIndexed{ index,item ->
                                NavigationBarItem(
                                    selected = false,
-                                   onClick = { selectedItemIndex==index},
+                                   onClick = {
+                                      // selectedItemIndex==index
+
+                                             navController.navigate(item.route)}
+
+                                   ,
                                    icon = {
                                            Icon(painter =  item.selectedIcon,
 //                                           if(index==selectedItemIndex){
@@ -152,7 +165,7 @@ fun Home() {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Spacer(modifier=Modifier.height(38.dp))
-            FlashcardsHome()
+            FlashcardsHome(navController)
             MakeRows(title = "PDF", recentList = RecentList )
 
         }
@@ -161,12 +174,12 @@ fun Home() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun FlashcardsHome(){
+fun FlashcardsHome(navController: NavController){
     val cardsPage = remember{
         mutableStateListOf(
-            homeCard("Flashcards", lighterPurple, outlinePurple),
-            homeCard("Summary Shelf", lighterTeal, medTeal),
-            homeCard("Chat Bot", lighterYellow, outlineYellow)
+            homeCard("Flashcards", lighterPurple, outlinePurple,Screen.MeaningScreen.route),
+            homeCard("Summary Shelf", lighterTeal, medTeal,Screen.SummaryScreen.route),
+            homeCard("Chats Saved", lighterYellow, outlineYellow,Screen.ChatListScreen.route)
            )}
     val configuration = LocalConfiguration.current
     val cardReverse = cardsPage.reversed()
@@ -214,7 +227,7 @@ fun FlashcardsHome(){
             ) {
                 Box(modifier = Modifier
                     .clickable {
-                        /// write to navigate
+                        navController.navigate(cardReverse[page].route)
                     }
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp)),

@@ -10,11 +10,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class PDFViewModel : ViewModel() {
+    private val _docSelected = MutableStateFlow(false)
+    val docSelected: StateFlow<Boolean> = _docSelected
     private val mStateFlow = MutableStateFlow<PdfReaderState?>(null)
     val stateFlow: StateFlow<PdfReaderState?> = mStateFlow
 
     val switchState = mutableStateOf(false)
-
+    fun setDocSelected(value: Boolean) {
+        _docSelected.value = value
+    }
     fun openResource(resourceType: ResourceType) {
         mStateFlow.tryEmit(
             if (switchState.value) {

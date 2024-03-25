@@ -17,6 +17,7 @@ import com.example.imgselect.DictionaryNetwork.WordData
 import com.example.imgselect.data.LocalStorageDatabase
 import com.example.imgselect.data.LocalStorageRepository
 import com.example.imgselect.data.Meaning
+import com.example.imgselect.model.DiscussUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -27,7 +28,10 @@ import retrofit2.HttpException
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.net.SocketException
+import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.KProperty
 
 class DictionaryViewModel(application: Application) : AndroidViewModel(application) {
@@ -45,6 +49,7 @@ class DictionaryViewModel(application: Application) : AndroidViewModel(applicati
     var setOfDates: MutableSet<String> = mutableSetOf()
     var setOfWords: MutableSet<String> = mutableSetOf()
     var whichMeaning: Int by mutableStateOf(0)
+    var uiState: MutableState<WordMeaningUiState> = mutableStateOf(WordMeaningUiState.Initial)
 
     init {
         val localStorageDao = LocalStorageDatabase.getDatabase(application).userDao()
@@ -54,7 +59,7 @@ class DictionaryViewModel(application: Application) : AndroidViewModel(applicati
 
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun processResponse(): List<WordData>? {
-        return suspendCancellableCoroutine { continuation ->
+        return suspendCoroutine { continuation ->
             val result = response
 //                ?.flatMap { response ->
 //                response.meanings.flatMap { meaning ->
@@ -65,37 +70,46 @@ class DictionaryViewModel(application: Application) : AndroidViewModel(applicati
 //            } ?: emptyList()
 
             // Resuming coroutine with the result
-            continuation.resume(result, onCancellation = {
-
-            })
+            continuation.resume(result)
 
         }
     }
 
     suspend fun getMeaning(): List<WordData> {
+        uiState.value = WordMeaningUiState.Loading
+
         val sanitizedWord = word.filter { it.isLetter() || it.isWhitespace() }
 
-        return suspendCancellableCoroutine { continuation ->
+        return suspendCoroutine { continuation ->
             val job = viewModelScope.launch {
                 try {
                     wrongWord = false
                     response = DictionaryApi.retrofitService.getMeaning(sanitizedWord)
                     Log.d(TAG , "Raw Json Response: $response")
-                    continuation.resume(response ?: emptyList(), onCancellation = {})
+                    uiState.value = WordMeaningUiState.Success("Success")
+
+                    continuation.resume(response ?: emptyList())
                 } catch(e: IOException) {
                     Log.d(TAG , "its an error")
+                    uiState.value = WordMeaningUiState.Error(e.message ?: "Unknown error occurred")
+
                     continuation.resumeWithException(e)
                 } catch(e: HttpException) {
                     Log.d(TAG , "Word doesn't exist")
                     wrongWord = true
-                    continuation.resume(emptyList(), onCancellation = {}) // or handle differently based on your requirement
+                    uiState.value = WordMeaningUiState.Error("Word meaning doesn't exist")
+
+                    continuation.resume(emptyList()) // or handle differently based on your requirement
+                }catch(e: SocketException) {
+                    Log.d(TAG , "its an error")
+                    uiState.value = WordMeaningUiState.Error(e.message ?: "Unknown error occurred")
+
+                    continuation.resumeWithException(e)
                 }
             }
 
             // Register a cancellation callback
-            continuation.invokeOnCancellation {
-                job.cancel() // Cancel the coroutine job if the continuation is cancelled
-            }
+
         }
     }
 
@@ -118,4 +132,11 @@ class DictionaryViewModel(application: Application) : AndroidViewModel(applicati
     }
 }
 
+
+sealed interface WordMeaningUiState {
+    object Initial : WordMeaningUiState
+    object Loading : WordMeaningUiState
+    data class Success(val outputText: String) : WordMeaningUiState
+    data class Error(val error: String) : WordMeaningUiState
+}
 

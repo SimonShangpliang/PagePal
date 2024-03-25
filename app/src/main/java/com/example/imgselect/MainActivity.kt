@@ -1,5 +1,8 @@
 package com.example.imgselect
+import android.R
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -16,10 +19,13 @@ import android.view.Window
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,7 +38,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,14 +54,22 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
+import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
+import androidx.compose.material.LinearProgressIndicator
+import androidx.compose.material.Scaffold
+import androidx.compose.material.ScaffoldState
+import androidx.compose.material.Switch
+import androidx.compose.material.SwitchDefaults
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -76,18 +92,23 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ShareCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -105,12 +126,20 @@ import com.example.imgselect.model.TextRecognitionViewModel
 import com.example.imgselect.model.TextResult
 import com.example.imgselect.ui.theme.ImgselectTheme
 import com.example.imgselect.ui.theme.backgroundcolor
+import com.example.mytestapp.flashCardLibrary
+
+import com.rizzi.bouquet.HorizontalPDFReader
+import com.rizzi.bouquet.HorizontalPdfReaderState
+import com.rizzi.bouquet.ResourceType
+import com.rizzi.bouquet.VerticalPDFReader
+import com.rizzi.bouquet.VerticalPdfReaderState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.io.File
 import java.lang.Math.abs
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -118,16 +147,33 @@ import kotlin.coroutines.suspendCoroutine
 import kotlin.math.sqrt
 
 class MainActivity : ComponentActivity() {
+    private val viewModel: PDFViewModel by viewModels()
+
     @OptIn(ExperimentalMaterialApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
 
+        setContent {
+            var currScreen by remember{ mutableStateOf(Screen.HomeScreen.route) }
+
+            if(currScreen==Screen.PdfScreen.route)
+            {
+                window.setFlags(
+                    WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                    WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
+                )
+
+                onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+                    override fun handleOnBackPressed() {
+                        viewModel.clearResource()
+                        currScreen= Screen.HomeScreen.route
+                    }
+                })
+            }
             val configuration = LocalConfiguration.current
             val screenHeight = configuration.screenHeightDp
             val screenWidth = configuration.screenWidthDp
             val context = LocalContext.current
-
             //coordinates
             var startOffsetX by remember { mutableStateOf(0f) }
             var endOffsetX by remember { mutableStateOf(0f) }
@@ -142,7 +188,12 @@ class MainActivity : ComponentActivity() {
             val setModifier: (Modifier) -> Unit = { modi ->
                 modifier = modi
             }
+            val screensWithBottomScaffold=listOf(Screen.WebViewScreen.route,Screen.CameraScreen.route
+                ,Screen.PdfScreen.route
+            )
             var selectedBitmap by remember { mutableStateOf(createBitmap(1,1, config = Bitmap.Config.ARGB_8888)) }
+            var selectedBitmapSS:Bitmap? by remember { mutableStateOf(null) }
+
 
             val default_mod= Modifier
                 .pointerInput(Unit)
@@ -239,6 +290,7 @@ class MainActivity : ComponentActivity() {
             }
             var summaryViewModel=viewModel<SummaryViewModel>()
             ImgselectTheme {
+                // flashCardLibrary()
 
                 if(!hasCameraPermission())
                 {
@@ -324,6 +376,20 @@ class MainActivity : ComponentActivity() {
                                     .height(40.dp)
                                     .clickable {
                                         if (cropDone) {
+                                            if (currScreen == Screen.PdfScreen.route) {
+                                                CoroutineScope(Dispatchers.IO).launch {
+                                                    async {
+                                                        selectedBitmapSS =
+                                                            captureEntireScreen(
+                                                                context = context,
+                                                                window,
+                                                                screenWidth,
+                                                                screenHeight
+                                                            )
+
+                                                    }.await()
+                                                }
+                                            }
                                             cropBox = true
                                             setHeight = 140.dp
                                         } else {
@@ -350,6 +416,7 @@ class MainActivity : ComponentActivity() {
                                                 summaryDialog = true
                                                 summaryText = textResponse
                                                 cropDone = true
+                                                selectedBitmapSS = null
                                                 Log.d("MainAct", textResponse)
                                                 summaryViewModel.questioningSummary(summaryText)
                                             }
@@ -456,6 +523,25 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
+                            LaunchedEffect(currScreen)
+                            {
+                                startOffsetX=0f
+                                startOffsetY=0f
+                                endOffsetX=0f
+                                endOffsetY=0f
+                                meaning=false
+
+                                // if(currScreen==Screen.)
+                                if(screensWithBottomScaffold.contains(currScreen))
+                                {
+                                    setHeight=80.dp
+
+                                }else
+                                {
+
+                                    setHeight=0.dp
+                                }
+                            }
                             if(cropBox)
                             {
                                 Box(modifier= Modifier
@@ -472,8 +558,8 @@ class MainActivity : ComponentActivity() {
                                         .padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween)
                                     {
                                         OutlinedButton(onClick = {
-                                            /*TODO*/
-                                                cropBox=false
+
+                                            cropBox=false
                                             setHeight=80.dp
                                             cropDone=false
                                             if (focus == true) {
@@ -497,6 +583,7 @@ class MainActivity : ComponentActivity() {
                                             {
                                                 setModifier(Modifier)
                                             }
+
 
                                         }) {
                                             Text(text = "Crop Region",color=Color.LightGray)
@@ -544,14 +631,22 @@ class MainActivity : ComponentActivity() {
                         sheetShape = RoundedCornerShape(topStart=40.dp, topEnd = 40.dp),
                         sheetBackgroundColor = Color.DarkGray
                     ) { innerPadding ->
-                        Canvas(modifier = Modifier
-                            .fillMaxWidth()
+                        Canvas(modifier =
+                        Modifier
+                            .fillMaxSize()
                             .zIndex(6f)
+//
+
 
                         ) {
 
 
                             if ((endOffsetX != 0f &&  endOffsetY != 0f)) {
+//                                drawRect(
+//                                    color = Color.Blue.copy(alpha = 0.3f),
+//                                    topLeft =  Offset(0f,0f),
+//                                    size = Size(Math.abs(endOffsetX - startOffsetX), Math.abs(endOffsetY - startOffsetY))
+//                                )
                                 drawRect(
                                     color = Color.Blue.copy(alpha = 0.3f),
                                     topLeft =  Offset(startOffsetX,startOffsetY),
@@ -559,9 +654,29 @@ class MainActivity : ComponentActivity() {
                                 )
 
                             }
+//                            if ((endOffsetX != 0f &&  endOffsetY != 0f)) {
+//                                drawRect(color = Color.Blue.copy(alpha = 0.3f))
+//
+//                                val holeRect = androidx.compose.ui.geometry.Rect(
+//                                    startOffsetX,
+//                                    startOffsetY,
+//                                    endOffsetX,
+//                                    endOffsetY
+//                                )
+//                                val holePath = Path().apply {
+//                                    addRect(holeRect)
+//                                }
+//                                drawPath(holePath, Color.Transparent, style = Fill)
+//                            }
                         }
+
                         Box(modifier=modifier) {
-                            Navigation(window = window, applicationContext = applicationContext)
+                            if(currScreen==Screen.PdfScreen.route){
+                                Log.d("Main","true")
+                                PDFViewer(selectedBitmapSS)
+
+                            }else{
+                                Navigation(window = window, applicationContext = applicationContext,{currScreen=it})}
                             if(meaning){   DrawBoundingBoxes(
                                 selectedBitmap,
                                 textResults = box,
@@ -572,426 +687,299 @@ class MainActivity : ComponentActivity() {
                     }
 
                 }
+
             }
 
         }
     }
+
+
+
+    @Composable
+    fun PDFViewer(selectedBitmapSS: Bitmap?){
+        androidx.compose.material.Surface(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val scaffoldState = rememberScaffoldState()
+            val state = viewModel.stateFlow.collectAsState()
+
+            Box(modifier = Modifier
+                .background(Color.Black)
+                .zIndex(0f)) {
+                when (val actualState = state.value) {
+                    null -> SelectionView()
+                    is VerticalPdfReaderState -> {
+                        if(selectedBitmapSS==null){
+                            PDFView(
+                                pdfState = actualState,
+                                scaffoldState = scaffoldState)}else
+                        {
+                            Image(bitmap = selectedBitmapSS.asImageBitmap(), contentDescription ="",modifier=Modifier.fillMaxSize(),            contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+
+                    is HorizontalPdfReaderState ->
+                        if(selectedBitmapSS==null){
+                            HPDFView(
+                                pdfState = actualState,
+                                scaffoldState = scaffoldState
+                            )}else
+                        {
+                            Image(bitmap = selectedBitmapSS.asImageBitmap(), contentDescription ="",modifier=Modifier.fillMaxSize(),            contentScale = ContentScale.Crop
+                            )
+                        }
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+    @OptIn(ExperimentalMaterialApi::class)
+    @Composable
+    fun SelectionElement(
+        title: String,
+        text: String,
+        onClick: () -> Unit
+    ) {
+        Card(
+            onClick = onClick,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            backgroundColor = androidx.compose.material.MaterialTheme.colors.surface,
+            elevation = 4.dp
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                androidx.compose.material.Text(
+                    text = title,
+                    modifier = Modifier.padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 16.dp,
+                        bottom = 4.dp
+                    ),
+                    style = androidx.compose.material.MaterialTheme.typography.body1
+                )
+                androidx.compose.material.Text(
+                    text = text,
+                    modifier = Modifier.padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 4.dp,
+                        bottom = 16.dp
+                    ),
+                    style = androidx.compose.material.MaterialTheme.typography.caption
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun SelectionView() {
+        Column(modifier = Modifier.fillMaxSize()) {
+            SelectionElement(
+                title = "Open Local file",
+                text = "Open a file in device memory"
+            ) {
+                openDocumentPicker()
+            }
+
+            Row(
+                modifier = Modifier
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                androidx.compose.material.Text(text = "List view",color= Color.White)
+                Spacer(modifier = Modifier.width(16.dp))
+                Switch(
+                    checked = viewModel.switchState.value,
+                    onCheckedChange = {
+                        viewModel.switchState.value = it
+                    },
+                    colors = SwitchDefaults.colors(
+                        uncheckedThumbColor = androidx.compose.material.MaterialTheme.colors.secondaryVariant,
+                        uncheckedTrackColor = androidx.compose.material.MaterialTheme.colors.secondaryVariant,
+                        uncheckedTrackAlpha = 0.54f
+                    )
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                androidx.compose.material.Text(text = "Pager view",color= Color.White)
+            }
+        }
+    }
+
+    @Composable
+    fun PDFView(
+        pdfState: VerticalPdfReaderState,
+        scaffoldState: ScaffoldState
+    ) {
+        Box(
+            contentAlignment = Alignment.TopStart
+        ) {
+            VerticalPDFReader(
+                state = pdfState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Color.Gray)
+                    .zIndex(0f)
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .zIndex(0f)
+            ) {
+                LinearProgressIndicator(
+                    progress = pdfState.loadPercent / 100f,
+                    color = Color.Red,
+                    backgroundColor = Color.Green,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Row {
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(
+                        modifier = Modifier
+                            .background(
+                                color = androidx.compose.material.MaterialTheme.colors.surface.copy(alpha = 0.5f),
+                                shape = androidx.compose.material.MaterialTheme.shapes.medium
+                            ),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        androidx.compose.material.Text(
+                            text = "Page: ${pdfState.currentPage}/${pdfState.pdfPageCount}",
+                            modifier = Modifier.padding(
+                                start = 8.dp,
+                                end = 8.dp,
+                                bottom = 4.dp,
+                                top = 8.dp
+                            )
+                        )
+
+                    }
+                }
+            }
+            LaunchedEffect(key1 = pdfState.error) {
+                pdfState.error?.let {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = it.message ?: "Error"
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun HPDFView(
+        pdfState: HorizontalPdfReaderState,
+        scaffoldState: ScaffoldState
+    ) {
+        Box(
+            contentAlignment = Alignment.TopStart
+        ) {
+            HorizontalPDFReader(
+                state = pdfState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Color.Gray)
+            )
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                LinearProgressIndicator(
+                    progress = pdfState.loadPercent / 100f,
+                    color = Color.Red,
+                    backgroundColor = Color.Green,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Row {
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(
+                        modifier = Modifier
+                            .background(
+                                color = androidx.compose.material.MaterialTheme.colors.surface.copy(alpha = 0.5f),
+                                shape = androidx.compose.material.MaterialTheme.shapes.medium
+                            ),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        androidx.compose.material.Text(
+                            text = "Page: ${pdfState.currentPage}/${pdfState.pdfPageCount}",
+                            modifier = Modifier.padding(
+                                start = 8.dp,
+                                end = 8.dp,
+                                bottom = 4.dp,
+                                top = 8.dp
+                            )
+                        )
+
+
+                    }
+                }
+            }
+            LaunchedEffect(key1 = pdfState.error) {
+                pdfState.error?.let {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = it.message ?: "Error"
+                    )
+                }
+            }
+        }
+    }
+
+    private fun openDocumentPicker() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            type = "application/pdf"
+            addCategory(Intent.CATEGORY_OPENABLE)
+        }
+        startActivityForResult(intent, OPEN_DOCUMENT_REQUEST_CODE)
+    }
+
+    private fun openDocument(documentUri: Uri) {
+        documentUri.path?.let {
+            viewModel.openResource(
+                ResourceType.Local(
+                    documentUri
+                )
+            )
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
+        super.onActivityResult(requestCode, resultCode, resultData)
+        if (requestCode == OPEN_DOCUMENT_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            resultData?.data?.also { documentUri ->
+                contentResolver.takePersistableUriPermission(
+                    documentUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+                openDocument(documentUri)
+                viewModel.setDocSelected(true)
+            }
+        }else
+        {
+            viewModel.setDocSelected(false)
+
+        }
+    }
+
+
+
+
+
     private fun hasCameraPermission()=
         ContextCompat.checkSelfPermission(this,android.Manifest.permission.CAMERA)== PackageManager.PERMISSION_GRANTED
 
 }
 
 
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun MainScreen(window: Window,navController: NavController,photoViewModel: PhotoTakenViewModel , chatViewModel: ChatViewModel , chatViewModelWithImage: ChatViewModelWithImage , viewModel: TypewriterViewModel,textViewModel:TextRecognitionViewModel) {
-    //These are used to represent the cropped regions from screen
-    var startOffsetX by remember { mutableStateOf(0f) }
-    var endOffsetX by remember { mutableStateOf(0f) }
-    var startOffsetY by remember { mutableStateOf(0f) }
-    var endOffsetY by remember { mutableStateOf(0f) }
-    var selectedBitmap by remember { mutableStateOf(createBitmap(1,1, config = Bitmap.Config.ARGB_8888)) }
-    val dictionaryViewModel=viewModel<DictionaryViewModel>()
-    val summaryViewModel=viewModel<SummaryViewModel>()
-    //The URI of the photo that the user has picked
-    var photoUri: Uri? by remember { mutableStateOf(null) }
-    val photoTaken by rememberUpdatedState(newValue = photoViewModel.bitmap.collectAsState().value)
-    Log.d("ManActivity2",photoTaken.toString())
-    val imageBitmap: ImageBitmap = selectedBitmap!!.asImageBitmap()
-    var focus by remember{
-        mutableStateOf(false)
-    }
-    val context= LocalContext.current
-    //The launcher we will use for the PickVisualMedia contract.
-    //When .launch()ed, this will display the photo picker.
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        //When the user has selected a photo, its URI is returned here
-        photoUri = uri
-    }
 
 
-//    BottomSheetScaffold(
-//        scaffoldState = scaffoldState,
-//        sheetContent = {
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(16.dp),
-//                horizontalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                Button(
-//                    onClick = { /TODO/ },
-//                    colors = ButtonDefaults.buttonColors(Color.Black),
-//                    modifier = Modifier.wrapContentSize()
-//                ) {
-//                    Text(
-//                        text = "Summary",
-//                        fontSize = 15.sp,
-//                        color = Color.LightGray,
-//                        modifier = Modifier
-//                            .padding(horizontal = 16.dp)
-//                            .clickable {
-//
-//                            }
-//                    )
-//                }
-//
-//                Box(
-//                    modifier = Modifier
-//                        .padding(16.dp),
-//                    contentAlignment = Alignment.Center
-//                ) {
-//                    Divider(
-//                        color = Color.Gray,
-//                        modifier = Modifier
-//                            .width(36.dp)
-//                            .height(5.dp)
-//                            .background(Color.Gray, shape = RoundedCornerShape(4.dp))
-//                    )
-//                }
-//
-//                Button(
-//                    onClick = { /TODO/ },
-//                    colors = ButtonDefaults.buttonColors(Color.Black),
-//                    modifier = Modifier.wrapContentSize()
-//                ) {
-//                    Text(
-//                        text = "Meaning",
-//                        fontSize = 15.sp,
-//                        color = Color.LightGray,
-//                        modifier = Modifier
-//                            .padding(horizontal = 16.dp)
-//                            .clickable {
-//
-//                            }
-//                    )
-//                }
-//            }
-//            ChatScreen(chatViewModel = chatViewModel, navController = navController, chatViewModelWithImage = chatViewModelWithImage , viewModel = viewModel)
-//        },
-//        sheetPeekHeight = 80.dp, // Set this to the desired height to show a peek of the bottom sheet
-//        sheetGesturesEnabled = true,
-//        sheetElevation = 8.dp,
-//        sheetShape = RoundedCornerShape(40.dp),
-//        sheetBackgroundColor = Color.DarkGray,
-//
-//    ) { innerPadding ->
-    // Pass the necessary parameters to your main content
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(Color.Magenta)){
-
-        if(summaryViewModel.dialogVisible) {
-            AlertDialog(
-                onDismissRequest = { summaryViewModel.dialogVisible = false },
-                title = {Text("Enter a title")},
-                text = {
-                    TextField(
-                        value = summaryViewModel.title,
-                        onValueChange = {summaryViewModel.title = it},
-                        label = {Text("Title")}
-                    )
-                },
-                confirmButton = {
-                    Button(onClick = {
-                        summaryViewModel.dialogVisible = false
-                        summaryViewModel.saveSummaryWithImage(selectedBitmap , title = summaryViewModel.title)
-                    }) {
-                        Text("OK")
-                    }
-                }
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .background(Color.White)
-                .fillMaxHeight(0.6f)
-                .fillMaxWidth()
-
-        ) {
-
-            Column() {
-
-                Box() {
-
-//                        DisplayImageFromUri(photoUri = photoUri,focus=focus)
-//                        DisplayRotatedImage(photoTaken = photoTaken, degrees = 90f,focus=focus)
-                    //Do use this for seeing the cropped region real time
-
-                }
-            }
-
-//Whatever you select from the upper box gets drawn by this into a particular size
-//                Canvas(modifier = Modifier
-//                    .fillMaxWidth()
-//                    .zIndex(2f)) {
-//                    Log.d("MainActivity", "DONE")
-//                    val topLeftX = startOffsetX
-//                    val topLeftY = startOffsetY
-//                    val bottomRightX = endOffsetX
-//                    val bottomRightY = endOffsetY
-//
-//                    val rectangleTopLeft = Offset(topLeftX, topLeftY)
-//                    if ((bottomRightX != 0f && bottomRightY != 0f)) {
-//                        drawRect(
-//                            color = Color.Blue.copy(alpha = 0.3f),
-//                            topLeft = rectangleTopLeft,
-//                            size = Size(abs(bottomRightX - topLeftX), abs(bottomRightY - topLeftY))
-//                        )
-//
-//                    }
-//                }
-        }
-        //just some neccesary vals and vars
-        var text by remember {
-            mutableStateOf("")
-        }
-        var handleText: (String) -> Unit = { updatedText ->
-            text = updatedText
-
-        }
-        val snackbarHostState = SnackbarHostState()
-        val coroutineScope = rememberCoroutineScope()
-        //
-
-//            Image(modifier = Modifier
-//                .padding(0.dp)
-//                .zIndex(4f)
-//                ,bitmap = imageBitmap, contentDescription = "Bitmap Image",                contentScale = ContentScale.Crop
-//            )
-        Row(modifier=Modifier){
-            Button(onClick = {
-                summaryViewModel.dialogVisible = true
-                //summaryViewModel.saveSummaryWithImage(selectedBitmap)
-            }) {
-                Text("Save Summary")
-            }
-            Button(
-                onClick = {
-                    //On button press, launch the photo picker
-                    summaryViewModel.output = ""
-                    launcher.launch(
-                        PickVisualMediaRequest(
-                            //Here we request only photos. Change this to .ImageAndVideo if you want videos too.
-                            //Or use .VideoOnly if you only want videos.
-                            mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
-                        )
-                    )
-                }
-            ) {
-                Text("Select Photo")
-            }
-            Button(
-                onClick = {
-                    if(focus==true)
-                    {
-                        startOffsetX=0f
-                        startOffsetY=0f
-                        endOffsetX=0f
-                        endOffsetY=0f
-                    }
-                    else
-                    {
-                        startOffsetX=300f
-                        startOffsetY=300f
-                        endOffsetX=600f
-                        endOffsetY=600f
-                    }
-                    //On button press, launch the photo picker
-                    focus=!focus
-
-                }
-            ) {
-                if(focus==false){
-                    Text("Crop")}
-                else
-                {
-                    Text("Stop Crop")
-                }
-            }
-//                if(focus==false){
-//                    Text("Zoom Enabled/Crop Disabled",color=Color.Black)}
-//                else
-//                {
-//                    Text("Zoom Disabled/Crop Enabled",color=Color.Black)
-//                }
-        }
-        Row() {
-            //Crop an image
-            Button(onClick = {
-                CoroutineScope(Dispatchers.IO).launch{
-                    //captureSelectedRegion(window,startOffsetX,startOffsetY,endOffsetX,endOffsetY,{selectedBitmap=it})
-                    selectedBitmap=      captureSelectedRegion(context ,window,startOffsetX,startOffsetY,endOffsetX,endOffsetY)
-
-                }
-            })
-            {
-                Text(text = "select Image Cropped")
-
-            }
-            //Text Recognition using MLkit
-
-            val context = LocalContext.current
-            Button(
-                onClick = {
-                    if (selectedBitmap.height == 1 && selectedBitmap.width == 1) {
-                        Toast.makeText(
-                            context,
-                            "Select a Region and press select image cropped",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } else {
-                        coroutineScope.launch {
-                            //  textViewModel.performTextRecognition(selBi)
-
-                            // Display Snackbar with the recognized text
-                            delay(2000)
-                            dictionaryViewModel.word = text
-                            snackbarHostState.showSnackbar(
-                                message = text,
-                                actionLabel = "Dismiss"
-                            )
-
-
-                        }
-                    }
-                },
-                content = {
-                    Text(text = "Extract text")
-
-                }
-            )
-            Button(onClick = {navController.navigate(Screen.WebViewScreen.route)})
-            {Text("WebView")}
-        }
-//Text Recognition done
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.Black)) {
-            Log.d("12MainActivit y","inside")
-
-
-            Column {
-                Column(modifier=Modifier){
-                    Row() {
-
-
-                        Button(
-                            onClick = {
-                                // dictionaryViewModel.getMeaning()
-
-                            },
-                            modifier = Modifier
-                        ) {
-                            Text("Get Meaning")
-                        }
-                        Button(
-                            onClick = { navController.navigate(Screen.CameraScreen.route) },
-                            modifier = Modifier
-                        ) {
-                            Text("Camera")
-                        }
-                        Button(onClick = { /*TODO*/
-                                summaryViewModel.questioning("Summarize this"+ text)
-                            // Display Snackbar with the recognized text
-
-                        }) {
-                            Text("Get Summary")
-
-
-                        }
-                    }
-                }
-
-            }
-            Row() {
-                Button(onClick = {dictionaryViewModel.saveMeaning()}) {
-                    Text("Save Meaning")
-                }
-
-
-            }
-
-            Row() {
-
-                Button(onClick = {navController.navigate(Screen.SummaryScreen.route)}) {
-                    Text("View Summary")
-                }
-//
-//                            Button(onClick = {navController.navigate(Screen.ChatScreen.route)}) {
-//                                Text("Chat")
-//                            }
-            }
-
-            Button(
-                onClick = {
-                    chatViewModel.getChatList()
-                    navController.navigate(Screen.ChatListScreen.route)
-
-                }
-            ) {
-                Text(
-                    text = "View Chats"
-                )
-
-            }
-        }
-
-        Button(onClick = {navController.navigate(Screen.MeaningScreen.route)}) {
-            Text("View Meaning")
-
-        }
-
-        //Summary part
-
-        val appUiState=summaryViewModel.uiState.collectAsState().value
-        when(appUiState) {
-            is DiscussUiState.Success->{
-                val scroll= rememberScrollState()
-
-                Text(modifier = Modifier
-                    .height(130.dp)
-                    .verticalScroll(scroll),
-                    text="Summary ::"+ appUiState.outputText
-                )}
-            is DiscussUiState.Loading ->
-            {
-
-                Text(modifier =Modifier.height(100.dp),
-                    text="Summary ::Loading"
-                )}
-
-            is DiscussUiState.Error->
-            {
-                Text(modifier =Modifier.height(100.dp),
-                    text="Summary ::Error"
-                )
-            }
-            else->
-            {
-                Text(modifier =Modifier.height(100.dp),
-                    text="Summary ::"
-                )}
-
-
-
-
-        }
-        //Summary part over
-
-        //Display word Meaning
-
-
-    }
-
-    //snackbar for displaying text
-//word meaning over
-
-
-
-    // }
-}
 
 
 fun rotateBitmap(source: Bitmap, degrees: Float): Bitmap {
@@ -1143,6 +1131,8 @@ fun DisplayRotatedImage(photoTaken: Bitmap?, degrees: Float, modifier: Modifier 
 
     }
 }
+private const val OPEN_DOCUMENT_REQUEST_CODE = 0x33
+
 suspend fun captureSelectedRegion(context:Context,
                                   window: Window,
                                   startOffsetX: Float,
@@ -1227,3 +1217,4 @@ fun euclideanDistance(x1:Float, y1: Float, x2: Float, y2: Float): Float {
 
     return sqrt(deltaX * deltaX + deltaY * deltaY).toFloat()
 }
+
