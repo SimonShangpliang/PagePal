@@ -61,6 +61,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
                 }
                 //var output=""
                 output+= generativeModel.generateContent(content).text
+
                 _uiState.value = DiscussUiState.Success(output)
                 Log.d("MainActivity","Response done")
 
@@ -97,7 +98,10 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
 //                generativeModel.generateContentStream(content).collect{
 //output+=it.text
 //                    _uiState.value =HomeUiState.Success(output)
+
 //                }
+
+                output = op
                 Log.d("MainActivity",output)
 
             }catch (e: Exception){
@@ -117,6 +121,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             val dateFormat = SimpleDateFormat("yyyy/MM/dd")
             val date = dateFormat.format(current.time)
             val imageByte = image?.toBytes()
+            Log.d("SummaryIsWhat" , output)
             val content = Summary(0,output,imageByte , "${date}" , title)
             repository.addSummary(content)
         }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -40,6 +41,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -299,23 +301,104 @@ fun MessagesList(messages: List<ChatQueryResponse>, viewModel: TypewriterViewMod
     }
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MySearchBar(
+    placeHolder : String,
+    onQueryChanged: (String) -> Unit,
+    cornerRadius: Float = 30f
+){
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    )
+    {
+
+
+        var text= remember {
+            mutableStateOf("")
+        }
+        OutlinedTextField(
+            value = text.value,
+            onValueChange = {
+                text.value= it
+                onQueryChanged(it)
+            }, modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+                .padding(horizontal = 20.dp)
+                .border(0.5.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(10.dp)),
+            placeholder = {
+                Text(
+                    text = placeHolder,
+                    color = Color.White.copy(alpha = 0.5f)
+                )
+            },
+            colors = TextFieldDefaults.textFieldColors(
+                textColor = Color.White,
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                placeholderColor = Color.White.copy(alpha = 0.5f)
+            ),
+
+            trailingIcon = {
+                IconButton(onClick = { }) {
+                    Icon(painter = painterResource(id = R.drawable.search), contentDescription ="Search" )
+                }
+            },
+            shape = RoundedCornerShape(10.dp)
+        )
+    }
+}
 @Composable
 fun SavedChatsScreen(chatList: LiveData<List<Chat>>, chatViewModel: ChatViewModel , goToFullChat: (Chat) -> Unit , ) {
     val chats by chatList.observeAsState(initial = emptyList())
-    LazyColumn {
-        items(chats) {chat->
-            ChatRow(chat = chat , {goToFullChat(chat)} , deleteChat = {chatViewModel.deleteChat(chat)})
-            if(chats.indexOf(chat) == chats.size-1) {
-                Spacer(modifier = Modifier.height(100.dp))
+    val searchQuery = remember { mutableStateOf("")}
+
+    val filteredChats = if(searchQuery.value.isEmpty()) {
+        chats
+    } else {
+        chats.filter { chat->
+            chat.message?.any { chatQueryResponse ->
+                chatQueryResponse.message?.contains(searchQuery.value, ignoreCase = true)?: false
+            } ?: false
+        }
+    }
+
+
+    Column(
+        modifier = Modifier.background(Color.Black).fillMaxSize()
+    ) {
+        Text(
+            text = "Chats",
+            fontSize = 35.sp,
+            color = Color.White,
+            modifier = Modifier.padding(24.dp)
+        )
+        MySearchBar(placeHolder = "Search", onQueryChanged = {query -> searchQuery.value = query})
+
+        LazyColumn(
+            //modifier = Modifier.border(2.dp, Color.Red),
+        ) {
+            items(filteredChats) {chat->
+                ChatRow(chat = chat , {goToFullChat(chat)} , deleteChat = {chatViewModel.deleteChat(chat)})
+                if(chats.indexOf(chat) == chats.size-1) {
+                    Spacer(modifier = Modifier.height(100.dp))
+                }
             }
         }
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatRow(chat: Chat , goToFullChat: (Chat) -> Unit , deleteChat: () -> Unit) {
-    Column() {
+
         Card(
             onClick = { goToFullChat(chat) },
             colors = CardDefaults.cardColors(lighterYellow),
@@ -323,54 +406,59 @@ fun ChatRow(chat: Chat , goToFullChat: (Chat) -> Unit , deleteChat: () -> Unit) 
                 .padding(16.dp)
                 .fillMaxWidth()
         ) {
-            if(chat.message?.isNotEmpty() == true) {
-                chat.message?.get(0)?.message?.let {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
+            Column() {
+                if(chat.message?.isNotEmpty() == true) {
+                    chat.message?.get(0)?.message?.let {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = it,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                color = Color.DarkGray,
+                                modifier = Modifier.padding(16.dp)
+                            )
+
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_delete_24),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .clickable { deleteChat() }
+                                    .padding(16.dp),
+                                tint = Color.Black
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    chat.message?.get(1)?.message?.let {
                         Text(
                             text = it,
-                            maxLines = 2,
+                            maxLines = 3,
                             overflow = TextOverflow.Ellipsis,
                             color = Color.DarkGray,
                             modifier = Modifier.padding(16.dp)
                         )
 
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_delete_24),
-                            contentDescription = null,
-                            modifier = Modifier.clickable { deleteChat() }.padding(16.dp),
-                            tint = Color.Black
-                        )
+
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.baseline_delete_24),
+//                        contentDescription = null,
+//                        modifier = Modifier
+//                            .clickable { deleteChat() }
+//                            .padding(16.dp),
+//                        tint = Color.Black
+//                    )
+
                     }
                 }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                chat.message?.get(1)?.message?.let {
-                    Text(
-                        text = it,
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis,
-                        color = Color.DarkGray,
-                        modifier = Modifier.padding(16.dp)
-                    )
-
-
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_delete_24),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clickable { deleteChat() }
-                            .padding(16.dp),
-                        tint = Color.Black
-                    )
-
-                }
             }
+
         }
-    }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

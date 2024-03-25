@@ -19,14 +19,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -50,11 +53,15 @@ import androidx.lifecycle.LiveData
 import androidx.navigation.NavController
 import com.example.imgselect.data.Summary
 import com.example.imgselect.model.SummaryViewModel
+import com.example.imgselect.ui.theme.backgroundcolor
 import com.example.imgselect.ui.theme.lightblue
 import com.example.imgselect.ui.theme.lighterPurple
 import com.example.imgselect.ui.theme.lighterYellow
 import java.nio.file.Files.delete
 import kotlin.random.Random
+
+enum class SortOrder { Ascending, Descending }
+enum class SearchBy { Date, Topic , All }
 
 @Composable
 fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavController , summaryViewModel: SummaryViewModel , goToSummaryListPage: (Summary) -> Unit){
@@ -62,6 +69,28 @@ fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavContro
     val summarylist by summaryList.observeAsState(initial  = emptyList())
     Log.d("SummaryList" , "${summaryList}")
     val colors = listOf(lightblue, lighterPurple, lighterYellow)
+    val searchQuery = remember { mutableStateOf("")}
+    val sortOrder = remember { mutableStateOf(SortOrder.Ascending) }
+    val searchBy = remember { mutableStateOf(SearchBy.All) }
+    val sortedAndFilteredSummaries = summarylist
+        // First, apply the search filter
+        .filter { summary ->
+            if (searchQuery.value.isEmpty()) true
+            else {
+                when (searchBy.value) {
+                    SearchBy.Date -> summary.time.contains(searchQuery.value, ignoreCase = true)
+                    SearchBy.Topic -> summary.title.contains(searchQuery.value, ignoreCase = true)
+                    else -> summary.summary?.contains(searchQuery.value , ignoreCase = true)?: false || summary.title.contains(searchQuery.value, ignoreCase = true)||summary.time.contains(searchQuery.value, ignoreCase = true)
+                }
+            }
+        }
+        // Then, apply the sorting
+        .let { list ->
+            when (sortOrder.value) {
+                SortOrder.Ascending -> list.sortedBy { it.time }
+                SortOrder.Descending -> list.sortedByDescending { it.time }
+            }
+        }
 
     Surface(
 
@@ -75,9 +104,19 @@ fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavContro
         ){
             HeadlineText()
             Spacer(modifier = Modifier.size(14.dp))
-            MySearchBar( placeHolder ="Search date,title" )
+            MySearchBar(
+                placeHolder ="Search date,title",
+                onQueryChanged = {query-> searchQuery.value = query}
+            )
             Spacer(modifier = Modifier.size(20.dp))
-            SortAndSearch()
+            SortAndSearch(
+                onSortSelected = { selectedSortOrder ->
+                    sortOrder.value = selectedSortOrder
+                },
+                onSearchBySelected = { selectedSearchBy ->
+                    searchBy.value = selectedSearchBy
+                }
+            )
             Spacer(modifier = Modifier.size(20.dp))
 //            summaryCard(cardColor = Purple80)
 //            Spacer(modifier = Modifier.size(16.81.dp))
@@ -101,14 +140,14 @@ fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavContro
 //                    }
 //                }
 
-                itemsIndexed(summarylist) {index,summary ->
+                itemsIndexed(sortedAndFilteredSummaries) {index,summary ->
                     summaryCard(
                             summary = summary,
                             delete = {summaryViewModel.deleteSummary(summary)},
                             goToSummaryListPage = {goToSummaryListPage(summary)},
                             color = colors[index % colors.size]
                         )
-                    if(summarylist.indexOf(summary) == summarylist.size-1) {
+                    if(sortedAndFilteredSummaries.indexOf(summary) == summarylist.size-1) {
                             Spacer(modifier = Modifier.size(80.dp))
                         }
                         Spacer(modifier = Modifier.size(20.dp))
@@ -132,6 +171,7 @@ fun HeadlineText(){
 fun MySearchBar(
     modifier : Modifier = Modifier,
     placeHolder : String,
+    onQueryChanged: (String) -> Unit,
     cornerRadius: Float = 30f
 ){
 
@@ -150,19 +190,24 @@ fun MySearchBar(
             value = text.value,
             onValueChange = {
                 text.value= it
+                onQueryChanged(it)
             }, modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
-                .background(Color.Black, RoundedCornerShape(24.dp))
+                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
                 .padding(horizontal = 20.dp)
-                .border(1.dp, Color.White, RoundedCornerShape(20.dp)),
+                .border(0.5.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(10.dp)),
             placeholder = {
                 Text(
-                    text = placeHolder
+                    text = placeHolder,
+                    color = Color.White.copy(alpha = 0.5f)
                 )
             },
             colors = TextFieldDefaults.textFieldColors(
-               textColor = Color.White
+               textColor = Color.White,
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                placeholderColor = Color.White.copy(alpha = 0.5f)
             ),
 
             trailingIcon = {
@@ -170,37 +215,43 @@ fun MySearchBar(
                     Icon(painter = painterResource(id = R.drawable.search), contentDescription ="Search" )
                 }
             },
+            shape = RoundedCornerShape(10.dp)
         )
     }
 }
 @Composable
-fun SortAndSearch(){
-    var isDialog by remember {
-        mutableStateOf(value = false)
-    }
-    var OnDialog by remember {
-        mutableStateOf(value = false)
-    }
+fun SortAndSearch(onSortSelected: (SortOrder) -> Unit , onSearchBySelected:(SearchBy) -> Unit){
+    var isSortDialogOpen by remember { mutableStateOf(false) }
+    var isSearchByDialogOpen by remember { mutableStateOf(false) }
+    var isAscending by remember { mutableStateOf(false) }
+    var isDecending by remember { mutableStateOf(false) }
+    var isDate by remember { mutableStateOf(false) }
+    var isTopic by remember { mutableStateOf(false) }
     Row(modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 20.dp),
         horizontalArrangement = Arrangement.SpaceBetween) {
-        Button(onClick = { isDialog=true },
+        Button(onClick = { isSortDialogOpen = true  },
             modifier = Modifier
                 .height(32.dp)) {
             Text(text = " Sort By ")
         }
-        Button(onClick = {OnDialog = true },
+        Button(onClick = {isSearchByDialogOpen = true },
                         modifier = Modifier
                 .height(32.dp)) {
             Text(text = "Search By")
         }
     }
-    if (isDialog){
-        AlertDialog(onDismissRequest = { isDialog=false}, confirmButton = { Button(
-            onClick = {isDialog=false },
+    if (isSortDialogOpen){
+        AlertDialog(onDismissRequest = {isSortDialogOpen = false}, confirmButton = { Button(
+            onClick = {
+                isAscending = !isAscending
+                isDecending = false // Make sure to reset the other flag
+                onSortSelected(if (isAscending) SortOrder.Ascending else SortOrder.Descending)
+                isSortDialogOpen = false },
             modifier = Modifier
-                .height(32.dp)
+                .height(32.dp),
+            colors = if(isAscending) ButtonDefaults.buttonColors(Color.Green) else ButtonDefaults.buttonColors()
         ) {
             Row {
                 Icon(painter = painterResource(id = R.drawable.vector__1_), contentDescription = "Book")
@@ -210,9 +261,14 @@ fun SortAndSearch(){
 
         } }
             ,dismissButton = { Button(
-                onClick = { isDialog=false},
+                onClick = {
+                    isDecending = !isDecending
+                    isAscending = false // Reset the other flag
+                    onSortSelected(if (isDecending) SortOrder.Descending else SortOrder.Ascending)
+                    isSortDialogOpen = false},
                 modifier = Modifier
-                    .height(32.dp)
+                    .height(32.dp),
+                colors = if(isDecending) ButtonDefaults.buttonColors(Color.Green) else ButtonDefaults.buttonColors()
             ) {
                 Row {
                     Icon(painter = painterResource(id = R.drawable.vector__1_), contentDescription = "Book")
@@ -229,12 +285,18 @@ fun SortAndSearch(){
             modifier = Modifier.size(320.dp,140.dp)
         )
     }
-    if (OnDialog){
-        AlertDialog(onDismissRequest = { OnDialog=false}, confirmButton = { Button(
-            onClick = {OnDialog=false },
+    if (isSearchByDialogOpen){
+        AlertDialog(onDismissRequest = { isSearchByDialogOpen = false},
+            confirmButton = { Button(
+            onClick = {
+                isDate = !isDate
+                isTopic = false // Reset the other flag
+                onSearchBySelected(if (isDate) SearchBy.Date else SearchBy.All)
+                isSearchByDialogOpen = false},
             modifier = Modifier
                 .padding(horizontal = 16.dp)
-                .height(32.dp)
+                .height(32.dp),
+                colors = if(isDate) ButtonDefaults.buttonColors(Color.Green) else ButtonDefaults.buttonColors()
 
         ) {
             Row {
@@ -245,10 +307,15 @@ fun SortAndSearch(){
 
         } }
             , dismissButton = { Button(
-                onClick = { OnDialog=false},
+                onClick = {
+                    isTopic = !isTopic
+                    isDate = false // Reset the other flag
+                    onSearchBySelected(if (isTopic) SearchBy.Topic else SearchBy.All)
+                    isSearchByDialogOpen = false},
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
-                    .height(32.dp)
+                    .height(32.dp),
+                colors = if(isTopic) ButtonDefaults.buttonColors(Color.Green) else ButtonDefaults.buttonColors()
             ) {
                 Row {
                     Icon(painter = painterResource(id = R.drawable.vector__1_), contentDescription = "Book")
@@ -331,9 +398,13 @@ fun summaryCard(summary: Summary, delete:() -> Unit , goToSummaryListPage: (Summ
 @Composable
 fun SummaryListPage(summary: Summary) {
 
+    Log.d("SummaryIsWhat" , "${summary}")
+
     Card(
         colors = CardDefaults.cardColors(lighterYellow),
-        modifier = Modifier.padding(16.dp).fillMaxWidth()
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceAround,
@@ -359,7 +430,9 @@ fun SummaryListPage(summary: Summary) {
         summary?.summary?.let {
             Text(
                 text = it,
-                modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
                 color = Color.DarkGray,
                 fontSize = 16.sp
             )
