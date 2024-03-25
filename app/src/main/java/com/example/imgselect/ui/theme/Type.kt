@@ -2,9 +2,20 @@ package com.example.imgselect.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.example.imgselect.R
+
+val OpenSans= FontFamily(
+    Font(R.font.opensans),
+    Font(R.font.opensans_bold, FontWeight.Bold),
+    Font(R.font.opensans_light, FontWeight.Light),
+    Font(R.font.opensans_medium, FontWeight.Medium),
+    Font(R.font.opensans_semibold, FontWeight.SemiBold)
+)
+
 
 // Set of Material typography styles to start with
 val Typography = Typography(

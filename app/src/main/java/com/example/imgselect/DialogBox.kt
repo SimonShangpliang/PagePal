@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -55,6 +56,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -72,6 +74,13 @@ import kotlin.streams.toList
 import com.example.imgselect.data.Summary
 import com.example.imgselect.data.Web
 import com.example.imgselect.model.WebHistoryViewModel
+import com.example.imgselect.ui.theme.GhostWhite
+import com.example.imgselect.ui.theme.OpenSans
+import com.example.imgselect.ui.theme.aliceBlue
+import com.example.imgselect.ui.theme.lightWhite
+import com.example.imgselect.ui.theme.lighterPurple
+import com.example.imgselect.ui.theme.lighterTeal
+import com.example.imgselect.ui.theme.midnightBlue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -116,16 +125,28 @@ fun WordMeaningDialog(
                     Text(
                         text = "Word Meaning",
                         style = TextStyle(
-                            fontFamily = MaterialTheme.typography.titleSmall.fontFamily,
+                            fontFamily = OpenSans,
                             fontWeight = FontWeight.Bold,
                             fontSize = 32.sp),
-                        color = Color.White,
+                        color = lighterTeal,
 
+                        modifier = Modifier
+                            .padding(start=20.dp,top=20.dp,end=20.dp,bottom=5.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+
+                    dictionaryViewModel.uiState.value.let { uiState ->
+                    Text(
+                        text = dictionaryViewModel.listMeaning?.getOrNull(0)?.word ?: "No Word",
+                        style = TextStyle(
+                            fontFamily = OpenSans,
+                            fontSize = 23.sp
+                        ),
+                        color = aliceBlue,
                         modifier = Modifier
                             .padding(20.dp)
                             .align(Alignment.CenterHorizontally)
                     )
-                    dictionaryViewModel.uiState.value.let { uiState ->
 
 
                         when (uiState) {
@@ -135,12 +156,15 @@ fun WordMeaningDialog(
                             }
                             is WordMeaningUiState.Success -> {
                                 Text(
+
                                     text = listMeaning?.getOrNull(0)?.word ?: "",
                                     style = TextStyle(
                                         fontFamily = MaterialTheme.typography.titleSmall.fontFamily,
                                         fontSize = 23.sp
                                     ),
-                                    color = Color.White,
+                                    fontStyle = FontStyle.Italic,
+                                    color = lightWhite,
+
                                     modifier = Modifier
                                         .padding(20.dp)
                                         .align(Alignment.CenterHorizontally)
@@ -161,64 +185,71 @@ fun WordMeaningDialog(
                                                 meaning.definitions.forEach { definition ->
                                                     Row(modifier = Modifier.padding(16.dp)) {
                                                         Text(
-                                                            text = "Definition: ${definition.definition}",
+                                                            text = ":${definition.definition}",
                                                             style = MaterialTheme.typography.bodySmall,
                                                             color = Color.White,
                                                             modifier = Modifier.weight(1f)
                                                         )
-                                                        RadioButton(
-                                                            selected = definition.isSelected,
-                                                            onClick = { /* Handle click event */
-                                                                listMeaning = listMeaning?.map { wordData ->
-                                                                    val updatedMeanings = wordData.meanings.map { meaning ->
-                                                                        val updatedDefinitions = meaning.definitions.map { def ->
-                                                                            if (def == definition) {
-                                                                                def.copy(isSelected = !def.isSelected)
-                                                                            } else {
-                                                                                def
-                                                                            }
-                                                                        }
-                                                                        meaning.copy(definitions = updatedDefinitions)
-                                                                    }
-                                                                    wordData.copy(meanings = updatedMeanings)
-
+                                            RadioButton(
+                                                selected = definition.isSelected,
+                                                onClick = { /* Handle click event */
+                                                    listMeaning = listMeaning?.map { wordData ->
+                                                        val updatedMeanings = wordData.meanings.map { meaning ->
+                                                            val updatedDefinitions = meaning.definitions.map { def ->
+                                                                if (def == definition) {
+                                                                    def.copy(isSelected = !def.isSelected)
+                                                                } else {
+                                                                    def
                                                                 }
-                                                                dictionaryViewModel.listMeaning = listMeaning
                                                             }
-                                                        )
+                                                            meaning.copy(definitions = updatedDefinitions)
+                                                        }
+                                                        wordData.copy(meanings = updatedMeanings)
 
-
-
                                                     }
-                                                    definition.example?.let {
-                                                        Text(
-                                                            text = "Example: $it",
-                                                            style = MaterialTheme.typography.bodySmall,
-                                                            color = Color.White,
-                                                            modifier = Modifier.padding(horizontal = 16.dp)
-                                                        )
-                                                    }
-                                                    if (!definition.synonyms.isNullOrEmpty()) {
-                                                        Text(
-                                                            text = "Synonyms: ${definition.synonyms.joinToString()}",
-                                                            style = MaterialTheme.typography.bodySmall,
-                                                            color = Color.White,
-                                                            modifier = Modifier.padding(horizontal = 16.dp)
-                                                        )
-                                                    }
-                                                    if (!definition.antonyms.isNullOrEmpty()) {
-                                                        Text(
-                                                            text = "Antonyms: ${definition.antonyms.joinToString()}",
-                                                            style = MaterialTheme.typography.bodySmall,
-                                                            color = Color.White,
-                                                            modifier = Modifier.padding(horizontal = 16.dp)
-                                                        )
-                                                    }
+                                                    dictionaryViewModel.listMeaning = listMeaning
                                                 }
-                                            }
+                                            )
+
+
+
                                         }
-                                    }}
+                                        definition.example?.let {
+                                            Text(
+                                                text = "Example: $it",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = lightWhite,
+                                                modifier = Modifier.padding(horizontal = 16.dp),
+                                                fontSize=10.5.sp,
+                                                fontStyle = FontStyle.Italic
+                                            )
+                                        }
+                                        if (!definition.synonyms.isNullOrEmpty()) {
+                                            Text(
+                                                text = "Synonyms: ${definition.synonyms.joinToString()}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = aliceBlue,
+                                                modifier = Modifier.padding(horizontal = 16.dp)
+                                            )
+                                        }
+                                        if (!definition.antonyms.isNullOrEmpty()) {
+                                            Text(
+                                                text = "Antonyms: ${definition.antonyms.joinToString()}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = aliceBlue,
+                                                modifier = Modifier.padding(horizontal = 16.dp)
+                                            )
+                                        }
+                                    }
+                                }
+
                             }
+                        }
+
+
+                    }
+
+                }
                             is WordMeaningUiState.Error -> {
                                 Text(
                                     text = "Error: " + uiState.error,
@@ -248,9 +279,10 @@ fun WordMeaningDialog(
 
                 Box(
                     modifier = Modifier
-                        .background(Color(0xff141414))
+                        .background(midnightBlue)
                         .fillMaxSize()
                 ) {
+                    Spacer(modifier=Modifier.height(10.dp))
                     Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically){
                         Button(
                             onClick = {
@@ -267,21 +299,24 @@ fun WordMeaningDialog(
                                 setShowDialog(false)
                                 dictionaryViewModel.dialogVisible = true
 
-                            },
-                            shape = RoundedCornerShape(50.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                // Change the background color here
-                                contentColor = Color.White,
-                                containerColor = Color.Green// Change the text color here
-                            ),
-                            modifier = Modifier
-                                .height(50.dp)
 
-                        ) {
-                            Text(
-                                text = "Save", color = Color.Black,
-                            )
-                        }
+                        },
+                        shape = RoundedCornerShape(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            // Change the background color here
+                            contentColor = Color.White,
+                            containerColor = lighterTeal// Change the text color here
+                        ),
+                        modifier = Modifier
+                            .height(50.dp),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 10.dp, pressedElevation =5.dp )
+
+
+                    ) {
+                        Text(
+                            text = "Save", color = Color.Black,  fontFamily = OpenSans, fontWeight = FontWeight.SemiBold
+                        )
+                    }
                         Button(
                             onClick = {
 
@@ -300,14 +335,15 @@ fun WordMeaningDialog(
                             colors = ButtonDefaults.buttonColors(
                                 // Change the background color here
                                 contentColor = Color.White,
-                                containerColor = Color.Green// Change the text color here
+                                containerColor = lighterTeal// Change the text color here
                             ),
                             modifier = Modifier
-                                .height(50.dp)
+                                .height(50.dp),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 10.dp, pressedElevation =5.dp )
 
                         ) {
                             Text(
-                                text = "Done", color = Color.Black,
+                                text = "Done", color = Color.Black, fontFamily = OpenSans,fontWeight = FontWeight.SemiBold
                             )
                         }
                     }

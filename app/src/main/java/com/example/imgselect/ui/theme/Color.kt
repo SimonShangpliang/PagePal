@@ -26,7 +26,12 @@ val interestcolour1 =Color(0xFF424242)
 
 
 val profileborder =Color(0xFFFFFFFF)
+val lightWhite =Color(0xFFBDBDBD)
+val GhostWhite = Color(0xFFF8F8FF)
 
 val backgroundcolor = Color(0xFF1E1E1E)
+val aliceBlue = Color(0xFFF0F8FF)
+val midnightBlue = Color(0xFF101720)
+
 
 
