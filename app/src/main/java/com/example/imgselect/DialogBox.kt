@@ -126,6 +126,8 @@ fun WordMeaningDialog(
                             .align(Alignment.CenterHorizontally)
                     )
                     dictionaryViewModel.uiState.value.let { uiState ->
+
+
                         when (uiState) {
                             is WordMeaningUiState.Loading -> {
                                 // Show loading indicator if needed

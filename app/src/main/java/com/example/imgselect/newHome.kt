@@ -56,19 +56,31 @@ import com.example.imgselect.ui.theme.outlinePurple
 import com.example.imgselect.ui.theme.outlineYellow
 import kotlin.math.abs
 import android.util.Log
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.imgselect.DictionaryNetwork.WebsiteCount
+import com.example.imgselect.model.WebHistoryViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 //@Preview(showBackground = true)
 @Composable
 fun Home(navController: NavController) {
+    val webHistoryViewModel=viewModel<WebHistoryViewModel>()
+    val websiteCounts by webHistoryViewModel.websiteCounts.observeAsState(emptyList())
+
+
     var presses by remember { mutableIntStateOf(0) }
     val RecentList= mutableListOf<recent>(
         recent("Design","ME101"),
@@ -159,13 +171,18 @@ modifier=Modifier.padding(end=10.dp,top=10.dp),
         containerColor = darkBar
 
     ) { innerPadding ->
+        val scroll= rememberScrollState()
         Column(
             modifier = Modifier
-                .padding(innerPadding),
+                .padding(innerPadding).verticalScroll(scroll),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Spacer(modifier=Modifier.height(38.dp))
             FlashcardsHome(navController)
+            websiteCounts?.let { counts ->
+                // Access counts here when it's not null
+                MakeRows2(title = "Websites", recentList = counts)
+            }
             MakeRows(title = "PDF", recentList = RecentList )
 
         }
@@ -269,6 +286,46 @@ fun MakeRows(title:String, recentList:MutableList<recent>){
                 SingleRecent(
                     singleTitle =recentUI.singleTitle,
                     subSingleTitle =recentUI.subSingleTitle,
+                    backColor = if(index%3==0){
+                        lighterTeal}else if(index%3==1){
+                        lighterPurple}else{
+                        lighterYellow},
+                    outColor= if(index%3==0){
+                        medTeal}else if(index%3==1){
+                        outlinePurple}else{
+                        outlineYellow},
+                )
+                index++
+            }
+
+        }
+    }
+}
+
+@Composable
+fun MakeRows2(title:String, recentList:List<WebsiteCount>){
+    var index=0
+    Column(modifier=Modifier) {
+        Row(modifier=Modifier,){
+            Text(text="Frequently Visited $title",modifier=Modifier.padding(start=19.dp), textAlign= TextAlign.Start,color= lightBar, fontWeight = FontWeight.Bold,)
+            Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End){
+                Text(text="Show All",color= lightBar,textAlign=TextAlign.End,fontSize = 11.5.sp,)
+                Image(painter= painterResource(id =R.drawable.fa_solid_chevron_circle_right ),
+                    contentDescription = null,
+                    modifier= Modifier
+                        .padding(end = 13.dp,top=2.5.dp,start=2.dp),
+                    Alignment.TopEnd)
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+        }
+        LazyRow(modifier = Modifier,
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            this.items(recentList) { recentUI  ->
+                SingleRecent(
+                    singleTitle =recentUI.websiteName,
+                    subSingleTitle ="",
                     backColor = if(index%3==0){
                         lighterTeal}else if(index%3==1){
                         lighterPurple}else{

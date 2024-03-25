@@ -33,3 +33,9 @@ data class WordData(
     val meanings: List<Meaning>,
     val time: Long = System.currentTimeMillis()
 )
+
+@Serializable
+data class WebsiteCount(
+    val websiteName: String,
+    val websiteCount: Int
+)

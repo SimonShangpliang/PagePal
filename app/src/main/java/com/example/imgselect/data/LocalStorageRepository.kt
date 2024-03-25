@@ -1,6 +1,7 @@
 package com.example.imgselect.data
 
 import androidx.lifecycle.LiveData
+import com.example.imgselect.DictionaryNetwork.WebsiteCount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -63,5 +64,9 @@ class LocalStorageRepositoryForWeb(private val webDao: WebDao) {
 
     fun deleteWeb(web: Web) {
         webDao.deleteWeb(web)
+    }
+    suspend fun getWebsiteCounts(): List<WebsiteCount> {
+
+        return webDao.getWebsiteCounts()
     }
 }

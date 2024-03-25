@@ -38,9 +38,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,8 +55,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Green
+import androidx.compose.ui.graphics.Color.Companion.Yellow
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -62,6 +71,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
@@ -144,6 +154,7 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
             }
             MessagesList(messages = sortedCombinedMessages, viewModel = viewModel)
             // Input field and send button
+
             Row(modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.CenterHorizontally)
@@ -155,11 +166,16 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                     onValueChange = { if(chatViewModelWithImage.imageList.isEmpty()) {chatViewModel.query = it} else {chatViewModelWithImage.query = it} },
                     modifier = Modifier
                         .weight(1f)
-                        .heightIn(min = 56.dp, max = 200.dp)
+                        .heightIn(min = 40.dp, max = 200.dp)
                         .verticalScroll(rememberScrollState())
                         .wrapContentSize()
-                        .border(1.dp, Color.White, RoundedCornerShape(20.dp))
+
+                        // .border(1.dp, Color.White, RoundedCornerShape(20.dp))
                         .width(328.dp),
+                    colors= TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = Color.White),
+                    shape = MaterialTheme.shapes.extraLarge,
+
                     placeholder = { Text(
                         text = "Type in your question",
                         modifier = Modifier.fillMaxHeight(),
@@ -185,8 +201,7 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
 
                 )
 
-                Spacer(modifier = Modifier.width(10.dp))
-                Button(onClick = {
+                IconButton(onClick = {
                     // Add message to list and clear input field
                     if(chatViewModelWithImage.imageList.isEmpty()) {
                         chatViewModel.getResponseFromChatBot({
@@ -210,7 +225,7 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                 },
                     enabled = sendButtonEnabled.value,
                     modifier = Modifier.background(Color.Transparent , CircleShape),
-                    colors = ButtonDefaults.buttonColors(Color.White)) {
+                    ) {
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = null,
@@ -393,6 +408,43 @@ fun SavedChatsScreen(chatList: LiveData<List<Chat>>, chatViewModel: ChatViewMode
         }
     }
 
+}
+fun Modifier.coloredShadow(
+    color: Color,
+    alpha: Float = 0.2f,
+    borderRadius: Dp = 0.dp,
+    shadowRadius: Dp = 20.dp,
+    offsetY: Dp = 0.dp,
+    offsetX: Dp = 0.dp
+) = composed {
+
+    val shadowColor = color.copy(alpha = alpha).toArgb()
+    val transparent = color.copy(alpha= 0f).toArgb()
+
+    this.drawBehind {
+
+        this.drawIntoCanvas {
+            val paint = Paint()
+            val frameworkPaint = paint.asFrameworkPaint()
+            frameworkPaint.color = transparent
+
+            frameworkPaint.setShadowLayer(
+                shadowRadius.toPx(),
+                offsetX.toPx(),
+                offsetY.toPx(),
+                shadowColor
+            )
+            it.drawRoundRect(
+                0f,
+                0f,
+                this.size.width,
+                this.size.height,
+                borderRadius.toPx(),
+                borderRadius.toPx(),
+                paint
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
