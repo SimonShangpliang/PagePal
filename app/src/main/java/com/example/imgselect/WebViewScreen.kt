@@ -401,9 +401,7 @@ fun BackHandler(onBackPressed: () -> Unit) {
         }
     }
 }
-private fun reloadWebView(webViewHolder: WebViewHolder, url: String) {
-    webViewHolder.loadUrl(url)
-}
+
 
 
 @Composable
@@ -415,13 +413,13 @@ fun DrawBoundingBoxes(bitmap: Bitmap,textResults: List<TextResult>,dictionaryVie
 var showDialog by remember{
     mutableStateOf(false)
 }
-    LaunchedEffect(listMeaning )
- {
-     if(listMeaning?.isNotEmpty()==true){
-
-         showDialog=true;
-     }
- }
+//    LaunchedEffect(listMeaning )
+// {
+//     if(listMeaning?.isNotEmpty()==true){
+//
+//         showDialog=true;
+//     }
+// }
     LaunchedEffect(textResults)
     {
         clickedBoxIndex=null
@@ -430,7 +428,8 @@ var showDialog by remember{
 if(showDialog)
 {
     Log.d("main",listMeaning.toString())
-    WordMeaningDialog(setShowDialog = {showDialog=it},listMeaning, dictionaryViewModel )
+
+    WordMeaningDialog(setShowDialog = {showDialog=it},onResponse = {}, onButton = {},dictionaryViewModel )
 }
 
     if(dictionaryViewModel.dialogVisible) {
@@ -486,24 +485,16 @@ if(showDialog)
                         // Handle click event for this bounding box
                         //handleClick(result)
                         clickedBoxIndex = index
+                        showDialog=true;
+
                         CoroutineScope(Dispatchers.IO).launch {
                             dictionaryViewModel.word = result.word
 
                             async {
                                 dictionaryViewModel.getMeaning()
                             }.await()
-                            async {
-                                listMeaning =
-                                    dictionaryViewModel.processResponse()
-//                                dictionaryViewModel.response?.flatMap { response ->
-//                                    response.meanings.flatMap { meaning ->
-//                                        meaning.definitions.map { definition ->
-//                                            definition.definition
-//
-//                                        }
-//                                    }
-//                                } ?: emptyList()}.await()
-                            }.await()
+
+
                         }
 
 

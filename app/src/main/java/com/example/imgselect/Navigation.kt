@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.Window
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,7 +26,7 @@ import com.example.imgselect.model.WebHistoryViewModel
 import com.example.mytestapp.flashCardLibrary
 
 @Composable
-fun Navigation(window: Window,applicationContext: Context)
+fun Navigation(window: Window,applicationContext: Context,currScreen: (String)->Unit)
 {
     var navController= rememberNavController()
     val photoViewModel= viewModel<PhotoTakenViewModel>()
@@ -36,34 +37,64 @@ fun Navigation(window: Window,applicationContext: Context)
     val typewriterViewModel = viewModel<TypewriterViewModel>()
     val textRecognitionViewModel= viewModel<TextRecognitionViewModel>()
 
-    NavHost(navController = navController, startDestination =Screen.MainScreen.route )
+    NavHost(navController = navController, startDestination =Screen.HomeScreen.route )
     {
 
         composable(route=Screen.MainScreen.route) {
            MainScreen(window,navController,photoViewModel,chatViewModel, chatViewModelWithImage , viewModel = typewriterViewModel,textRecognitionViewModel)
+            currScreen(Screen.MainScreen.route)
+        }
+        composable(route=Screen.ProfileScreen.route) {
+            ProfileScreen(navController)
+            currScreen(Screen.ProfileScreen.route)
         }
         composable(route=Screen.CameraScreen.route) {
             CameraScreen(applicationContext = applicationContext,photoViewModel)
+            currScreen(Screen.CameraScreen.route)
+
         }
 
+        composable(route = Screen.MeaningScreen.route) {
+            MeaningListScreen(meaningList = dictionaryViewModel.getMeaningList())
+            currScreen(Screen.MeaningScreen.route)
+
+        }
         composable(route = Screen.SummaryScreen.route) {
             //SummaryScreen(summaryList = summaryViewModel.getSummaryList() , navController = navController , chatViewModel = chatViewModel , chatViewModelWithImage = chatViewModelWithImage)
             SummaryScreen(summaryList = summaryViewModel.getSummaryList(), navController = navController , summaryViewModel = summaryViewModel){summary->
                 navController.navigate("${Screen.FullSummaryList.route}/${summary.id}")
             }
+            currScreen(Screen.SummaryScreen.route)
+
+        }
+        composable(route = Screen.PdfScreen.route) {
+
+            currScreen(Screen.PdfScreen.route)
+
+        }
+        composable(route = Screen.HomeScreen.route) {
+            Home(navController)
+            currScreen(Screen.HomeScreen.route)
+
         }
 
         composable(route = Screen.ChatScreen.route) {
             ChatScreen(  chatViewModel = chatViewModel , chatViewModelWithImage = chatViewModelWithImage , viewModel = typewriterViewModel,)
+            currScreen(Screen.ChatScreen.route)
+
         }
         composable(route = Screen.WebViewScreen.route) {
             WebViewScreen( window=window,navController = navController,textRecognitionViewModel,dictionaryViewModel)
+            currScreen(Screen.WebViewScreen.route)
+
         }
         
         composable(route = Screen.ChatListScreen.route) {
             SavedChatsScreen(chatList = chatViewModel.getChatList() , chatViewModel = chatViewModel) { chat ->
                 navController.navigate("${Screen.FullChatScreen.route}/${chat.id}")
             }
+            currScreen(Screen.ChatListScreen.route)
+
         }
 
         composable(route = "${Screen.FullChatScreen.route}/{chatId}") { backStackEntry ->

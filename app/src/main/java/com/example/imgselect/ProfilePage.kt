@@ -59,39 +59,32 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.navigation.NavController
 import com.example.imgselect.ui.theme.Purple80
 import com.example.imgselect.ui.theme.PurpleGrey80
 import com.example.imgselect.ui.theme.interestcolour
 import com.example.imgselect.ui.theme.profileborder
 
-class ProfileActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            Surface(modifier = Modifier.fillMaxSize(),
-                color = Color.Black){
-                ProfileScreen()
-            }
-        }
-    }
-}
-@Composable
-fun ProfileScreen() {
-    Column {
-        HeadlineText(text = "Profile")
-        Spacer(modifier = Modifier.size(28.dp))
-        RoundImage(
-            image = painterResource(id = R.drawable.ic_launcher_background), modifier = Modifier
-                .height(82.dp)
-                .width(82.dp)
-        )
-        Spacer(modifier = Modifier.size(12.dp))
-        Introdution()
-        Spacer(modifier = Modifier.size(72.dp))
-        Interests()
 
-    }
-}
+@Composable
+fun ProfileScreen(navController: NavController) {
+    Surface(modifier = Modifier.fillMaxSize(),
+        color = Color.Black) {
+        Column {
+            HeadlineText(text = "Profile")
+            Spacer(modifier = Modifier.size(28.dp))
+            RoundImage(
+                image = painterResource(id = R.drawable.ic_launcher_background), modifier = Modifier
+                    .height(82.dp)
+                    .width(82.dp)
+            )
+            Spacer(modifier = Modifier.size(12.dp))
+            Introdution()
+            Spacer(modifier = Modifier.size(72.dp))
+            Interests()
+
+        }
+    }}
 
 
 

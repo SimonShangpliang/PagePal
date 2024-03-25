@@ -50,6 +50,8 @@ import com.rizzi.bouquet.HorizontalPdfReaderState
 import com.rizzi.bouquet.ResourceType
 import com.rizzi.bouquet.VerticalPDFReader
 import com.rizzi.bouquet.VerticalPdfReaderState
+
+
 import java.io.File
 
 class PDFActivity : ComponentActivity() {
@@ -70,49 +72,54 @@ class PDFActivity : ComponentActivity() {
             }
         })
         setContent {
-                Surface(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    val scaffoldState = rememberScaffoldState()
-                    val state = viewModel.stateFlow.collectAsState()
-                    Scaffold(
-                        topBar = {
-                            TopAppBar()
-                        },
-                        scaffoldState = scaffoldState,
-                        floatingActionButton = {
-                            state.value?.file?.let {
-                                FloatingActionButton(
-                                    onClick = {
-                                        shareFile(it)
-                                    }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_menu_share),
-                                        contentDescription = "share"
-                                    )
-                                }
-                            }
-                        }
-                    ) { padding ->
-                        Box(modifier = Modifier.padding(padding)) {
-                            when (val actualState = state.value) {
-                                null -> SelectionView()
-                                is VerticalPdfReaderState -> PDFView(
-                                    pdfState = actualState,
-                                    scaffoldState = scaffoldState
-                                )
-                                is HorizontalPdfReaderState -> HPDFView(
-                                    pdfState = actualState,
-                                    scaffoldState = scaffoldState
-                                )
-                            }
-                        }
-                    }
-                }
 
         }
     }
+    @Composable
+  fun PDFViewer(){
+        Surface(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val scaffoldState = rememberScaffoldState()
+            val state = viewModel.stateFlow.collectAsState()
+            Scaffold(
+                topBar = {
+                    TopAppBar()
+                },
+                scaffoldState = scaffoldState,
+                floatingActionButton = {
+                    state.value?.file?.let {
+                        FloatingActionButton(
+                            onClick = {
+                                shareFile(it)
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_menu_share),
+                                contentDescription = "share"
+                            )
+                        }
+                    }
+                }
+            ) { padding ->
+                Box(modifier = Modifier.padding(padding)) {
+                    when (val actualState = state.value) {
+                        null -> SelectionView()
+                        is VerticalPdfReaderState -> PDFView(
+                            pdfState = actualState,
+                            scaffoldState = scaffoldState
+                        )
+                        is HorizontalPdfReaderState -> HPDFView(
+                            pdfState = actualState,
+                            scaffoldState = scaffoldState
+                        )
+                    }
+                }
+            }
+        }
+
+
+  }
 
     @Composable
     fun TopAppBar() {
