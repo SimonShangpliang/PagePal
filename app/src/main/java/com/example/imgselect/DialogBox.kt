@@ -179,7 +179,9 @@ fun WordMeaningDialog(
                                                                         meaning.copy(definitions = updatedDefinitions)
                                                                     }
                                                                     wordData.copy(meanings = updatedMeanings)
+
                                                                 }
+                                                                dictionaryViewModel.listMeaning = listMeaning
                                                             }
                                                         )
 
@@ -251,7 +253,17 @@ fun WordMeaningDialog(
                         Button(
                             onClick = {
 // here you will give the response back from user selected meanings using listMeaning State
-
+                                dictionaryViewModel.listMeaning?.forEach { worddata->
+                                    worddata.meanings.forEach { meanings->
+                                        meanings.definitions.forEach { definitions->
+                                            Log.d("DefinitionsNew" , "${definitions.definition}")
+                                            Log.d("DefinitionsNew" , "${definitions.isSelected}")
+                                        }
+                                    }
+                                }
+// here you will give the response back from user selected meanings using listMeaning State
+                                setShowDialog(false)
+                                dictionaryViewModel.dialogVisible = true
 
                             },
                             shape = RoundedCornerShape(50.dp),

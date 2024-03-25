@@ -120,6 +120,7 @@ class DictionaryViewModel(application: Application) : AndroidViewModel(applicati
             val dateFormat = SimpleDateFormat("yyyy/MM/dd")
             val date = dateFormat.format(current.time)
             val content = Meaning(0, listMeaning , date , title)
+            Log.d("MeaningOnSuccess" , "Content: ${content}")
             Log.d("word" , "${word}")
             Log.d("meaning" , "${response}")
             repository.addMeaning(content)
