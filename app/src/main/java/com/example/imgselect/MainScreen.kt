@@ -74,7 +74,6 @@ fun MainScreen(window: Window, navController: NavController, photoViewModel: Pho
     //The launcher we will use for the PickVisualMedia contract.
     //When .launch()ed, this will display the photo picker.
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        //When the user has selected a photo, its URI is returned here
         photoUri = uri
     }
 
@@ -184,7 +183,7 @@ fun MainScreen(window: Window, navController: NavController, photoViewModel: Pho
 
                 Box() {
 
-//                        DisplayImageFromUri(photoUri = photoUri,focus=focus)
+                      //  DisplayImageFromUri(photoUri = photoUri,focus=focus)
 //                        DisplayRotatedImage(photoTaken = photoTaken, degrees = 90f,focus=focus)
                     //Do use this for seeing the cropped region real time
 

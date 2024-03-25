@@ -355,6 +355,10 @@ class MainActivity : ComponentActivity() {
                     }
                     var setHeight by remember{ mutableStateOf(80.dp) }
                     var cropDone by remember{ mutableStateOf(true) }
+                    val photoTakenViewModel=viewModel<PhotoTakenViewModel>()
+                    val photoStatus=photoTakenViewModel.bitmap.collectAsState()
+                    val uriOpened=photoTakenViewModel.uriOpened.collectAsState()
+
                     BottomSheetScaffold(
                         scaffoldState = scaffoldState,
                         sheetContent = {
@@ -390,6 +394,7 @@ class MainActivity : ComponentActivity() {
                                                     }.await()
                                                 }
                                             }
+
                                             cropBox = true
                                             setHeight = 140.dp
                                         } else {
@@ -419,6 +424,8 @@ class MainActivity : ComponentActivity() {
                                                 selectedBitmapSS = null
                                                 Log.d("MainAct", textResponse)
                                                 summaryViewModel.questioningSummary(summaryText)
+                                                photoTakenViewModel.setFocus(false)
+
                                             }
                                         }
                                     }
@@ -523,7 +530,8 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
-                            LaunchedEffect(currScreen)
+
+                            LaunchedEffect(currScreen,photoStatus.value,uriOpened.value)
                             {
                                 startOffsetX=0f
                                 startOffsetY=0f
@@ -534,8 +542,16 @@ class MainActivity : ComponentActivity() {
                                 // if(currScreen==Screen.)
                                 if(screensWithBottomScaffold.contains(currScreen))
                                 {
-                                    setHeight=80.dp
-
+                                    if(currScreen==Screen.CameraScreen.route){
+                                        if(photoStatus.value==null&&uriOpened.value==false){
+                                            setHeight=0.dp
+                                       }else
+                                        {
+                                            setHeight=80.dp
+                                        }
+                                    }else {
+                                        setHeight = 80.dp
+                                    }
                                 }else
                                 {
 
@@ -573,6 +589,7 @@ class MainActivity : ComponentActivity() {
                                                 endOffsetX = 600f
                                                 endOffsetY = 600f
                                             }
+                                            photoTakenViewModel.setFocus(true)
                                             focus = !focus
                                             Log.d("main",modifier.toString())
                                             if(focus===true)
@@ -989,7 +1006,7 @@ fun rotateBitmap(source: Bitmap, degrees: Float): Bitmap {
 }
 
 @Composable
-fun DisplayImageFromUri(photoUri: Uri?, modifier: Modifier = Modifier,focus:Boolean) {
+fun DisplayImageFromUri(photoUri: Uri?, modifier: Modifier = Modifier,photoTakenViewModel: PhotoTakenViewModel) {
     if (photoUri != null) {
 
         val painter = rememberAsyncImagePainter(
@@ -1009,11 +1026,12 @@ fun DisplayImageFromUri(photoUri: Uri?, modifier: Modifier = Modifier,focus:Bool
             .fillMaxWidth()
 
         ){
+            val focus=photoTakenViewModel.focus.collectAsState()
 
 
             var state= rememberTransformableState{
                     zoomChange, panChange, rotationChange ->
-                if(focus==false){
+                if(focus.value==false){
                     scale=(scale*zoomChange).coerceIn(1f,5f)
 
                     val extraWidth=(scale-1)*constraints.maxWidth
@@ -1043,7 +1061,7 @@ fun DisplayImageFromUri(photoUri: Uri?, modifier: Modifier = Modifier,focus:Bool
                         translationY = offset.y
 
                     }
-                    .takeIf { !focus }?.transformable(state)?:(modifier
+                    .takeIf { !focus.value }?.transformable(state)?:(modifier
                     .padding(5.dp)
                     .fillMaxWidth()
                     .zIndex(1f)
@@ -1063,7 +1081,7 @@ fun DisplayImageFromUri(photoUri: Uri?, modifier: Modifier = Modifier,focus:Bool
 }
 
 @Composable
-fun DisplayRotatedImage(photoTaken: Bitmap?, degrees: Float, modifier: Modifier = Modifier,focus:Boolean) {
+fun DisplayRotatedImage(photoTaken: Bitmap?, degrees: Float, modifier: Modifier = Modifier,photoTakenViewModel: PhotoTakenViewModel) {
     if (photoTaken != null) {
         var scale by remember{
             mutableStateOf(1f)
@@ -1071,15 +1089,17 @@ fun DisplayRotatedImage(photoTaken: Bitmap?, degrees: Float, modifier: Modifier 
         var offset by remember{
             mutableStateOf(Offset.Zero)
         }
+        val focus=photoTakenViewModel.focus.collectAsState()
         BoxWithConstraints(modifier= Modifier
             .fillMaxWidth()
+            .zIndex(0f)
 
         ){
 
 
             var state= rememberTransformableState{
                     zoomChange, panChange, rotationChange ->
-                if(focus==false){
+                if(focus.value==false){
                     scale=(scale*zoomChange).coerceIn(1f,5f)
 
                     val extraWidth=(scale-1)*constraints.maxWidth
@@ -1110,7 +1130,7 @@ fun DisplayRotatedImage(photoTaken: Bitmap?, degrees: Float, modifier: Modifier 
                         translationY = offset.y
 
                     }
-                    .takeIf { !focus }?.transformable(state)?:(modifier
+                    .takeIf { !focus.value }?.transformable(state)?:(modifier
                     .padding(5.dp)
                     .fillMaxWidth()
                     .zIndex(1f)
