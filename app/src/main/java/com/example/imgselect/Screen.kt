@@ -22,5 +22,7 @@ sealed class Screen(val route:String) {
 
     object SingleDeckScreen: Screen("single_deck_screen")
 
+    object SingleRowOfFlashLib: Screen("single_row_of_flash_lib")
+
 
 }

@@ -3,6 +3,7 @@ package com.example.mytestapp
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,12 +11,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -145,7 +150,8 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp).height(50.dp),
+                .padding(16.dp)
+                .height(50.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(text ="Title",
@@ -158,7 +164,11 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
             Image(
                 painter = painterResource(id = R.drawable.frame_30),
                 contentDescription = null,
-                modifier = Modifier.size(100.dp).clickable {  }
+                modifier = Modifier
+                    .size(100.dp)
+                    .clickable {
+                        navController.navigate("${Screen.SingleRowOfFlashLib.route}/${0}")
+                    }
             )
         }
         Spacer(modifier = Modifier.height(20.dp))
@@ -168,10 +178,8 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
         ) {
             itemsIndexed(dictionaryViewModel.setOfTitle.toList()) {index,title->
                 Log.d("Title" , title)
-                ShelfItem(name = title , number = (index+1).toString()) {word ->
+                ShelfItem(name = title , number = (index+1).toString() , textAlign = TextAlign.Start) {word ->
                     navController.navigate("${Screen.SingleDeckScreen.route}/${title}/${0}")
-
-
 
                 }
 
@@ -186,7 +194,8 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp).height(50.dp),
+                .padding(16.dp)
+                .height(50.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(text ="Date",
@@ -199,7 +208,11 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
             Image(
                 painter = painterResource(id = R.drawable.frame_30),
                 contentDescription = null,
-                modifier = Modifier.size(100.dp).clickable {  }
+                modifier = Modifier
+                    .size(100.dp)
+                    .clickable {
+                        navController.navigate("${Screen.SingleRowOfFlashLib.route}/${1}")
+                    }
             )
         }
         Spacer(modifier = Modifier.height(15.dp))
@@ -209,7 +222,7 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
         ) {
             itemsIndexed(dictionaryViewModel.setOfDates.toList()) {index,date->
                 Log.d("Title" , date)
-                ShelfItem(name = date , number = (index+1).toString()) {time ->
+                ShelfItem(name = date , number = (index+1).toString() , textAlign = TextAlign.Start) {time ->
                     Log.d("DateNavigation" , "${date}")
                     navController.navigate("${Screen.SingleDeckScreen.route}/${date}/${1}")
 
@@ -226,7 +239,8 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp).height(50.dp),
+                .padding(16.dp)
+                .height(50.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(text ="Words",
@@ -239,7 +253,11 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
             Image(
                 painter = painterResource(id = R.drawable.frame_30),
                 contentDescription = null,
-                modifier = Modifier.size(100.dp).clickable {  }
+                modifier = Modifier
+                    .size(100.dp)
+                    .clickable {
+                        navController.navigate("${Screen.SingleRowOfFlashLib.route}/${2}")
+                    }
             )
         }
 
@@ -259,7 +277,7 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
 //            }
 
             itemsIndexed(dictionaryViewModel.setOfWords.toList()) {index,word->
-                ShelfItem(name = word , number = (index+1).toString()) {words ->
+                ShelfItem(name = word , number = (index+1).toString(),textAlign = TextAlign.Start) {words ->
                     navController.navigate("${Screen.SingleDeckScreen.route}/${word}/${2}")
 
                 }
@@ -276,7 +294,7 @@ fun shelfRow(shelfRowList: LiveData<List<Meaning>> , dictionaryViewModel: Dictio
 }
 
 @Composable
-fun ShelfItem(name: String,  number: String,goToOneDeck: (String)-> Unit ,){
+fun ShelfItem(name: String,  number: String,textAlign: TextAlign , goToOneDeck: (String)-> Unit ,){
     Column(modifier=Modifier){
         Box(modifier=Modifier.clickable { goToOneDeck(name) }, contentAlignment = Alignment.Center){
             Card(
@@ -356,10 +374,61 @@ fun ShelfItem(name: String,  number: String,goToOneDeck: (String)-> Unit ,){
         Text(text=name,modifier = Modifier
             .padding(1.dp)
             .fillMaxWidth(),
-            textAlign = TextAlign.Start,
+            textAlign = textAlign,
             fontWeight = FontWeight.SemiBold,
             fontSize=14.sp,
             color = lightBar)
 
+        Spacer(modifier = Modifier.height(20.dp))
+
     }
+}
+
+@Composable
+fun GridOfARowOfFlashLib(elements: List<String> , dictionaryViewModel: DictionaryViewModel , navController: NavController) {
+    val text = when(elements) {
+        dictionaryViewModel.setOfTitle.toList() -> "Title"
+        dictionaryViewModel.setOfDates.toList() -> "Date"
+        else -> "Words"
+    }
+    Column (
+        modifier = Modifier.background(Color.Black)
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 30.dp , vertical = 16.dp).fillMaxWidth(),
+            color = Color.White,
+            fontSize = 36.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier.background(Color.Black).padding(16.dp).fillMaxHeight()
+        ) {
+            itemsIndexed(elements) {index,element->
+                if(elements == dictionaryViewModel.setOfTitle.toList()) {
+                    ShelfItem(name = element , number = (index+1).toString() , textAlign = TextAlign.Center) { time ->
+                        Log.d("DateNavigation" , "${element}")
+                        navController.navigate("${Screen.SingleDeckScreen.route}/${element}/${0}")
+
+                    }
+                }
+                else if(elements == dictionaryViewModel.setOfDates.toList()) {
+                    ShelfItem(name = element , number = (index+1).toString() , textAlign = TextAlign.Center) {time ->
+                        Log.d("DateNavigation" , "${element}")
+                        navController.navigate("${Screen.SingleDeckScreen.route}/${element}/${1}")
+
+                    }
+                } else {
+                    ShelfItem(name = element , number = (index+1).toString() , textAlign = TextAlign.Center) {time ->
+                        Log.d("DateNavigation" , "${element}")
+                        navController.navigate("${Screen.SingleDeckScreen.route}/${element}/${2}")
+
+                    }
+                }
+            }
+        }
+    }
+
 }
