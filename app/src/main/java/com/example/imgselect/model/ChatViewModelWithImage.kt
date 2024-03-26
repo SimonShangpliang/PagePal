@@ -13,13 +13,17 @@ import com.example.imgselect.ChatQueryResponse
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import com.google.ai.client.generativeai.type.generationConfig
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.launch
 
 class ChatViewModelWithImage: ViewModel() {
 
     private var generativeModel: GenerativeModel
     var query: String by mutableStateOf("")
-    var imageList = mutableListOf<Bitmap?>()
+    private val _imageList = MutableStateFlow<List<Bitmap?>>(emptyList())
+    val imageList: StateFlow<List<Bitmap?>> = _imageList
     private val _response = MutableLiveData<String>()
     val response: LiveData<String> = _response
     var isImageSelected: Boolean by mutableStateOf(false)
@@ -35,15 +39,19 @@ class ChatViewModelWithImage: ViewModel() {
         )
         Log.d("gemini" , "gemini-pro-vision is initialized")
     }
+    fun clearImageList() {
+        _imageList.value = emptyList()
+        isImageSelected = false // Update the state to indicate that no image is selected
+    }
 
     fun getResponseFromChatBot() {
         viewModelScope.launch {
-            Log.d("imageList" , "There are ${imageList.size} images")
+            Log.d("imageList" , "There are ${imageList.value.size} images")
             Log.d("imageList" , query)
             val updatedMessages = _messages.value.orEmpty() + ChatQueryResponse(query, true , System.currentTimeMillis())
             _messages.value = updatedMessages
             val inputContent = content {
-                imageList.forEach {
+                imageList.value.forEach {
                     if (it != null) {
                         image(it)
                     }
@@ -65,5 +73,20 @@ class ChatViewModelWithImage: ViewModel() {
 
 
         }
+    }
+    fun addBitmapToList(bitmap: Bitmap?) {
+        bitmap?.let {
+            val currentList = _imageList.value.toMutableList()
+            currentList.add(bitmap)
+            _imageList.value = currentList
+            isImageSelected = true // Update the state to indicate that an image is selected
+        }
+    }
+
+    fun removeBitmapFromList(bitmap: Bitmap) {
+        val currentList = _imageList.value.toMutableList()
+        currentList.remove(bitmap)
+        _imageList.value = currentList
+        isImageSelected = currentList.isNotEmpty() // Update the state based on whether images are present
     }
 }

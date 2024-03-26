@@ -72,7 +72,7 @@ fun SummaryRow(summary: Summary , chatViewModel: ChatViewModel , navController: 
                         //chatViewModel.bitmap = imageBitmap
                         val bitmap = summary.image?.toBitmap()
                         val byteArray = bitmap?.let { compressBitmap(it) }
-                        chatViewModelWithImage.imageList.add(byteArray?.toBitmap())
+                      //  chatViewModelWithImage.imageList.add(byteArray?.toBitmap())
 
 //                    navController.navigate(Screen.ChatScreen.route)
                         navController.popBackStack()

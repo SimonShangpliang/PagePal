@@ -1,6 +1,12 @@
 package com.example.imgselect
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -12,6 +18,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,6 +47,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
@@ -47,23 +56,32 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Green
 import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.vector.VectorProperty
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -79,6 +97,7 @@ import androidx.lifecycle.ViewModel
 import com.example.imgselect.data.Chat
 import com.example.imgselect.model.ChatViewModel
 import com.example.imgselect.model.ChatViewModelWithImage
+import com.example.imgselect.model.ModeViewModel
 import com.example.imgselect.ui.theme.Purple80
 import com.example.imgselect.ui.theme.lighterYellow
 import kotlinx.coroutines.delay
@@ -86,7 +105,7 @@ import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewModelWithImage , viewModel: TypewriterViewModel ) {
+fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewModelWithImage , viewModel: TypewriterViewModel,modeViewModel: ModeViewModel ) {
     //val messages = remember { mutableStateListOf<ChatQueryResponse>() }
     var sendButtonEnabled = remember { mutableStateOf(false)}
     val messageQuery = remember { mutableStateListOf<ChatQuery>()}
@@ -95,9 +114,10 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
     val message by chatViewModel.messages.observeAsState(mutableListOf())
     val messageFromImageQuery by chatViewModelWithImage.messages.observeAsState(mutableListOf())
     var query  = remember { mutableStateOf("") }
-
+    val isImageMode=modeViewModel.isImageMode.collectAsState()
     val combinedMessage = message + messageFromImageQuery
-
+    var imageDialog by remember{ mutableStateOf(false)
+    }
     val sortedCombinedMessages = combinedMessage.sortedBy { it.timestamp }
 
     if(chatViewModel.query == "" && chatViewModelWithImage.query == "") {
@@ -141,6 +161,20 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
         Column(modifier = Modifier
             .fillMaxSize()
             ) {
+
+            AnimatedVisibility(imageDialog)
+            {
+
+                ImageDialog(setShowDialog = {imageDialog = it
+                    Log.d("main","jere herere")
+
+                }, chatViewModelWithImage,{
+                    //setZeroOffset=it
+
+                })
+
+
+            }
             Row() {
                 IconButton(
                     onClick = {
@@ -161,14 +195,56 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                 .padding(16.dp)
             )
             {
+                val infiniteTransition= rememberInfiniteTransition()
+                val rotatedAnimation=infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 360f,
+                    animationSpec = infiniteRepeatable(tween(1000, easing = LinearEasing))
+                )
+                val rainbowColors = listOf(
+                    Color.Red,
+                    Color(0xFFFF7F00), // Orange
+                    Color.Yellow,
+                    Color.Green,
+                    Color.Blue,
+                    Color(0xFF4B0082), // Indigo
+                    Color(0xFF8B00FF)  // Violet
+                )
+
+                val rainbowColorsBrush = Brush.linearGradient(
+                    colors = rainbowColors,
+                    start = Offset.Zero,
+                    end = Offset(100f, 0f)
+                )
+
+                AnimatedVisibility(visible = isImageMode.value,modifier=Modifier.fillMaxHeight()) {
+                    IconButton(onClick = {imageDialog=true},modifier=Modifier.align(Alignment.CenterVertically)
+                        )
+                    {
+Icon(painterResource(id = R.drawable.baseline_camera_24),contentDescription = "more photos",modifier= Modifier
+    .size(30.dp)
+    .align(Alignment.CenterVertically)
+    .drawBehind {
+        rotate(rotatedAnimation.value) {
+            drawCircle(
+                rainbowColorsBrush,
+                style = Stroke(2f)
+            )
+        }
+    })
+                    }
+                }
+
+val imageList=chatViewModelWithImage.imageList.collectAsState()
                 OutlinedTextField(
-                    value = if(chatViewModelWithImage.imageList.isEmpty()) {chatViewModel.query} else { chatViewModelWithImage.query},
-                    onValueChange = { if(chatViewModelWithImage.imageList.isEmpty()) {chatViewModel.query = it} else {chatViewModelWithImage.query = it} },
+                    value = if(imageList.value.isEmpty()) {chatViewModel.query} else { chatViewModelWithImage.query},
+                    onValueChange = { if(imageList.value.isEmpty()) {chatViewModel.query = it} else {chatViewModelWithImage.query = it} },
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 40.dp, max = 200.dp)
                         .verticalScroll(rememberScrollState())
                         .wrapContentSize()
+                        .align(Alignment.CenterVertically)
 
                         // .border(1.dp, Color.White, RoundedCornerShape(20.dp))
                         .width(328.dp),
@@ -183,7 +259,7 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                     )} ,
                     singleLine = false,
                     trailingIcon = {
-                        if(chatViewModelWithImage.imageList.isNotEmpty()) {
+                        if(imageList.value.isNotEmpty()) {
                             Icon(
                                 imageVector = Icons.Default.Clear,
                                 contentDescription = null,
@@ -191,7 +267,7 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                                     chatViewModelWithImage.isImageSelected = false
                                     chatViewModel.query = ""
                                     chatViewModelWithImage.query = ""
-                                    chatViewModelWithImage.imageList.clear()
+                                    chatViewModelWithImage.clearImageList()
                                 }
                             )
                         }
@@ -200,38 +276,44 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                     maxLines = Int.MAX_VALUE
 
                 )
+Box(modifier=Modifier.fillMaxHeight()) {
+    Switch(checked=isImageMode.value, onCheckedChange = {modeViewModel.setMode(!isImageMode.value)},modifier=Modifier.scale(0.6f).align(Alignment.TopCenter),colors= SwitchDefaults.colors(checkedTrackColor = Color.White, checkedBorderColor = Color.White, checkedIconColor = Color.White, checkedThumbColor = Color.Black)
+    )
 
-                IconButton(onClick = {
-                    // Add message to list and clear input field
-                    if(chatViewModelWithImage.imageList.isEmpty()) {
-                        chatViewModel.getResponseFromChatBot({
-                            Log.d("main",it)
-                        })
+    IconButton(
+        onClick = {
+            // Add message to list and clear input field
+            if (!isImageMode.value) {
+                chatViewModel.getResponseFromChatBot({
+                    Log.d("main", it)
+                })
 
-                        query.value = chatViewModel.query
-                        messageQuery.add(ChatQuery(query = chatViewModel.query))
-                        chatViewModel.query = ""
-                    } else {
-                        chatViewModelWithImage.getResponseFromChatBot()
-                        query.value = chatViewModelWithImage.query
-                        messageQuery.add(ChatQuery(query = chatViewModelWithImage.query))
-                        chatViewModelWithImage.query = ""
-                        //chatViewModelWithImage.imageList.clear()
-                    }
+                query.value = chatViewModel.query
+                messageQuery.add(ChatQuery(query = chatViewModel.query))
+                chatViewModel.query = ""
+            } else {
+                chatViewModelWithImage.getResponseFromChatBot()
+                query.value = chatViewModelWithImage.query
+                messageQuery.add(ChatQuery(query = chatViewModelWithImage.query))
+                chatViewModelWithImage.query = ""
+                //chatViewModelWithImage.imageList.clear()
+            }
 
-                    //chatViewModel.imageText = ""
-                    //chatViewModel.isImageSelected = false
+            //chatViewModel.imageText = ""
+            //chatViewModel.isImageSelected = false
 
-                },
-                    enabled = sendButtonEnabled.value,
-                    modifier = Modifier.background(Color.Transparent , CircleShape),
-                    ) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = null,
-                    )
-                }
+        },
+        enabled = sendButtonEnabled.value,
+        modifier = Modifier.align(Alignment.BottomCenter).padding(top=5.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Default.Search,
+            contentDescription = null,
+            modifier=Modifier.size(35.dp)
+        )
+    }
 
+}
             }
         }
 
@@ -386,7 +468,9 @@ fun SavedChatsScreen(chatList: LiveData<List<Chat>>, chatViewModel: ChatViewMode
 
 
     Column(
-        modifier = Modifier.background(Color.Black).fillMaxSize()
+        modifier = Modifier
+            .background(Color.Black)
+            .fillMaxSize()
     ) {
         Text(
             text = "Chats",

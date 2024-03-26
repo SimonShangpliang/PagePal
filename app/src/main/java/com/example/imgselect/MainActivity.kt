@@ -26,6 +26,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
@@ -83,6 +84,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -126,6 +129,7 @@ import com.example.imgselect.animations.LoadingAnimation
 import com.example.imgselect.model.ChatViewModel
 import com.example.imgselect.model.ChatViewModelWithImage
 import com.example.imgselect.model.DiscussUiState
+import com.example.imgselect.model.ModeViewModel
 import com.example.imgselect.model.PhotoTakenViewModel
 import com.example.imgselect.model.SummaryViewModel
 import com.example.imgselect.model.TextRecognitionViewModel
@@ -283,15 +287,21 @@ class MainActivity : ComponentActivity() {
             val typewriterViewModel = viewModel<TypewriterViewModel>()
             val dictionaryViewModel = viewModel<DictionaryViewModel>()
             val textViewModel = viewModel<TextRecognitionViewModel>()
+            val modeViewModel = viewModel<ModeViewModel>()
+            val isImageMode=modeViewModel.isImageMode.collectAsState()
             val coroutineScope = rememberCoroutineScope()
             var box by remember { mutableStateOf(emptyList<TextResult>()) }
             var summaryDialog by remember{
                 mutableStateOf(false)
             }
+
             var summaryText by remember{
                 mutableStateOf("Sample summary text")
             }
             var cropBox by remember{
+                mutableStateOf(false)
+            }
+            var cropBox2 by remember{
                 mutableStateOf(false)
             }
             var summaryViewModel=viewModel<SummaryViewModel>()
@@ -307,21 +317,16 @@ class MainActivity : ComponentActivity() {
                 var meaning by remember{
                     mutableStateOf(false)
                 }
-//                var navController= rememberNavController()
-
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val scaffoldState = rememberBottomSheetScaffoldState(
+                    var scaffoldState = rememberBottomSheetScaffoldState(
 
                         bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
                     )
-                    // val appUiState=summaryViewModel.uiState.collectAsState().value
                     var setZeroOffset by remember{ mutableStateOf(0) }
-
-                    if(summaryDialog)
+                    AnimatedVisibility(summaryDialog)
                     {
 
                         SummaryDialog(setShowDialog = {summaryDialog = it
@@ -337,8 +342,6 @@ class MainActivity : ComponentActivity() {
 
 
                     }
-
-
                     if(summaryViewModel.dialogVisible) {
                         AlertDialog(
                             onDismissRequest = { summaryViewModel.dialogVisible = false },
@@ -362,6 +365,8 @@ class MainActivity : ComponentActivity() {
                     }
                     var setHeight by remember{ mutableStateOf(80.dp) }
                     var cropDone by remember{ mutableStateOf(true) }
+                    var cropDone2 by remember{ mutableStateOf(true) }
+
                     val photoTakenViewModel=viewModel<PhotoTakenViewModel>()
                     val photoStatus=photoTakenViewModel.bitmap.collectAsState()
                     val uriOpened=photoTakenViewModel.uriOpened.collectAsState()
@@ -369,188 +374,407 @@ class MainActivity : ComponentActivity() {
                     BottomSheetScaffold(
                         scaffoldState = scaffoldState,
                         sheetContent = {
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-            Box(modifier = Modifier
-                .clip(
-                    RoundedCornerShape(20.dp)
-                )
-                .background(Color.Black)
-                .height(40.dp)
-
-                .clickable {
-                    if (cropDone) {
-                        if (currScreen == Screen.PdfScreen.route) {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                async {
-                                    selectedBitmapSS =
-                                        captureEntireScreen(
-                                            context = context,
-                                            window,
-                                            screenWidth,
-                                            screenHeight
-                                        )
-
-                                }.await()
-                            }
-                        }
-
-                        cropBox = true
-                        setHeight = 140.dp
-                    } else {
-
-                        coroutineScope.launch {
-
-                            selectedBitmap = async {
-                                captureSelectedRegion(
-                                    context,
-                                    window,
-                                    startOffsetX,
-                                    startOffsetY,
-                                    endOffsetX,
-                                    endOffsetY
-                                )
-
-                            }.await()
-                            val textResponse = async {
-                                textViewModel.performOnlyTextRecognition(
-                                    selectedBitmap
-                                )
-
-                            }.await()
-                            summaryDialog = true
-                            summaryText = textResponse
-                            cropDone = true
-                            selectedBitmapSS = null
-                            Log.d("MainAct", textResponse)
-                            summaryViewModel.questioningSummary(summaryText)
-                            photoTakenViewModel.setFocus(false)
-
-                        }
-                    }
-                }
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxHeight(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = if (cropDone) "Summary" else "Done",
-                        fontSize = 15.sp,
-                        color = Color.LightGray,
-                        modifier = Modifier
-                            .padding(
-                                start = if (cropDone) 20.dp else 15.dp,
-                                end = if (cropDone) 20.dp else 8.dp
-                            )
-                            .align(Alignment.CenterVertically)
-                        //   .align(Alignment.Center)
-
-
-                    )
-                    if (!cropDone) {
-                        LoadingAnimation(
-                            modifier = Modifier
-                                .padding(end = 8.dp)
-                                .align(Alignment.CenterVertically),
-                            circleSize = 10.dp,
-                            spaceBetween = 5.dp,
-                            travelDistance = 8.dp
-                        )
-                    }
-                }
-            }
-
-        Box(
-            modifier = Modifier
-                .padding(8.dp)
-                .align(Alignment.CenterVertically)
-                .animateContentSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Divider(
-                color = Color.Gray,
-                modifier = Modifier
-
-                    .width(120.dp)
-                    .height(5.dp)
-                    .background(
-                        Color.Gray,
-                        shape = RoundedCornerShape(4.dp)
-                    )
-            )
-        }
-
-        Box(modifier = Modifier
-            .clip(
-                RoundedCornerShape(20.dp)
-            )
-            .background(Color.Black)
-            .height(40.dp)
-            .clickable {
-                if (meaning == false) {
-                    coroutineScope.launch {
-                        selectedBitmap = async {
-                            //     captureSelectedRegion(window, startOffsetX, startOffsetY, endOffsetX, endOffsetY)
-                            captureEntireScreen(
-                                context = context,
-                                window,
-                                screenWidth,
-                                screenHeight
-                            )
-                        }.await()
-                        box = async {
-                            textViewModel.performTextRecognition(
-                                selectedBitmap
-                            )
-                        }.await()
-                        meaning = true
-                        Log.d("MainAct", box.toString())
-                    }
-                } else {
-                    meaning = false
-                }
-            }
-        ) {
-
+AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
+    when(it)
+    {
+        false->{
             Row(
-                modifier = Modifier.fillMaxHeight(),
+                modifier = Modifier
+                    .fillMaxWidth()
+
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = if (meaning) "Stop" else "Meaning",
-                    fontSize = 15.sp,
-                    color = Color.LightGray,
-                    modifier = Modifier
-                        .padding(
-                            start = if (cropDone) 20.dp else 15.dp,
-                            end = if (cropDone) 20.dp else 8.dp
-                        )
-                        .align(Alignment.CenterVertically)
-                    //   .align(Alignment.Center)
 
-                )
-                if (meaning) {
-                    LoadingAnimation(
+                Box(modifier = Modifier
+                    .clip(
+                        RoundedCornerShape(20.dp)
+                    )
+                    .background(Color.Black)
+                    .height(40.dp)
+
+                    .clickable {
+                        if (cropDone) {
+                            if (currScreen == Screen.PdfScreen.route) {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    async {
+                                        selectedBitmapSS =
+                                            captureEntireScreen(
+                                                context = context,
+                                                window,
+                                                screenWidth,
+                                                screenHeight
+                                            )
+
+                                    }.await()
+                                }
+                            }
+
+                            cropBox = true
+                            setHeight = 140.dp
+                        } else {
+
+                            coroutineScope.launch {
+
+                                selectedBitmap = async {
+                                    captureSelectedRegion(
+                                        context,
+                                        window,
+                                        startOffsetX,
+                                        startOffsetY,
+                                        endOffsetX,
+                                        endOffsetY
+                                    )
+
+                                }.await()
+                                val textResponse = async {
+                                    textViewModel.performOnlyTextRecognition(
+                                        selectedBitmap
+                                    )
+
+                                }.await()
+                                summaryDialog = true
+                                summaryText = textResponse
+                                cropDone = true
+                                selectedBitmapSS = null
+                                Log.d("MainAct", textResponse)
+                                summaryViewModel.questioningSummary(summaryText)
+                                photoTakenViewModel.setFocus(false)
+
+                            }
+                        }
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (cropDone) "Summary" else "Done",
+                            fontSize = 15.sp,
+                            color = Color.LightGray,
+                            modifier = Modifier
+                                .padding(
+                                    start = if (cropDone) 20.dp else 15.dp,
+                                    end = if (cropDone) 20.dp else 8.dp
+                                )
+                                .align(Alignment.CenterVertically)
+                            //   .align(Alignment.Center)
+
+
+                        )
+                        AnimatedVisibility (!cropDone) {
+                            LoadingAnimation(
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                                    .align(Alignment.CenterVertically),
+                                circleSize = 10.dp,
+                                spaceBetween = 5.dp,
+                                travelDistance = 8.dp
+                            )
+                        }
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .align(Alignment.CenterVertically)
+                        .animateContentSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Divider(
+                        color = Color.Gray,
                         modifier = Modifier
-                            .padding(end = 8.dp)
-                            .align(Alignment.CenterVertically),
-                        circleSize = 10.dp,
-                        spaceBetween = 5.dp,
-                        travelDistance = 8.dp
+
+                            .width(120.dp)
+                            .height(5.dp)
+                            .background(
+                                Color.Gray,
+                                shape = RoundedCornerShape(4.dp)
+                            )
                     )
                 }
-            }
-        }}
 
+                Box(modifier = Modifier
+                    .clip(
+                        RoundedCornerShape(20.dp)
+                    )
+                    .background(Color.Black)
+                    .height(40.dp)
+                    .clickable {
+                        if (meaning == false) {
+                            coroutineScope.launch {
+                                selectedBitmap = async {
+                                    //     captureSelectedRegion(window, startOffsetX, startOffsetY, endOffsetX, endOffsetY)
+                                    captureEntireScreen(
+                                        context = context,
+                                        window,
+                                        screenWidth,
+                                        screenHeight
+                                    )
+                                }.await()
+                                box = async {
+                                    textViewModel.performTextRecognition(
+                                        selectedBitmap
+                                    )
+                                }.await()
+                                meaning = true
+                                Log.d("MainAct", box.toString())
+                            }
+                        } else {
+                            meaning = false
+                        }
+                    }
+                ) {
+
+                    Row(
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (meaning) "Stop" else "Meaning",
+                            fontSize = 15.sp,
+                            color = Color.LightGray,
+                            modifier = Modifier
+                                .padding(
+                                    start = if (cropDone) 20.dp else 15.dp,
+                                    end = if (cropDone) 20.dp else 8.dp
+                                )
+                                .align(Alignment.CenterVertically)
+                            //   .align(Alignment.Center)
+
+                        )
+                        AnimatedVisibility (meaning) {
+                            LoadingAnimation(
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                                    .align(Alignment.CenterVertically),
+                                circleSize = 10.dp,
+                                spaceBetween = 5.dp,
+                                travelDistance = 8.dp
+                            )
+                        }
+                    }
+                }
+
+            }
+        }
+        else ->{
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                Box(modifier = Modifier
+                    .clip(
+                        RoundedCornerShape(20.dp)
+                    )
+                    .background(Color.Black)
+                    .height(40.dp)
+
+                    .clickable {
+                        if (cropDone2) {
+                            if (currScreen == Screen.PdfScreen.route) {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    async {
+                                        selectedBitmapSS =
+                                            captureEntireScreen(
+                                                context = context,
+                                                window,
+                                                screenWidth,
+                                                screenHeight
+                                            )
+
+                                    }.await()
+                                }
+                            }
+                            cropBox2 = true
+                            setHeight = 140.dp
+                        } else {
+
+                            coroutineScope.launch {
+
+                                selectedBitmap = async {
+                                    captureSelectedRegion(
+                                        context,
+                                        window,
+                                        startOffsetX,
+                                        startOffsetY,
+                                        endOffsetX,
+                                        endOffsetY
+                                    )
+
+                                }.await()
+                                val textResponse = async {
+                                    textViewModel.performOnlyTextRecognition(
+                                        selectedBitmap
+                                    )
+
+                                }.await()
+                                summaryDialog = true
+                                summaryText = textResponse
+                                cropDone = true
+                                selectedBitmapSS = null
+                                Log.d("MainAct", textResponse)
+                                summaryViewModel.questioningSummary(summaryText)
+                                photoTakenViewModel.setFocus(false)
+
+                            }
+                        }
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (cropDone2) "Summary" else "Done",
+                            fontSize = 15.sp,
+                            color = Color.LightGray,
+                            modifier = Modifier
+                                .padding(
+                                    start = if (cropDone2) 20.dp else 15.dp,
+                                    end = if (cropDone2) 20.dp else 8.dp
+                                )
+                                .align(Alignment.CenterVertically)
+                            //   .align(Alignment.Center)
+
+
+                        )
+                        AnimatedVisibility (!cropDone2) {
+                            LoadingAnimation(
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                                    .align(Alignment.CenterVertically),
+                                circleSize = 10.dp,
+                                spaceBetween = 5.dp,
+                                travelDistance = 8.dp
+                            )
+                        }
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .align(Alignment.CenterVertically)
+                        .animateContentSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Divider(
+                        color = Color.Gray,
+                        modifier = Modifier
+
+                            .width(120.dp)
+                            .height(5.dp)
+                            .background(
+                                Color.Gray,
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                    )
+                }
+
+                Box(modifier = Modifier
+                    .clip(
+                        RoundedCornerShape(20.dp)
+                    )
+                    .background(Color.Black)
+                    .height(40.dp)
+                    .clickable {
+
+                        if (cropDone2) {
+                            if (currScreen == Screen.PdfScreen.route) {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    async {
+                                        selectedBitmapSS =
+                                            captureEntireScreen(
+                                                context = context,
+                                                window,
+                                                screenWidth,
+                                                screenHeight
+                                            )
+
+                                    }.await()
+                                }
+                            }
+
+                            cropBox2 = true
+                            setHeight = 140.dp
+                        } else {
+
+                            coroutineScope.launch {
+
+                                selectedBitmap = async {
+                                    captureSelectedRegion(
+                                        context,
+                                        window,
+                                        startOffsetX,
+                                        startOffsetY,
+                                        endOffsetX,
+                                        endOffsetY
+                                    )
+
+                                }.await()
+                                val byteArray = selectedBitmap?.let { compressBitmap(it) }
+                              chatViewModelWithImage.addBitmapToList(byteArray?.toBitmap())
+                                startOffsetX=0f
+                                startOffsetY=0f
+                                endOffsetX=0f
+                                endOffsetY=0f
+                                cropDone2 = true
+                                selectedBitmapSS = null
+                                focus=false
+
+                                //   Log.d("MainAct", textResponse)
+                             //   summaryViewModel.questioningSummary(summaryText)
+                                photoTakenViewModel.setFocus(false)
+                            }}
+
+
+                    }
+                ) {
+
+                    Row(
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (!cropDone2) "Done" else "Add Image",
+                            fontSize = 15.sp,
+                            color = Color.LightGray,
+                            modifier = Modifier
+                                .padding(
+                                    start = if (cropDone2) 20.dp else 15.dp,
+                                    end = if (cropDone2) 20.dp else 8.dp
+                                )
+                                .align(Alignment.CenterVertically)
+                            //   .align(Alignment.Center)
+
+                        )
+                        AnimatedVisibility (!cropDone2) {
+                            LoadingAnimation(
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                                    .align(Alignment.CenterVertically),
+                                circleSize = 10.dp,
+                                spaceBetween = 5.dp,
+                                travelDistance = 8.dp
+                            )
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
+}
 
                             LaunchedEffect(currScreen,photoStatus.value,uriOpened.value)
                             {
@@ -579,7 +803,9 @@ class MainActivity : ComponentActivity() {
                                     setHeight=0.dp
                                 }
                             }
-                            if(cropBox)
+                            AnimatedVisibility(cropBox,modifier= Modifier
+                                .fillMaxWidth(0.95f)
+                                .align(Alignment.CenterHorizontally))
                             {
                                 Box(modifier= Modifier
                                     .align(Alignment.CenterHorizontally)
@@ -590,6 +816,7 @@ class MainActivity : ComponentActivity() {
                                     .background(Color.Black)
                                 )
                                 {
+                                    val scope= rememberCoroutineScope()
                                     Row(modifier= Modifier
                                         .fillMaxWidth()
                                         .padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween)
@@ -598,6 +825,8 @@ class MainActivity : ComponentActivity() {
 
                                             cropBox=false
                                             setHeight=80.dp
+                                            scope.launch{
+                                            scaffoldState.bottomSheetState.collapse()}
                                             cropDone=false
                                             if (focus == true) {
                                                 startOffsetX = 0f
@@ -612,10 +841,8 @@ class MainActivity : ComponentActivity() {
                                             }
                                             photoTakenViewModel.setFocus(true)
                                             focus = !focus
-                                            Log.d("main",modifier.toString())
                                             if(focus===true)
                                             {
-                                                Log.d("Main","herererer")
                                                 setModifier(default_mod)
                                             }else
                                             {
@@ -661,7 +888,90 @@ class MainActivity : ComponentActivity() {
                                 }
 
                             }
-                            ChatScreen(chatViewModel = chatViewModel, chatViewModelWithImage = chatViewModelWithImage , viewModel = typewriterViewModel)
+                            AnimatedVisibility(cropBox2,modifier= Modifier
+                                .fillMaxWidth(0.95f)
+                                .align(Alignment.CenterHorizontally))
+                            {
+                                Box(modifier= Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .fillMaxWidth(0.95f)
+                                    .clip(
+                                        RoundedCornerShape(20.dp)
+                                    )
+                                    .background(Color.Black)
+                                )
+                                {
+                                    val scope= rememberCoroutineScope()
+                                    Row(modifier= Modifier
+                                        .fillMaxWidth()
+                                        .padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween)
+                                    {
+                                        OutlinedButton(onClick = {
+
+                                            cropBox2=false
+                                            setHeight=80.dp
+                                            scope.launch{
+                                                scaffoldState.bottomSheetState.collapse()}
+                                            cropDone2=false
+                                            if (focus == true) {
+                                                startOffsetX = 0f
+                                                startOffsetY = 0f
+                                                endOffsetX = 0f
+                                                endOffsetY = 0f
+                                            } else {
+                                                startOffsetX = 300f
+                                                startOffsetY = 300f
+                                                endOffsetX = 600f
+                                                endOffsetY = 600f
+                                            }
+                                            photoTakenViewModel.setFocus(true)
+                                            focus = !focus
+                                            if(focus===true)
+                                            {
+                                                setModifier(default_mod)
+                                            }else
+                                            {
+                                                setModifier(Modifier)
+                                            }
+
+
+                                        }) {
+                                            Text(text = "Crop Region",color=Color.LightGray)
+                                        }
+                                        OutlinedButton(onClick = {
+                                            coroutineScope.launch {
+                                                selectedBitmap = async {
+                                                    //     captureSelectedRegion(window, startOffsetX, startOffsetY, endOffsetX, endOffsetY)
+                                                    captureEntireScreen(
+                                                        context = context,
+                                                        window,
+                                                        screenWidth,
+                                                        screenHeight
+                                                    )
+                                                }.await()
+
+                                              //  summaryText = textResponse
+                                                val byteArray = selectedBitmap?.let { compressBitmap(it) }
+                                                chatViewModelWithImage.addBitmapToList(byteArray?.toBitmap())
+                                           //     Log.d("MainAct", textResponse)
+                                                //summaryViewModel.questioningSummary(summaryText)}
+                                            cropBox2=false
+                                            setHeight=80.dp
+                                        }}) {
+                                            Text(text = "Full Screen",color=Color.LightGray)
+
+                                        }
+
+
+                                    }
+
+                                }
+
+                            }
+
+
+
+                            ChatScreen(chatViewModel = chatViewModel, chatViewModelWithImage = chatViewModelWithImage , viewModel = typewriterViewModel,modeViewModel)
                         },
                         sheetPeekHeight = setHeight, // Set this to the desired height to show a peek of the bottom sheet
                         sheetGesturesEnabled = true,
@@ -680,11 +990,7 @@ class MainActivity : ComponentActivity() {
 
 
                             if ((endOffsetX != 0f &&  endOffsetY != 0f)) {
-//                                drawRect(
-//                                    color = Color.Blue.copy(alpha = 0.3f),
-//                                    topLeft =  Offset(0f,0f),
-//                                    size = Size(Math.abs(endOffsetX - startOffsetX), Math.abs(endOffsetY - startOffsetY))
-//                                )
+
                                 drawRect(
                                     color = Color.Blue.copy(alpha = 0.3f),
                                     topLeft =  Offset(startOffsetX,startOffsetY),
@@ -692,20 +998,7 @@ class MainActivity : ComponentActivity() {
                                 )
 
                             }
-//                            if ((endOffsetX != 0f &&  endOffsetY != 0f)) {
-//                                drawRect(color = Color.Blue.copy(alpha = 0.3f))
-//
-//                                val holeRect = androidx.compose.ui.geometry.Rect(
-//                                    startOffsetX,
-//                                    startOffsetY,
-//                                    endOffsetX,
-//                                    endOffsetY
-//                                )
-//                                val holePath = Path().apply {
-//                                    addRect(holeRect)
-//                                }
-//                                drawPath(holePath, Color.Transparent, style = Fill)
-//                            }
+
                         }
 
                         Box(modifier=modifier) {

@@ -79,7 +79,7 @@ fun Navigation(window: Window,applicationContext: Context,currScreen: (String)->
         }
 
         composable(route = Screen.ChatScreen.route) {
-            ChatScreen(  chatViewModel = chatViewModel , chatViewModelWithImage = chatViewModelWithImage , viewModel = typewriterViewModel,)
+       //     ChatScreen(  chatViewModel = chatViewModel , chatViewModelWithImage = chatViewModelWithImage , viewModel = typewriterViewModel,)
             currScreen(Screen.ChatScreen.route)
 
         }

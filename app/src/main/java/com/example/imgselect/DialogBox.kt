@@ -1,5 +1,6 @@
 package com.example.imgselect
 
+import android.graphics.Bitmap
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -7,6 +8,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.animateValueAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -51,9 +54,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -73,6 +79,7 @@ import kotlinx.coroutines.delay
 import kotlin.streams.toList
 import com.example.imgselect.data.Summary
 import com.example.imgselect.data.Web
+import com.example.imgselect.model.ChatViewModelWithImage
 import com.example.imgselect.model.WebHistoryViewModel
 import com.example.imgselect.ui.theme.GhostWhite
 import com.example.imgselect.ui.theme.OpenSans
@@ -354,7 +361,37 @@ fun WordMeaningDialog(
 }
 
 
-
+@Composable
+fun ImageList(bitmapList: List<Bitmap?>,chatViewModelWithImage: ChatViewModelWithImage) {
+    val scroll= rememberScrollState()
+    Column (modifier=Modifier.verticalScroll(scroll)){
+        bitmapList.forEach { bitmap ->
+            if (bitmap != null) {
+                Row(modifier= Modifier
+                    .fillMaxWidth().background(Color.Black).padding(5.dp)
+                    , horizontalArrangement = Arrangement.SpaceBetween) {
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxWidth(0.8f)
+                            .clip(RoundedCornerShape(4.dp)).padding(5.dp),
+                        contentScale = ContentScale.FillWidth
+                    )
+                    IconButton(onClick = { /*TODO*/
+                    chatViewModelWithImage.removeBitmapFromList(bitmap)
+                    },modifier=Modifier.size(35.dp).padding(end=5.dp)) {
+                        Icon(Icons.Default.Delete,"delete_item",tint=Color.White)
+                    }
+                }
+            } else {
+                Text(
+                    text = "Image not available",
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        }
+    }
+}
 @OptIn(ExperimentalTextApi::class)
 @Composable
 fun SummaryDialog(
@@ -466,6 +503,96 @@ fun SummaryDialog(
                             text = "Save", color = Color.Black,
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalTextApi::class)
+@Composable
+fun ImageDialog(
+    setShowDialog: (Boolean) -> Unit,
+    chatViewModelWithImage: ChatViewModelWithImage,
+    setOffset: (Int)->Unit
+) {
+
+    val imageList=chatViewModelWithImage.imageList.collectAsState()
+
+    Dialog(onDismissRequest = {
+        setOffset(1)
+        setShowDialog(false)
+
+    }
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.height(700.dp),
+            color = Color.White
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .background(Color(0xff1E1E1E))
+                        .fillMaxHeight(0.88f)
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Images",
+                        style = TextStyle(
+                            fontFamily = MaterialTheme.typography.titleSmall.fontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 32.sp),
+                        color = Color.White,
+
+                        modifier = Modifier
+                            .padding(top = 20.dp, bottom = 10.dp, start = 20.dp, end = 20.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+
+                    ImageList(imageList.value,chatViewModelWithImage)
+
+
+
+
+
+
+
+                }
+
+
+
+                Row(
+                    modifier = Modifier
+                        .background(Color(0xff141414))
+                        .fillMaxSize()
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(
+                        onClick = {
+
+                            setShowDialog(false)
+
+                        },
+                        shape = RoundedCornerShape(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            // Change the background color here
+                            contentColor = Color.White,
+                            containerColor = Color.Green// Change the text color here
+                        ),
+                        modifier = Modifier
+                            .height(50.dp)
+                        //.align(Alignment.Start)
+
+                    ) {
+                        Text(
+                            text = "Done", color = Color.Black,
+                        )
+                    }
+
+
                 }
             }
         }
