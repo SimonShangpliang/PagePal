@@ -33,5 +33,8 @@ val backgroundcolor = Color(0xFF1E1E1E)
 val aliceBlue = Color(0xFFF0F8FF)
 val midnightBlue = Color(0xFF101720)
 
+val camerabackground =Color(0xFF313333)
+val dividercolour = Color(0xFF313333)
 
+val CameraBottom =Color(0x80000000)
 

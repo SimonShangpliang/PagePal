@@ -76,7 +76,9 @@ fun ProfileScreen(navController: NavController) {
             RoundImage(
                 image = painterResource(id = R.drawable.ic_launcher_background), modifier = Modifier
                     .height(82.dp)
-                    .width(82.dp)
+                    .width(82.dp),
+                color = profileborder,
+                borderWidth = 1.4f
             )
             Spacer(modifier = Modifier.size(12.dp))
             Introdution()
@@ -108,7 +110,10 @@ fun HeadlineText(text: String) {
 @Composable
 fun RoundImage(
     image: Painter,
-    modifier: Modifier
+    modifier: Modifier,
+    color: Color,
+    borderWidth: Float
+
 ) {
 
     Row(modifier = Modifier.padding(horizontal = 20.dp)) {
@@ -117,7 +122,7 @@ fun RoundImage(
                 painter = image, contentDescription = null,
                 modifier = modifier
                     .aspectRatio(1f, matchHeightConstraintsFirst = true)
-                    .border(1.4.dp, color = profileborder, shape = CircleShape)
+                    .border(borderWidth.dp, color = color, shape = CircleShape)
                     .padding(4.dp)
                     .clip(CircleShape)
             )
