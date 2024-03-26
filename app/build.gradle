@@ -101,7 +101,7 @@ dependencies {
     implementation ("androidx.compose.animation:animation:1.6.3")
 
 // pdflibrary
-    implementation('io.github.grizzi91:bouquet:1.1.3')
+    implementation("io.github.grizzi91:bouquet:1.1.3")
 
 
 

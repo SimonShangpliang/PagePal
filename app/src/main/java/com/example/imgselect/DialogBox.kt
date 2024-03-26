@@ -10,6 +10,7 @@ import androidx.compose.animation.core.animateValueAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,13 +36,16 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,6 +64,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -139,7 +144,7 @@ fun WordMeaningDialog(
                         color = lighterTeal,
 
                         modifier = Modifier
-                            .padding(start=20.dp,top=20.dp,end=20.dp,bottom=5.dp)
+                            .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 5.dp)
                             .align(Alignment.CenterHorizontally)
                     )
 
@@ -169,11 +174,15 @@ fun WordMeaningDialog(
                                 )
 
                                 listMeaning?.forEach { wordData ->
-                                    Column(modifier = Modifier.fillMaxWidth().padding(10.dp)) {
+                                    Column(modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(10.dp)) {
 
                                         wordData.meanings.groupBy { it.partOfSpeech }.forEach {
                                             (partOfSpeech, meanings) ->
-                                            Column(modifier=Modifier.padding(10.dp).background(Color.Black,RoundedCornerShape(10.dp))){
+                                            Column(modifier= Modifier
+                                                .padding(10.dp)
+                                                .background(Color.Black, RoundedCornerShape(10.dp))){
                                               Text(
                                                   text = partOfSpeech ?: "Unknown",
                                                   style = MaterialTheme.typography.titleSmall,
@@ -196,7 +205,8 @@ fun WordMeaningDialog(
                                                               text = ":${definition.definition}",
                                                               style = MaterialTheme.typography.bodySmall,
                                                               color = Color.White,
-                                                              modifier = Modifier.weight(1f)
+                                                              modifier = Modifier
+                                                                  .weight(1f)
                                                                   .align(Alignment.CenterVertically)
                                                           )
                                                           RadioButton(
@@ -313,7 +323,9 @@ fun WordMeaningDialog(
                         .background(midnightBlue)
                         .fillMaxSize()
                 ) {
-                    Row(modifier=Modifier.fillMaxWidth().align(Alignment.Center), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically){
+                    Row(modifier= Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically){
                         Button(
                             onClick = {
 // here you will give the response back from user selected meanings using listMeaning State
@@ -395,18 +407,24 @@ fun ImageList(bitmapList: List<Bitmap?>,chatViewModelWithImage: ChatViewModelWit
         bitmapList.forEach { bitmap ->
             if (bitmap != null) {
                 Row(modifier= Modifier
-                    .fillMaxWidth().background(Color.Black).padding(5.dp)
+                    .fillMaxWidth()
+                    .background(Color.Black)
+                    .padding(5.dp)
                     , horizontalArrangement = Arrangement.SpaceBetween) {
                     Image(
                         bitmap = bitmap.asImageBitmap(),
                         contentDescription = null,
-                        modifier = Modifier.fillMaxWidth(0.8f)
-                            .clip(RoundedCornerShape(4.dp)).padding(5.dp),
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .clip(RoundedCornerShape(4.dp))
+                            .padding(5.dp),
                         contentScale = ContentScale.FillWidth
                     )
                     IconButton(onClick = { /*TODO*/
                     chatViewModelWithImage.removeBitmapFromList(bitmap)
-                    },modifier=Modifier.size(35.dp).padding(end=5.dp)) {
+                    },modifier= Modifier
+                        .size(35.dp)
+                        .padding(end = 5.dp)) {
                         Icon(Icons.Default.Delete,"delete_item",tint=Color.White)
                     }
                 }
@@ -775,14 +793,30 @@ fun WebHistoryDialog(
     setUrl:(String)->Unit
 ) {
 
+    val searchQuery = remember { mutableStateOf("")}
+    val updatedHistory = if(searchQuery.value.isEmpty()) {
+        history
+    } else {
+        history.filter { website->
+            website.website?.contains(searchQuery.value , ignoreCase = true) ?: false
+        }
+    }
+
+
+
     Dialog(onDismissRequest = { setShowDialog(false) }
     ) {
         Surface(
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.height(700.dp),
-            color = Color.White
+            color = Color(0xff1E1E1E)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
+                Spacer(modifier = Modifier.height(10.dp).background(Color(0xff1E1E1E)))
+                MySearchBar1(
+                    placeHolder = "Search",
+                    onQueryChanged = {query -> searchQuery.value = query}
+                )
                 Column(
                     modifier = Modifier
                         .background(Color(0xff1E1E1E))
@@ -807,7 +841,7 @@ fun WebHistoryDialog(
                         modifier = Modifier.fillMaxSize(), // Ensure the LazyColumn takes up all available space
 
                     ) {
-                        items(history.sortedByDescending { it.date }){ web ->
+                        items(updatedHistory.sortedByDescending { it.date }){ web ->
                             Box(
                                 modifier = Modifier
                                     .background(Color.Black)
@@ -865,6 +899,60 @@ fun WebHistoryDialog(
                 }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MySearchBar1(
+    placeHolder : String,
+    onQueryChanged: (String) -> Unit,
+    cornerRadius: Float = 30f
+){
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.DarkGray),
+        contentAlignment = Alignment.Center
+    )
+    {
+
+
+        var text= remember {
+            mutableStateOf("")
+        }
+        OutlinedTextField(
+            value = text.value,
+            onValueChange = {
+                text.value= it
+                onQueryChanged(it)
+            }, modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(1.dp))
+                .padding(horizontal = 20.dp)
+                .border(0.5.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(10.dp)),
+            placeholder = {
+                Text(
+                    text = placeHolder,
+                    color = Color.White.copy(alpha = 0.5f)
+                )
+            },
+            colors = TextFieldDefaults.textFieldColors(
+                textColor = Color.White,
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                placeholderColor = Color.White.copy(alpha = 0.5f)
+            ),
+
+            trailingIcon = {
+                IconButton(onClick = { }) {
+                    Icon(painter = painterResource(id = R.drawable.search), contentDescription ="Search" )
+                }
+            },
+            shape = RoundedCornerShape(10.dp)
+        )
     }
 }
 
