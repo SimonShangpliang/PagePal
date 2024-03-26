@@ -33,7 +33,7 @@ interface DictionaryApiService {
     {
         try {
             return retrofitService.getMeaning(word)
-        } catch (e: HttpException) {
+        } catch (e: Exception) {
             // Handle 404 error (or any other HTTP error code) here
             // Log or show an error message indicating the resource was not found
             e.printStackTrace()

@@ -80,6 +80,7 @@ import kotlin.streams.toList
 import com.example.imgselect.data.Summary
 import com.example.imgselect.data.Web
 import com.example.imgselect.model.ChatViewModelWithImage
+import com.example.imgselect.model.InterpretUiState
 import com.example.imgselect.model.WebHistoryViewModel
 import com.example.imgselect.ui.theme.GhostWhite
 import com.example.imgselect.ui.theme.OpenSans
@@ -143,17 +144,7 @@ fun WordMeaningDialog(
                     )
 
                     dictionaryViewModel.uiState.value.let { uiState ->
-                    Text(
-                        text = dictionaryViewModel.listMeaning?.getOrNull(0)?.word ?: "No Word",
-                        style = TextStyle(
-                            fontFamily = OpenSans,
-                            fontSize = 23.sp
-                        ),
-                        color = aliceBlue,
-                        modifier = Modifier
-                            .padding(20.dp)
-                            .align(Alignment.CenterHorizontally)
-                    )
+
 
 
                         when (uiState) {
@@ -178,77 +169,110 @@ fun WordMeaningDialog(
                                 )
 
                                 listMeaning?.forEach { wordData ->
-                                    Column(modifier = Modifier.fillMaxWidth()) {
-                                        wordData.meanings.groupBy { it.partOfSpeech }?.forEach { (partOfSpeech, meanings) ->
-                                            Text(
-                                                text = partOfSpeech ?: "Unknown",
-                                                style = MaterialTheme.typography.titleSmall,
-                                                color = Color.White,
-                                                modifier = Modifier
-                                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                                                    .background(Color.DarkGray)
-                                            )
-                                            meanings.forEach { meaning ->
-                                                meaning.definitions.forEach { definition ->
-                                                    Row(modifier = Modifier.padding(16.dp)) {
-                                                        Text(
-                                                            text = ":${definition.definition}",
-                                                            style = MaterialTheme.typography.bodySmall,
-                                                            color = Color.White,
-                                                            modifier = Modifier.weight(1f)
-                                                        )
-                                            RadioButton(
-                                                selected = definition.isSelected,
-                                                onClick = { /* Handle click event */
-                                                    listMeaning = listMeaning?.map { wordData ->
-                                                        val updatedMeanings = wordData.meanings.map { meaning ->
-                                                            val updatedDefinitions = meaning.definitions.map { def ->
-                                                                if (def == definition) {
-                                                                    def.copy(isSelected = !def.isSelected)
-                                                                } else {
-                                                                    def
-                                                                }
-                                                            }
-                                                            meaning.copy(definitions = updatedDefinitions)
-                                                        }
-                                                        wordData.copy(meanings = updatedMeanings)
+                                    Column(modifier = Modifier.fillMaxWidth().padding(10.dp)) {
 
-                                                    }
-                                                    dictionaryViewModel.listMeaning = listMeaning
-                                                }
-                                            )
+                                        wordData.meanings.groupBy { it.partOfSpeech }.forEach {
+                                            (partOfSpeech, meanings) ->
+                                            Column(modifier=Modifier.padding(10.dp).background(Color.Black,RoundedCornerShape(10.dp))){
+                                              Text(
+                                                  text = partOfSpeech ?: "Unknown",
+                                                  style = MaterialTheme.typography.titleSmall,
+                                                  color = Color.White,
+                                                  modifier = Modifier
+                                                      .padding(horizontal = 16.dp, vertical = 8.dp)
+                                                      .background(Color.DarkGray)
+                                              )
+                                              meanings.forEach { meaning ->
+                                                  meaning.definitions.forEach { definition ->
+                                                      Row(
+                                                          modifier = Modifier.padding(
+                                                              start = 16.dp,
+                                                              end = 16.dp,
+                                                              top = 8.dp,
+                                                              bottom = if (definition.example == null) 6.dp else 0.dp
+                                                          )
+                                                      ) {
+                                                          Text(
+                                                              text = ":${definition.definition}",
+                                                              style = MaterialTheme.typography.bodySmall,
+                                                              color = Color.White,
+                                                              modifier = Modifier.weight(1f)
+                                                                  .align(Alignment.CenterVertically)
+                                                          )
+                                                          RadioButton(
+                                                              selected = definition.isSelected,
+                                                              onClick = { /* Handle click event */
+                                                                  listMeaning =
+                                                                      listMeaning?.map { wordData ->
+                                                                          val updatedMeanings =
+                                                                              wordData.meanings.map { meaning ->
+                                                                                  val updatedDefinitions =
+                                                                                      meaning.definitions.map { def ->
+                                                                                          if (def == definition) {
+                                                                                              def.copy(
+                                                                                                  isSelected = !def.isSelected
+                                                                                              )
+                                                                                          } else {
+                                                                                              def
+                                                                                          }
+                                                                                      }
+                                                                                  meaning.copy(
+                                                                                      definitions = updatedDefinitions
+                                                                                  )
+                                                                              }
+                                                                          wordData.copy(meanings = updatedMeanings)
+
+                                                                      }
+                                                                  dictionaryViewModel.listMeaning =
+                                                                      listMeaning
+                                                              }
+                                                          )
 
 
-
-                                        }
-                                        definition.example?.let {
-                                            Text(
-                                                text = "Example: $it",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = lightWhite,
-                                                modifier = Modifier.padding(horizontal = 16.dp),
-                                                fontSize=10.5.sp,
-                                                fontStyle = FontStyle.Italic
-                                            )
-                                        }
-                                        if (!definition.synonyms.isNullOrEmpty()) {
-                                            Text(
-                                                text = "Synonyms: ${definition.synonyms.joinToString()}",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = aliceBlue,
-                                                modifier = Modifier.padding(horizontal = 16.dp)
-                                            )
-                                        }
-                                        if (!definition.antonyms.isNullOrEmpty()) {
-                                            Text(
-                                                text = "Antonyms: ${definition.antonyms.joinToString()}",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = aliceBlue,
-                                                modifier = Modifier.padding(horizontal = 16.dp)
-                                            )
-                                        }
-                                    }
-                                }
+                                                      }
+                                                      definition.example?.let {
+                                                          Text(
+                                                              text = "Example: $it",
+                                                              style = MaterialTheme.typography.bodySmall,
+                                                              color = lightWhite,
+                                                              modifier = Modifier.padding(
+                                                                  start = 16.dp,
+                                                                  end = 16.dp,
+                                                                  top = 0.dp,
+                                                                  bottom = 8.dp
+                                                              ),
+                                                              fontSize = 10.5.sp,
+                                                              fontStyle = FontStyle.Italic
+                                                          )
+                                                      }
+                                                      if (!definition.synonyms.isNullOrEmpty()) {
+                                                          Text(
+                                                              text = "Synonyms: ${definition.synonyms.joinToString()}",
+                                                              style = MaterialTheme.typography.bodySmall,
+                                                              color = aliceBlue,
+                                                              modifier = Modifier.padding(
+                                                                  start = 16.dp,
+                                                                  end = 16.dp,
+                                                                  top = 2.dp,
+                                                                  bottom = 8.dp
+                                                              )
+                                                          )
+                                                      }
+                                                      if (!definition.antonyms.isNullOrEmpty()) {
+                                                          Text(
+                                                              text = "Antonyms: ${definition.antonyms.joinToString()}",
+                                                              style = MaterialTheme.typography.bodySmall,
+                                                              color = aliceBlue,
+                                                              modifier = Modifier.padding(
+                                                                  start = 16.dp,
+                                                                  end = 16.dp,
+                                                                  top = 2.dp,
+                                                                  bottom = 8.dp
+                                                              )
+                                                          )
+                                                      }
+                                                  }
+                                              }}
 
                             }
                         }
@@ -289,8 +313,7 @@ fun WordMeaningDialog(
                         .background(midnightBlue)
                         .fillMaxSize()
                 ) {
-                    Spacer(modifier=Modifier.height(10.dp))
-                    Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically){
+                    Row(modifier=Modifier.fillMaxWidth().align(Alignment.Center), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically){
                         Button(
                             onClick = {
 // here you will give the response back from user selected meanings using listMeaning State
@@ -364,6 +387,10 @@ fun WordMeaningDialog(
 @Composable
 fun ImageList(bitmapList: List<Bitmap?>,chatViewModelWithImage: ChatViewModelWithImage) {
     val scroll= rememberScrollState()
+    if(bitmapList.size==0){
+        Box(modifier=Modifier.fillMaxWidth()){
+        Text("Add Images to send",modifier=Modifier.align(Alignment.Center))}
+    }else{
     Column (modifier=Modifier.verticalScroll(scroll)){
         bitmapList.forEach { bitmap ->
             if (bitmap != null) {
@@ -390,7 +417,7 @@ fun ImageList(bitmapList: List<Bitmap?>,chatViewModelWithImage: ChatViewModelWit
                 )
             }
         }
-    }
+    }}
 }
 @OptIn(ExperimentalTextApi::class)
 @Composable
@@ -503,6 +530,100 @@ fun SummaryDialog(
                             text = "Save", color = Color.Black,
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalTextApi::class)
+@Composable
+fun InterpretDialog(
+    setShowDialog: (Boolean) -> Unit,
+    chatViewModelWithImage: ChatViewModelWithImage,
+    setOffset: (Int)->Unit
+) {
+
+    val interpretUiState=chatViewModelWithImage.interpretUiState.collectAsState().value
+
+    Dialog(onDismissRequest = {
+        setShowDialog(false)
+
+    }
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.height(700.dp),
+            color = Color.White
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                val scroll = rememberScrollState()
+                Column(
+                    modifier = Modifier
+                        .background(Color(0xff1E1E1E))
+                        .fillMaxHeight(0.88f)
+                        .fillMaxWidth()
+                        .verticalScroll(scroll)
+                ) {
+                    Text(
+                        text = "Interpretation",
+                        style = TextStyle(
+                            fontFamily = MaterialTheme.typography.titleSmall.fontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 32.sp),
+                        color = Color.White,
+
+                        modifier = Modifier
+                            .padding(20.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+
+                    when(interpretUiState) {
+                        is InterpretUiState.Success->TypewriterText(texts = listOf(interpretUiState.responseText))
+                        is InterpretUiState.Loading-> LoadingAnimation(modifier=Modifier.align(Alignment.CenterHorizontally))
+                        else-> TypewriterText(texts = listOf("Error in summarizing please try again") )
+                    }
+
+
+
+
+
+
+                }
+
+
+
+                Row(
+                    modifier = Modifier
+                        .background(Color(0xff141414))
+                        .fillMaxSize()
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(
+                        onClick = {
+
+                            setShowDialog(false)
+
+                        },
+                        shape = RoundedCornerShape(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            // Change the background color here
+                            contentColor = Color.White,
+                            containerColor = Color.Green// Change the text color here
+                        ),
+                        modifier = Modifier
+                            .height(50.dp)
+                        //.align(Alignment.Start)
+
+                    ) {
+                        Text(
+                            text = "Done", color = Color.Black,
+                        )
+                    }
+
+
                 }
             }
         }

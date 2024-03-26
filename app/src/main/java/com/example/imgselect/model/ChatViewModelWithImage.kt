@@ -25,11 +25,17 @@ class ChatViewModelWithImage: ViewModel() {
     private val _imageList = MutableStateFlow<List<Bitmap?>>(emptyList())
     val imageList: StateFlow<List<Bitmap?>> = _imageList
     private val _response = MutableLiveData<String>()
+    private val interpretImage = MutableStateFlow<Bitmap?>(null)
+
+    val interpretImageState: StateFlow<Bitmap?> = interpretImage
+
+
     val response: LiveData<String> = _response
-    var isImageSelected: Boolean by mutableStateOf(false)
     private val _messages = MutableLiveData<List<ChatQueryResponse>>(listOf())
     val messages: LiveData<List<ChatQueryResponse>> = _messages
 
+    private val _interpretUiState:MutableStateFlow<InterpretUiState> = MutableStateFlow(InterpretUiState.Initial)
+    val interpretUiState: StateFlow<InterpretUiState> = _interpretUiState
     init {
         val config = generationConfig { temperature = 0.70f }
         generativeModel = GenerativeModel(
@@ -39,9 +45,54 @@ class ChatViewModelWithImage: ViewModel() {
         )
         Log.d("gemini" , "gemini-pro-vision is initialized")
     }
+    override fun onCleared() {
+        // Perform cleanup tasks here before the ViewModel is destroyed
+        // For example, recycle bitmaps
+        _imageList.value.forEach { bitmap ->
+            bitmap?.recycle()
+        }
+
+        // Call super.onCleared() at the end
+        super.onCleared()
+    }
+    fun setInterpretImage(bitmap: Bitmap?) {
+        interpretImage.value = bitmap
+    }
+    fun clearInterpretImage() {
+        interpretImage.value = null
+    }
     fun clearImageList() {
         _imageList.value = emptyList()
-        isImageSelected = false // Update the state to indicate that no image is selected
+    }
+    fun getInterpretResponseFromChatBot() {
+        viewModelScope.launch {
+            _interpretUiState.value = InterpretUiState.Loading
+
+            Log.d("imageList", "There is 1 image")
+            Log.d("imageList", "Interpret this image")
+
+
+            val inputContent = content {
+                val imageBitmap = interpretImage.value
+                if (imageBitmap != null) {
+                    image(imageBitmap)
+                }
+
+                text("Interpret this image")
+            }
+
+            try {
+                val responseText = generativeModel.generateContent(inputContent).text.toString()
+                Log.d("responseTextforImage", responseText)
+
+                _interpretUiState.value = InterpretUiState.Success(responseText)
+
+            } catch (e: Exception) {
+                _interpretUiState.value = InterpretUiState.Error(e.localizedMessage ?: "Error interpreting image")
+
+                Log.e("getResponseFromChatBot", "Error generating content: ${e.message}", e)
+            }
+        }
     }
 
     fun getResponseFromChatBot() {
@@ -79,7 +130,6 @@ class ChatViewModelWithImage: ViewModel() {
             val currentList = _imageList.value.toMutableList()
             currentList.add(bitmap)
             _imageList.value = currentList
-            isImageSelected = true // Update the state to indicate that an image is selected
         }
     }
 
@@ -87,6 +137,11 @@ class ChatViewModelWithImage: ViewModel() {
         val currentList = _imageList.value.toMutableList()
         currentList.remove(bitmap)
         _imageList.value = currentList
-        isImageSelected = currentList.isNotEmpty() // Update the state based on whether images are present
     }
+}
+sealed class InterpretUiState {
+    object Initial : InterpretUiState()
+    object Loading : InterpretUiState()
+    data class Success(val responseText: String) : InterpretUiState()
+    data class Error(val errorMessage: String) : InterpretUiState()
 }

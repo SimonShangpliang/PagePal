@@ -119,6 +119,7 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -291,7 +292,12 @@ class MainActivity : ComponentActivity() {
             val isImageMode=modeViewModel.isImageMode.collectAsState()
             val coroutineScope = rememberCoroutineScope()
             var box by remember { mutableStateOf(emptyList<TextResult>()) }
+
+
             var summaryDialog by remember{
+                mutableStateOf(false)
+            }
+            var interpretDialog by remember{
                 mutableStateOf(false)
             }
 
@@ -302,6 +308,9 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf(false)
             }
             var cropBox2 by remember{
+                mutableStateOf(false)
+            }
+            var cropBox3 by remember{
                 mutableStateOf(false)
             }
             var summaryViewModel=viewModel<SummaryViewModel>()
@@ -342,6 +351,22 @@ class MainActivity : ComponentActivity() {
 
 
                     }
+                    AnimatedVisibility(interpretDialog)
+                    {
+
+                        InterpretDialog(setShowDialog = {interpretDialog = it
+                            focus=false
+
+                            startOffsetX=0f
+                            startOffsetY=0f
+                            endOffsetX=0f
+                            endOffsetY=0f
+                        }, chatViewModelWithImage,{
+
+                        })
+
+
+                    }
                     if(summaryViewModel.dialogVisible) {
                         AlertDialog(
                             onDismissRequest = { summaryViewModel.dialogVisible = false },
@@ -366,6 +391,7 @@ class MainActivity : ComponentActivity() {
                     var setHeight by remember{ mutableStateOf(80.dp) }
                     var cropDone by remember{ mutableStateOf(true) }
                     var cropDone2 by remember{ mutableStateOf(true) }
+                    var cropDone3 by remember{ mutableStateOf(true) }
 
                     val photoTakenViewModel=viewModel<PhotoTakenViewModel>()
                     val photoStatus=photoTakenViewModel.bitmap.collectAsState()
@@ -396,7 +422,7 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
 
                     .clickable {
                         if (cropDone) {
-                            if (currScreen == Screen.PdfScreen.route) {
+                            if (currScreen == Screen.PdfScreen.route&&viewModel.docSelected.value) {
                                 CoroutineScope(Dispatchers.IO).launch {
                                     async {
                                         selectedBitmapSS =
@@ -411,8 +437,12 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                 }
                             }
 
+if(cropBox==true){
+    cropBox = false
+    setHeight = 80.dp
+}else{
                             cropBox = true
-                            setHeight = 140.dp
+                            setHeight = 140.dp}
                         } else {
 
                             coroutineScope.launch {
@@ -438,6 +468,7 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                 summaryText = textResponse
                                 cropDone = true
                                 selectedBitmapSS = null
+                                setModifier(Modifier)
                                 Log.d("MainAct", textResponse)
                                 summaryViewModel.questioningSummary(summaryText)
                                 photoTakenViewModel.setFocus(false)
@@ -540,7 +571,7 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                             modifier = Modifier
                                 .padding(
                                     start = if (cropDone) 20.dp else 15.dp,
-                                    end = if (cropDone) 20.dp else 8.dp
+                                    end = if ( cropDone) 20.dp else 8.dp
                                 )
                                 .align(Alignment.CenterVertically)
                             //   .align(Alignment.Center)
@@ -579,8 +610,8 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                     .height(40.dp)
 
                     .clickable {
-                        if (cropDone2) {
-                            if (currScreen == Screen.PdfScreen.route) {
+                        if (cropDone3) {
+                            if (currScreen == Screen.PdfScreen.route&&viewModel.docSelected.value) {
                                 CoroutineScope(Dispatchers.IO).launch {
                                     async {
                                         selectedBitmapSS =
@@ -594,7 +625,7 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                     }.await()
                                 }
                             }
-                            cropBox2 = true
+                            cropBox3 = true
                             setHeight = 140.dp
                         } else {
 
@@ -611,18 +642,16 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                     )
 
                                 }.await()
-                                val textResponse = async {
-                                    textViewModel.performOnlyTextRecognition(
-                                        selectedBitmap
-                                    )
-
-                                }.await()
-                                summaryDialog = true
-                                summaryText = textResponse
-                                cropDone = true
+                                val byteArray = selectedBitmap?.let { compressBitmap(it) }
+                                chatViewModelWithImage.setInterpretImage(byteArray?.toBitmap())
+                                interpretDialog = true
+                              //  summaryText = textResponse
+                                cropDone3 = true
                                 selectedBitmapSS = null
-                                Log.d("MainAct", textResponse)
-                                summaryViewModel.questioningSummary(summaryText)
+                                setModifier(Modifier)
+
+                                //   Log.d("MainAct", textResponse)
+                                chatViewModelWithImage.getInterpretResponseFromChatBot()
                                 photoTakenViewModel.setFocus(false)
 
                             }
@@ -634,20 +663,20 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = if (cropDone2) "Summary" else "Done",
+                            text = if (cropDone3) "Interpret" else "Done",
                             fontSize = 15.sp,
                             color = Color.LightGray,
                             modifier = Modifier
                                 .padding(
-                                    start = if (cropDone2) 20.dp else 15.dp,
-                                    end = if (cropDone2) 20.dp else 8.dp
+                                    start = if (cropDone3) 20.dp else 15.dp,
+                                    end = if (cropDone3) 20.dp else 8.dp
                                 )
                                 .align(Alignment.CenterVertically)
                             //   .align(Alignment.Center)
 
 
                         )
-                        AnimatedVisibility (!cropDone2) {
+                        AnimatedVisibility (!cropDone3) {
                             LoadingAnimation(
                                 modifier = Modifier
                                     .padding(end = 8.dp)
@@ -689,7 +718,7 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                     .clickable {
 
                         if (cropDone2) {
-                            if (currScreen == Screen.PdfScreen.route) {
+                            if (currScreen == Screen.PdfScreen.route&&viewModel.docSelected.value) {
                                 CoroutineScope(Dispatchers.IO).launch {
                                     async {
                                         selectedBitmapSS =
@@ -729,6 +758,8 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                 endOffsetY=0f
                                 cropDone2 = true
                                 selectedBitmapSS = null
+                                setModifier(Modifier)
+
                                 focus=false
 
                                 //   Log.d("MainAct", textResponse)
@@ -783,6 +814,7 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                 endOffsetX=0f
                                 endOffsetY=0f
                                 meaning=false
+                              //  selectedBitmapSS=null
 
                                 // if(currScreen==Screen.)
                                 if(screensWithBottomScaffold.contains(currScreen))
@@ -803,9 +835,7 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                     setHeight=0.dp
                                 }
                             }
-                            AnimatedVisibility(cropBox,modifier= Modifier
-                                .fillMaxWidth(0.95f)
-                                .align(Alignment.CenterHorizontally))
+                            if(cropBox)
                             {
                                 Box(modifier= Modifier
                                     .align(Alignment.CenterHorizontally)
@@ -825,8 +855,8 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
 
                                             cropBox=false
                                             setHeight=80.dp
-                                            scope.launch{
-                                            scaffoldState.bottomSheetState.collapse()}
+//                                            scope.launch{
+//                                            scaffoldState.bottomSheetState.collapse()}
                                             cropDone=false
                                             if (focus == true) {
                                                 startOffsetX = 0f
@@ -841,7 +871,7 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                             }
                                             photoTakenViewModel.setFocus(true)
                                             focus = !focus
-                                            if(focus===true)
+                                            if(focus==true)
                                             {
                                                 setModifier(default_mod)
                                             }else
@@ -854,6 +884,8 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                             Text(text = "Crop Region",color=Color.LightGray)
                                         }
                                         OutlinedButton(onClick = {
+                                            setHeight=80.dp
+
                                             coroutineScope.launch {
                                                 selectedBitmap = async {
                                                     //     captureSelectedRegion(window, startOffsetX, startOffsetY, endOffsetX, endOffsetY)
@@ -872,11 +904,10 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                                 }.await()
                                                 summaryDialog = true
                                                 summaryText = textResponse
-
+selectedBitmapSS=null
                                                 Log.d("MainAct", textResponse)
                                                 summaryViewModel.questioningSummary(summaryText)}
                                             cropBox=false
-                                            setHeight=80.dp
                                         }) {
                                             Text(text = "Full Screen",color=Color.LightGray)
 
@@ -888,9 +919,7 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                 }
 
                             }
-                            AnimatedVisibility(cropBox2,modifier= Modifier
-                                .fillMaxWidth(0.95f)
-                                .align(Alignment.CenterHorizontally))
+                            if(cropBox2)
                             {
                                 Box(modifier= Modifier
                                     .align(Alignment.CenterHorizontally)
@@ -907,11 +936,10 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                         .padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween)
                                     {
                                         OutlinedButton(onClick = {
+                                            setHeight=80.dp
 
                                             cropBox2=false
-                                            setHeight=80.dp
-                                            scope.launch{
-                                                scaffoldState.bottomSheetState.collapse()}
+
                                             cropDone2=false
                                             if (focus == true) {
                                                 startOffsetX = 0f
@@ -926,6 +954,90 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                             }
                                             photoTakenViewModel.setFocus(true)
                                             focus = !focus
+//                                            scope.launch{
+//                                                scaffoldState.bottomSheetState.collapse()}
+                                            if(focus==true)
+                                            {
+                                                setModifier(default_mod)
+                                            }else
+                                            {
+                                                setModifier(Modifier)
+                                            }
+
+
+                                        }) {
+                                            Text(text = "Crop Region",color=Color.LightGray)
+                                        }
+                                        OutlinedButton(onClick = {
+                                            setHeight=80.dp
+                                            cropBox2=false
+
+                                            coroutineScope.launch {
+                                                selectedBitmap = async {
+                                                    //     captureSelectedRegion(window, startOffsetX, startOffsetY, endOffsetX, endOffsetY)
+                                                    captureEntireScreen(
+                                                        context = context,
+                                                        window,
+                                                        screenWidth,
+                                                        screenHeight
+                                                    )
+                                                }.await()
+
+                                              //  summaryText = textResponse
+                                                val byteArray = selectedBitmap.let { compressBitmap(it) }
+                                                chatViewModelWithImage.addBitmapToList(byteArray?.toBitmap())
+                                           //     Log.d("MainAct", textResponse)
+                                                selectedBitmapSS=null
+                                                //summaryViewModel.questioningSummary(summaryText)}
+
+                                        }
+                                        }) {
+                                            Text(text = "Full Screen",color=Color.LightGray)
+
+                                        }
+
+
+                                    }
+
+                                }
+
+                            }
+                            if(cropBox3)
+                            {
+                                Box(modifier= Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .fillMaxWidth(0.95f)
+                                    .clip(
+                                        RoundedCornerShape(20.dp)
+                                    )
+                                    .background(Color.Black)
+                                )
+                                {
+                                    val scope= rememberCoroutineScope()
+                                    Row(modifier= Modifier
+                                        .fillMaxWidth()
+                                        .padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween)
+                                    {
+                                        OutlinedButton(onClick = {
+                                            setHeight=80.dp
+
+                                            cropBox3=false
+
+                                            cropDone3=false
+                                            if (focus == true) {
+                                                startOffsetX = 0f
+                                                startOffsetY = 0f
+                                                endOffsetX = 0f
+                                                endOffsetY = 0f
+                                            } else {
+                                                startOffsetX = 300f
+                                                startOffsetY = 300f
+                                                endOffsetX = 600f
+                                                endOffsetY = 600f
+                                            }
+                                            photoTakenViewModel.setFocus(true)
+                                            focus = !focus
+
                                             if(focus===true)
                                             {
                                                 setModifier(default_mod)
@@ -939,6 +1051,9 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                             Text(text = "Crop Region",color=Color.LightGray)
                                         }
                                         OutlinedButton(onClick = {
+
+                                            cropBox3=false
+                                            setHeight=80.dp
                                             coroutineScope.launch {
                                                 selectedBitmap = async {
                                                     //     captureSelectedRegion(window, startOffsetX, startOffsetY, endOffsetX, endOffsetY)
@@ -950,14 +1065,16 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                                                     )
                                                 }.await()
 
-                                              //  summaryText = textResponse
+                                                //  summaryText = textResponse
                                                 val byteArray = selectedBitmap?.let { compressBitmap(it) }
-                                                chatViewModelWithImage.addBitmapToList(byteArray?.toBitmap())
-                                           //     Log.d("MainAct", textResponse)
+                                                chatViewModelWithImage.setInterpretImage(byteArray?.toBitmap())
+                                                //     Log.d("MainAct", textResponse)
+                                                chatViewModelWithImage.getInterpretResponseFromChatBot()
+selectedBitmapSS=null
                                                 //summaryViewModel.questioningSummary(summaryText)}
-                                            cropBox2=false
-                                            setHeight=80.dp
-                                        }}) {
+interpretDialog=true
+
+                                            }}) {
                                             Text(text = "Full Screen",color=Color.LightGray)
 
                                         }
@@ -1132,6 +1249,7 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                     checked = viewModel.switchState.value,
                     onCheckedChange = {
                         viewModel.switchState.value = it
+
                     },
                     colors = SwitchDefaults.colors(
                         uncheckedThumbColor = androidx.compose.material.MaterialTheme.colors.secondaryVariant,
@@ -1494,12 +1612,17 @@ suspend fun captureSelectedRegion(context:Context,
             // Use PixelCopy with Rect (API level 26+)
             PixelCopy.request(window, sourceRect, bitmap, { copyResult ->
                 if (copyResult == PixelCopy.SUCCESS) {
+
                     continuation.resume(bitmap)
                 } else {
+                    bitmap.recycle() // Recycle the bitmap in case of failure
+
                     continuation.resumeWithException(RuntimeException("Failed to copy screen content"))
                 }
             }, handler)
         } else {
+            bitmap.recycle() // Recycle the bitmap in case of failure
+
             // Use alternative methods for lower API levels
             // For instance, View.draw() or View.getDrawingCache()
             continuation.resumeWithException(RuntimeException("PixelCopy is not supported on this device"))
@@ -1532,10 +1655,14 @@ suspend fun captureEntireScreen(
                 if (copyResult == PixelCopy.SUCCESS) {
                     continuation.resume(bitmap)
                 } else {
+                    bitmap.recycle() // Recycle the bitmap in case of failure
+
                     continuation.resumeWithException(RuntimeException("Failed to copy screen content"))
                 }
             }, handler)
         } else {
+            bitmap.recycle() // Recycle the bitmap in case of failure
+
             continuation.resumeWithException(RuntimeException("PixelCopy is not supported on this device"))
         }
 

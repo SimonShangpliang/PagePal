@@ -490,13 +490,20 @@ if(showDialog)
                         CoroutineScope(Dispatchers.IO).launch {
                             dictionaryViewModel.word = result.word
 
-                            async {
-                                dictionaryViewModel.getMeaning()
-                            }.await()
 
+                            async {
+                                try {
+                                    dictionaryViewModel.getMeaning()
+                                } catch (e: Exception) {
+                                    // Handle the exception here
+                                    Log.e("TAG", "Error fetching meaning: ${e.message}", e)
+                                }
+
+
+                            }.await()
+                            // Use the meaning obtained from the ViewModel
 
                         }
-
 
                     }
             )

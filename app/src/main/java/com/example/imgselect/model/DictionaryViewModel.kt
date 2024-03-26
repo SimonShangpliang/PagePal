@@ -106,6 +106,12 @@ class DictionaryViewModel(application: Application) : AndroidViewModel(applicati
 
                     continuation.resumeWithException(e)
                 }
+                catch(e: Exception) {
+                    Log.d(TAG , "its an error")
+                    uiState.value = WordMeaningUiState.Error(e.message ?: "Unknown error occurred")
+
+                    continuation.resumeWithException(e)
+                }
             }
 
             // Register a cancellation callback

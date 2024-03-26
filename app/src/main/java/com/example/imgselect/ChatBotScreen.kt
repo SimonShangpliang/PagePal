@@ -129,34 +129,8 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
 
 
 
-    LaunchedEffect(response , responseForImageQuery) {
-        sortedCombinedMessages.forEach {
-            Log.d("sorted" , it.message.toString())
-        }
-//        if(chatViewModelWithImage.imageList.isEmpty()) {
-//            response?.let {
-//                message.
-//            }
-//        } else {
-//            responseForImageQuery?.let {
-//                messages.add(ChatQueryResponse(message = it , fromUser = false))
-//            }
-//        }
-        if(message.isNotEmpty()) {
-            message.forEach { message->
-                Log.d("message" , message.message.toString())
-            }
-        }
-        if(messageFromImageQuery.isNotEmpty()) {
-            messageFromImageQuery.forEach { message->
-                Log.d("messageFromImage" , message.message.toString())
-            }
-        }
-    }
 
-    LaunchedEffect(chatViewModelWithImage.isImageSelected) {
-        Log.d("isImageSelected" , "${chatViewModelWithImage.isImageSelected}")
-    }
+
 
         Column(modifier = Modifier
             .fillMaxSize()
@@ -195,8 +169,8 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                 .padding(16.dp)
             )
             {
-                val infiniteTransition= rememberInfiniteTransition()
-                val rotatedAnimation=infiniteTransition.animateFloat(
+                val infiniteTransition= rememberInfiniteTransition(label = "circular motion")
+                val rotatedAnimation=infiniteTransition.animateFloat(label = "circular motion",
                     initialValue = 0f,
                     targetValue = 360f,
                     animationSpec = infiniteRepeatable(tween(1000, easing = LinearEasing))
@@ -237,8 +211,8 @@ Icon(painterResource(id = R.drawable.baseline_camera_24),contentDescription = "m
 
 val imageList=chatViewModelWithImage.imageList.collectAsState()
                 OutlinedTextField(
-                    value = if(imageList.value.isEmpty()) {chatViewModel.query} else { chatViewModelWithImage.query},
-                    onValueChange = { if(imageList.value.isEmpty()) {chatViewModel.query = it} else {chatViewModelWithImage.query = it} },
+                    value = if(!isImageMode.value) {chatViewModel.query} else { chatViewModelWithImage.query},
+                    onValueChange = { if(!isImageMode.value) {chatViewModel.query = it} else {chatViewModelWithImage.query = it} },
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 40.dp, max = 200.dp)
@@ -259,25 +233,17 @@ val imageList=chatViewModelWithImage.imageList.collectAsState()
                     )} ,
                     singleLine = false,
                     trailingIcon = {
-                        if(imageList.value.isNotEmpty()) {
-                            Icon(
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = null,
-                                modifier = Modifier.clickable {
-                                    chatViewModelWithImage.isImageSelected = false
-                                    chatViewModel.query = ""
-                                    chatViewModelWithImage.query = ""
-                                    chatViewModelWithImage.clearImageList()
-                                }
-                            )
-                        }
+
 
                     },
                     maxLines = Int.MAX_VALUE
 
                 )
 Box(modifier=Modifier.fillMaxHeight()) {
-    Switch(checked=isImageMode.value, onCheckedChange = {modeViewModel.setMode(!isImageMode.value)},modifier=Modifier.scale(0.6f).align(Alignment.TopCenter),colors= SwitchDefaults.colors(checkedTrackColor = Color.White, checkedBorderColor = Color.White, checkedIconColor = Color.White, checkedThumbColor = Color.Black)
+    Switch(checked=isImageMode.value, onCheckedChange = {modeViewModel.setMode(!isImageMode.value)
+                                                        chatViewModel.query=""
+        chatViewModelWithImage.query=""
+                                                        },modifier=Modifier.scale(0.6f).align(Alignment.TopCenter),colors= SwitchDefaults.colors(checkedTrackColor = Color.White, checkedBorderColor = Color.White, checkedIconColor = Color.White, checkedThumbColor = Color.Black)
     )
 
     IconButton(
