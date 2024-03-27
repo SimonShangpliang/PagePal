@@ -1086,7 +1086,7 @@ interpretDialog=true
 
 
 
-                            ChatScreen(chatViewModel = chatViewModel, chatViewModelWithImage = chatViewModelWithImage , viewModel = typewriterViewModel,modeViewModel)
+                            ChatScreen(chatViewModel = chatViewModel, chatViewModelWithImage = chatViewModelWithImage , viewModel = typewriterViewModel,modeViewModel , audioViewModel = audioViewModel)
                         },
                         sheetPeekHeight = setHeight, // Set this to the desired height to show a peek of the bottom sheet
                         sheetGesturesEnabled = true,

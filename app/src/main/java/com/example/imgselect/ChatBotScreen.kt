@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -88,6 +89,7 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.VectorProperty
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -109,6 +111,7 @@ import com.example.imgselect.model.DiscussUiState
 import com.example.imgselect.model.ModeViewModel
 import com.example.imgselect.ui.theme.Purple80
 import com.example.imgselect.ui.theme.lighterYellow
+import com.kamatiaakash.text_to_speech_using_jetpack_compose.AudioViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -116,7 +119,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewModelWithImage , viewModel: TypewriterViewModel,modeViewModel: ModeViewModel ) {
+fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewModelWithImage , viewModel: TypewriterViewModel,modeViewModel: ModeViewModel  , audioViewModel: AudioViewModel) {
     //val messages = remember { mutableStateListOf<ChatQueryResponse>() }
     var sendButtonEnabled = remember { mutableStateOf(false)}
     val messageQuery = remember { mutableStateListOf<ChatQuery>()}
@@ -179,7 +182,7 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
             Spacer(modifier = Modifier
                 .fillMaxWidth()
                 .height(20.dp))
-            MessagesList(messages = sortedCombinedMessages, viewModel = viewModel)
+            MessagesList(messages = sortedCombinedMessages, viewModel = viewModel , audioViewModel = audioViewModel , chatViewModel = chatViewModel)
             // Input field and send button
 
             Row(modifier = Modifier
@@ -362,11 +365,14 @@ fun ChatScreenPreview() {
 }
 
 @Composable
-fun MessagesList(messages: List<ChatQueryResponse>, viewModel: TypewriterViewModel) {
+fun MessagesList(messages: List<ChatQueryResponse>, viewModel: TypewriterViewModel , audioViewModel: AudioViewModel , chatViewModel: ChatViewModel) {
+    val context = LocalContext.current
+    val isSaved = remember { mutableStateOf(messages) }
     LazyColumn(contentPadding = PaddingValues(bottom = 80.dp) , modifier = Modifier
         .fillMaxHeight(0.85f)
         .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        items(messages) { message ->
+        itemsIndexed(messages) {index, message ->
+            val isSaved = remember { mutableStateOf(message.isSaved) }
             if (message.fromUser == true) {
 
 Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -384,13 +390,28 @@ Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceB
     Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
 
         IconButton(onClick = { /*TODO*/
-
-                             },modifier=Modifier.size(30.dp).padding(end=5.dp)) {
+            messages[index+1].message?.let { audioViewModel.justSpeech(it , context) }
+                             },
+            modifier= Modifier
+                .size(30.dp)
+                .padding(end = 5.dp)) {
             Icon(painter = painterResource(id = R.drawable.baseline_volume_up_24),"deete")
         }
-    IconButton(onClick = { /*TODO*/ },modifier=Modifier.padding(end=20.dp).size(30.dp)) {
+    IconButton(
+        onClick = {
+                  /*TODO*/
+                  chatViewModel.saveChat(Chat(message = listOf(ChatQueryResponse(message.message , true , System.currentTimeMillis() , true) , ChatQueryResponse(messages[index+1].message , false , System.currentTimeMillis() , true))));
+            isSaved.value = true
+
+                  },
+        modifier= Modifier
+            .padding(end = 20.dp)
+            .size(30.dp),
+        enabled = !isSaved.value
+    ) {
         Icon(painter = painterResource(id = R.drawable.save_alt),"deete")
-    }}
+    }
+    }
 }
                 // Display user message normally
                 //val appUiState=viewModel.uiState.collectAsState().value
@@ -554,18 +575,22 @@ fun ChatRow(chat: Chat , goToFullChat: (Chat) -> Unit , deleteChat: () -> Unit) 
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
                                 color = Color.DarkGray,
-                                modifier = Modifier.padding(16.dp)
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .weight(0.8f)
                             )
-
                             Icon(
                                 painter = painterResource(id = R.drawable.baseline_delete_24),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .clickable { deleteChat() }
-                                    .padding(16.dp),
+                                    .padding(16.dp)
+                                    .weight(0.2f),
                                 tint = Color.Black
                             )
+
                         }
+
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
@@ -642,7 +667,8 @@ fun FullChatScreen(chat: Chat) {
 data class ChatQueryResponse(
     val message: String? = null,
     val fromUser: Boolean? = null,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    var isSaved: Boolean = false
 )
 
 data class ChatQuery(
