@@ -2,11 +2,14 @@ package com.example.imgselect
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,11 +40,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -86,21 +91,27 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
+import com.example.imgselect.animations.LoadingAnimation
 import com.example.imgselect.data.Chat
 import com.example.imgselect.model.ChatViewModel
 import com.example.imgselect.model.ChatViewModelWithImage
+import com.example.imgselect.model.DiscussUiState
 import com.example.imgselect.model.ModeViewModel
 import com.example.imgselect.ui.theme.Purple80
 import com.example.imgselect.ui.theme.lighterYellow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -125,7 +136,12 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
     } else {
         sendButtonEnabled.value = true
 
+
     }
+//    LaunchedEffect(message,messageFromImageQuery)
+//    {
+//        viewModel.stateInitialSet()
+//    }
 
 
 
@@ -149,17 +165,20 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
 
 
             }
-            Row() {
-                IconButton(
-                    onClick = {
-                        val content = Chat(0,message = combinedMessage)
-                        chatViewModel.saveChat(content)
-                    },
-                    modifier = Modifier.background(Color.Transparent,CircleShape)
-                ) {
-                    Icon(painter = painterResource(id = R.drawable.save_alt), contentDescription =null )
-                }
-            }
+//            Row() {
+//                IconButton(
+//                    onClick = {
+//                        val content = Chat(0,message = combinedMessage)
+//                        chatViewModel.saveChat(content)
+//                    },
+//                    modifier = Modifier.background(Color.Transparent,CircleShape)
+//                ) {
+//                    Icon(painter = painterResource(id = R.drawable.save_alt), contentDescription =null )
+//                }
+//            }
+            Spacer(modifier = Modifier
+                .fillMaxWidth()
+                .height(20.dp))
             MessagesList(messages = sortedCombinedMessages, viewModel = viewModel)
             // Input field and send button
 
@@ -209,7 +228,6 @@ Icon(painterResource(id = R.drawable.baseline_camera_24),contentDescription = "m
                     }
                 }
 
-val imageList=chatViewModelWithImage.imageList.collectAsState()
                 OutlinedTextField(
                     value = if(!isImageMode.value) {chatViewModel.query} else { chatViewModelWithImage.query},
                     onValueChange = { if(!isImageMode.value) {chatViewModel.query = it} else {chatViewModelWithImage.query = it} },
@@ -243,7 +261,9 @@ Box(modifier=Modifier.fillMaxHeight()) {
     Switch(checked=isImageMode.value, onCheckedChange = {modeViewModel.setMode(!isImageMode.value)
                                                         chatViewModel.query=""
         chatViewModelWithImage.query=""
-                                                        },modifier=Modifier.scale(0.6f).align(Alignment.TopCenter),colors= SwitchDefaults.colors(checkedTrackColor = Color.White, checkedBorderColor = Color.White, checkedIconColor = Color.White, checkedThumbColor = Color.Black)
+                                                        },modifier= Modifier
+        .scale(0.6f)
+        .align(Alignment.TopCenter),colors= SwitchDefaults.colors(checkedTrackColor = Color.White, checkedBorderColor = Color.White, checkedIconColor = Color.White, checkedThumbColor = Color.Black)
     )
 
     IconButton(
@@ -270,7 +290,9 @@ Box(modifier=Modifier.fillMaxHeight()) {
 
         },
         enabled = sendButtonEnabled.value,
-        modifier = Modifier.align(Alignment.BottomCenter).padding(top=5.dp),
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .padding(top = 5.dp),
     ) {
         Icon(
             imageVector = Icons.Default.Search,
@@ -294,6 +316,7 @@ fun TypewriterTextSingle(
 ) {
     val text = message.message ?: ""
     Log.d("text" , text)
+
     val messageState = viewModel.getMessageState(message.timestamp)
     val textToDisplay by remember {
         derivedStateOf {
@@ -306,30 +329,30 @@ fun TypewriterTextSingle(
 
     LaunchedEffect(key1 = message.timestamp, key2 = messageState.animationCompleted) {
         viewModel.startTypewriterEffect(message.timestamp, text)
-        Log.d("Inside" , "Inside Launched Effect")
-        Log.d("Inside" , textToDisplay + "no Text")
-    }
-    SideEffect {
-        Log.d("Recomposition", "Current charIndex: ${messageState.charIndex}, Displaying Text: $textToDisplay")
+
     }
 
-    Card(
-        elevation = CardDefaults.cardElevation(2.dp) ,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 16.dp, start = 16.dp),
-        shape = RoundedCornerShape(2.dp),
-        colors = CardDefaults.cardColors(Color.Black),
-        border = BorderStroke(2.dp , Color.DarkGray)
+
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .animateContentSize()
+        .padding(start = 25.dp, end = 25.dp, bottom = 20.dp)
+        .background(Color.Black, RoundedCornerShape(15.dp))
+
     ) {
-        Text(
-            text = textToDisplay,
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(bottom = 5.dp),
-            color = Color.White,
-            textAlign = TextAlign.Center
-        )
+
+            Text(
+                text = textToDisplay,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                fontSize = 14.sp
+            )
+
+
+
     }
 }
 @Preview
@@ -340,24 +363,40 @@ fun ChatScreenPreview() {
 
 @Composable
 fun MessagesList(messages: List<ChatQueryResponse>, viewModel: TypewriterViewModel) {
-    LazyColumn(contentPadding = PaddingValues(bottom = 80.dp) , modifier = Modifier.fillMaxSize(0.85f)) {
+    LazyColumn(contentPadding = PaddingValues(bottom = 80.dp) , modifier = Modifier
+        .fillMaxHeight(0.85f)
+        .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         items(messages) { message ->
             if (message.fromUser == true) {
 
+Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    Text(
+        text = message.message ?: "",
+        modifier = Modifier
+            .fillMaxWidth(0.80f)
+            .align(Alignment.CenterVertically)
+            .padding(start = 25.dp, bottom = 8.dp),
+        textAlign = TextAlign.Start,
+        color = Color.White,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Bold
+    )
+    Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
 
-                    Text(
-                        text = message.message ?: "",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 16.dp, bottom = 8.dp),
-                        textAlign = TextAlign.Start,
-                        color = Color.White,
-                        fontSize = 24.sp
-                    )
+        IconButton(onClick = { /*TODO*/
 
+                             },modifier=Modifier.size(30.dp).padding(end=5.dp)) {
+            Icon(painter = painterResource(id = R.drawable.baseline_volume_up_24),"deete")
+        }
+    IconButton(onClick = { /*TODO*/ },modifier=Modifier.padding(end=20.dp).size(30.dp)) {
+        Icon(painter = painterResource(id = R.drawable.save_alt),"deete")
+    }}
+}
                 // Display user message normally
+                //val appUiState=viewModel.uiState.collectAsState().value
 
             } else {
+
                 TypewriterTextSingle(message = message, viewModel = viewModel)
             }
         }
@@ -392,28 +431,23 @@ fun MySearchBar(
             }, modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
-                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
                 .padding(horizontal = 20.dp)
-                .border(0.5.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(10.dp)),
+                ,
             placeholder = {
                 Text(
                     text = placeHolder,
                     color = Color.White.copy(alpha = 0.5f)
                 )
             },
-            colors = TextFieldDefaults.textFieldColors(
-                textColor = Color.White,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                placeholderColor = Color.White.copy(alpha = 0.5f)
-            ),
+            colors =TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = Color.White),
 
             trailingIcon = {
                 IconButton(onClick = { }) {
                     Icon(painter = painterResource(id = R.drawable.search), contentDescription ="Search" )
                 }
             },
-            shape = RoundedCornerShape(10.dp)
+            shape = MaterialTheme.shapes.extraLarge
         )
     }
 }
@@ -617,19 +651,28 @@ data class ChatQuery(
 
 class TypewriterViewModel : ViewModel() {
     private val messagesState = mutableMapOf<Long, TypewriterState>()
-
+    private val _uiState: MutableStateFlow<AnimationState> = MutableStateFlow(AnimationState.Initial)
+    val uiState=_uiState.asStateFlow()
     fun getMessageState(timestamp: Long): TypewriterState {
+      //  _uiState.value=AnimationState.Initial
         return messagesState.getOrPut(timestamp) { TypewriterState() }
     }
+   fun stateInitialSet()
+   {
+       _uiState.value=AnimationState.Initial
+   }
 
     suspend fun startTypewriterEffect(timestamp: Long, text: String) {
+        _uiState.value= AnimationState.InProgress
+
         val state = getMessageState(timestamp)
         if (!state.animationCompleted.value) {
             while (state.charIndex.value < text.length) {
-                delay(50) // Adjust delay time for the typewriter effect
+                delay(20) // Adjust delay time for the typewriter effect
                 state.charIndex.value++
             }
             state.animationCompleted.value = true
+            _uiState.value= AnimationState.Completed
         }
     }
 
@@ -638,4 +681,9 @@ class TypewriterViewModel : ViewModel() {
         var charIndex = mutableStateOf(0)
         var animationCompleted = mutableStateOf(false)
     }
+}
+sealed class AnimationState {
+    object Initial : AnimationState()
+    object InProgress : AnimationState()
+    object Completed : AnimationState()
 }

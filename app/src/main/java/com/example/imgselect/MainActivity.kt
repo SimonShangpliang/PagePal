@@ -129,15 +129,14 @@ import com.example.dictionary.model.DictionaryViewModel
 import com.example.imgselect.animations.LoadingAnimation
 import com.example.imgselect.model.ChatViewModel
 import com.example.imgselect.model.ChatViewModelWithImage
-import com.example.imgselect.model.DiscussUiState
 import com.example.imgselect.model.ModeViewModel
 import com.example.imgselect.model.PhotoTakenViewModel
 import com.example.imgselect.model.SummaryViewModel
 import com.example.imgselect.model.TextRecognitionViewModel
 import com.example.imgselect.model.TextResult
 import com.example.imgselect.ui.theme.ImgselectTheme
-import com.example.imgselect.ui.theme.backgroundcolor
-import com.example.mytestapp.flashCardLibrary
+
+import com.kamatiaakash.text_to_speech_using_jetpack_compose.AudioViewModel
 
 import com.rizzi.bouquet.HorizontalPDFReader
 import com.rizzi.bouquet.HorizontalPdfReaderState
@@ -147,11 +146,8 @@ import com.rizzi.bouquet.VerticalPdfReaderState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import java.io.File
-import java.lang.Math.abs
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -289,6 +285,8 @@ class MainActivity : ComponentActivity() {
             val dictionaryViewModel = viewModel<DictionaryViewModel>()
             val textViewModel = viewModel<TextRecognitionViewModel>()
             val modeViewModel = viewModel<ModeViewModel>()
+            val audioViewModel=viewModel<AudioViewModel>()
+
             val isImageMode=modeViewModel.isImageMode.collectAsState()
             val coroutineScope = rememberCoroutineScope()
             var box by remember { mutableStateOf(emptyList<TextResult>()) }
@@ -345,7 +343,7 @@ class MainActivity : ComponentActivity() {
                             startOffsetY=0f
                             endOffsetX=0f
                             endOffsetY=0f
-                        }, summaryViewModel,{setZeroOffset=it
+                        }, summaryViewModel,audioViewModel,{setZeroOffset=it
 
                         })
 
@@ -361,7 +359,7 @@ class MainActivity : ComponentActivity() {
                             startOffsetY=0f
                             endOffsetX=0f
                             endOffsetY=0f
-                        }, chatViewModelWithImage,{
+                        }, chatViewModelWithImage,audioViewModel,{
 
                         })
 
@@ -1128,7 +1126,7 @@ interpretDialog=true
                             if(meaning){   DrawBoundingBoxes(
                                 selectedBitmap,
                                 textResults = box,
-                                dictionaryViewModel
+                                dictionaryViewModel,audioViewModel
                             )}
                         }
 

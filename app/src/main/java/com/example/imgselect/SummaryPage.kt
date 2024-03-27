@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -95,7 +97,7 @@ fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavContro
     Surface(
 
         modifier = Modifier.fillMaxSize(),
-        color = Color.Black
+        color = Color(0xff1E1E1E)
     ) {
         Column(
             modifier = Modifier
@@ -158,10 +160,11 @@ fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavContro
 }
 @Composable
 fun HeadlineText(){
-    Column(modifier = Modifier.padding(vertical = 10.dp, horizontal = 20.dp)) {
+    Column(modifier = Modifier.padding(vertical = 15.dp, horizontal = 24.dp)) {
         Text(text = "Summary",
             color= Color.White,
-            fontSize = 40.sp,
+            fontSize = 34.sp,
+
             fontStyle = FontStyle.Normal,
         )
     }
@@ -233,12 +236,12 @@ fun SortAndSearch(onSortSelected: (SortOrder) -> Unit , onSearchBySelected:(Sear
         horizontalArrangement = Arrangement.SpaceBetween) {
         Button(onClick = { isSortDialogOpen = true  },
             modifier = Modifier
-                .height(32.dp)) {
+                .height(40.dp),colors=ButtonDefaults.buttonColors(containerColor = Color.Black, contentColor = Color.White)) {
             Text(text = " Sort By ")
         }
-        Button(onClick = {isSearchByDialogOpen = true },
+        Button(onClick = {isSearchByDialogOpen = true },colors=ButtonDefaults.buttonColors(containerColor = Color.Black, contentColor = Color.White),
                         modifier = Modifier
-                .height(32.dp)) {
+                .height(40.dp)) {
             Text(text = "Search By")
         }
     }
@@ -277,12 +280,12 @@ fun SortAndSearch(onSortSelected: (SortOrder) -> Unit , onSearchBySelected:(Sear
                 }
 
             }}, title = {Text(text = "Sort By")},
-            containerColor = Color.Black,
+            containerColor =Color(0xff1E1E1E),
             titleContentColor = Color.White,
             properties = DialogProperties(
                 usePlatformDefaultWidth = false
             ),
-            modifier = Modifier.size(320.dp,140.dp)
+            modifier = Modifier.height(IntrinsicSize.Max).width(IntrinsicSize.Max)
         )
     }
     if (isSearchByDialogOpen){
@@ -324,12 +327,12 @@ fun SortAndSearch(onSortSelected: (SortOrder) -> Unit , onSearchBySelected:(Sear
                 }
 
             }}, title = {Text(text = "Search By")},
-            containerColor = Color.Black,
+            containerColor = Color(0xff1E1E1E),
             titleContentColor = Color.White,
             properties = DialogProperties(
                 usePlatformDefaultWidth = false
             ),
-            modifier = Modifier.size(320.dp,140.dp)
+            modifier = Modifier.height(IntrinsicSize.Max).width(IntrinsicSize.Max)
         )
 
     }

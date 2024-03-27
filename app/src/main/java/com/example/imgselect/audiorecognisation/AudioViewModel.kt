@@ -11,7 +11,7 @@ class AudioViewModel:ViewModel() {
 
     private val _state = mutableStateOf(AudioScreenState())
     val state: State<AudioScreenState> = _state
-    private  var  textToSpeech:TextToSpeech? = null
+    private  var  textToSpeech: TextToSpeech? = null
 
 
     fun onTextFieldValueChange(text:String){
@@ -19,12 +19,18 @@ class AudioViewModel:ViewModel() {
             text = text
         )
     }
+    fun stopTextToSpeech() {
+        textToSpeech?.stop()
+        textToSpeech?.shutdown()
+        textToSpeech = null
+    }
 
     fun textToSpeech(context: Context){
+        stopTextToSpeech()
         _state.value = state.value.copy(
             isButtonEnabled = false
         )
-       textToSpeech = TextToSpeech(
+        textToSpeech = TextToSpeech(
             context
         ) {
             if (it == TextToSpeech.SUCCESS) {
@@ -39,9 +45,32 @@ class AudioViewModel:ViewModel() {
                     )
                 }
             }
-           _state.value = state.value.copy(
-               isButtonEnabled = true
-           )
+            _state.value = state.value.copy(
+                isButtonEnabled = true
+            )
+        }
+    }
+    fun justSpeech(text: String,context:Context){
+        stopTextToSpeech()
+
+        textToSpeech = TextToSpeech(
+            context
+        ) {
+            if (it == TextToSpeech.SUCCESS) {
+                textToSpeech?.let { txtToSpeech ->
+                    txtToSpeech.language = Locale.US
+                    txtToSpeech.setSpeechRate(1.0f)
+                    txtToSpeech.speak(
+                        text,
+                        TextToSpeech.QUEUE_ADD,
+                        null,
+                        null
+                    )
+                }
+            }
+            _state.value = state.value.copy(
+                isButtonEnabled = true
+            )
         }
     }
 }

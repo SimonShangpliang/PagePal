@@ -86,6 +86,7 @@ import com.example.imgselect.model.TextRecognitionViewModel
 import com.example.imgselect.model.TextResult
 import com.example.imgselect.model.WebHistoryViewModel
 import com.example.imgselect.ui.theme.backgroundcolor
+import com.kamatiaakash.text_to_speech_using_jetpack_compose.AudioViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -405,7 +406,7 @@ fun BackHandler(onBackPressed: () -> Unit) {
 
 
 @Composable
-fun DrawBoundingBoxes(bitmap: Bitmap,textResults: List<TextResult>,dictionaryViewModel:DictionaryViewModel) {
+fun DrawBoundingBoxes(bitmap: Bitmap,textResults: List<TextResult>,dictionaryViewModel:DictionaryViewModel,audioViewModel: AudioViewModel) {
     val context = LocalContext.current
     val density = LocalDensity.current.density
     var listMeaning by remember{ mutableStateOf<List<WordData>?>( emptyList()) }
@@ -429,7 +430,7 @@ if(showDialog)
 {
     Log.d("main",listMeaning.toString())
 
-    WordMeaningDialog(setShowDialog = {showDialog=it},onResponse = {}, onButton = {},dictionaryViewModel )
+    WordMeaningDialog(setShowDialog = {showDialog=it},onResponse = {}, onButton = {},dictionaryViewModel,audioViewModel )
 }
 
     if(dictionaryViewModel.dialogVisible) {

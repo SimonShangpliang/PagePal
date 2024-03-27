@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.animateValueAsState
@@ -29,6 +31,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -47,6 +50,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -63,7 +67,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
@@ -94,6 +101,7 @@ import com.example.imgselect.ui.theme.lightWhite
 import com.example.imgselect.ui.theme.lighterPurple
 import com.example.imgselect.ui.theme.lighterTeal
 import com.example.imgselect.ui.theme.midnightBlue
+import com.kamatiaakash.text_to_speech_using_jetpack_compose.AudioViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -105,9 +113,10 @@ fun WordMeaningDialog(
     onResponse: (String) -> Unit,
 
     onButton: (Boolean) -> Unit,
-    dictionaryViewModel: DictionaryViewModel
+    dictionaryViewModel: DictionaryViewModel,
+    audioViewModel: AudioViewModel
 ) {
-
+val context= LocalContext.current
     var listMeaning: List<WordData>? by remember { mutableStateOf(null) }
     LaunchedEffect(dictionaryViewModel.uiState.value)
     {
@@ -158,21 +167,31 @@ fun WordMeaningDialog(
                                 LoadingAnimation(Modifier.align(Alignment.CenterHorizontally))
                             }
                             is WordMeaningUiState.Success -> {
-                                Text(
+                                Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                    Text(
 
-                                    text = listMeaning?.getOrNull(0)?.word ?: "",
-                                    style = TextStyle(
-                                        fontFamily = MaterialTheme.typography.titleSmall.fontFamily,
-                                        fontSize = 23.sp
-                                    ),
-                                    fontStyle = FontStyle.Italic,
-                                    color = lightWhite,
+                                        text = listMeaning?.getOrNull(0)?.word ?: "",
+                                        style = TextStyle(
+                                            fontFamily = MaterialTheme.typography.titleSmall.fontFamily,
+                                            fontSize = 23.sp
+                                        ),
+                                        fontStyle = FontStyle.Italic,
+                                        color = lightWhite,
 
-                                    modifier = Modifier
-                                        .padding(20.dp)
-                                        .align(Alignment.CenterHorizontally)
-                                )
+                                        modifier = Modifier
+                                            .padding(20.dp)
+                                            .align(Alignment.CenterVertically)
 
+                                    )
+                                    IconButton(modifier= Modifier
+                                        .background(Color.Black, CircleShape)
+                                        .align(Alignment.CenterVertically),onClick = { /*TODO*/
+audioViewModel.justSpeech(listMeaning?.getOrNull(0)?.word ?: "", context = context)
+                                    }) {
+                                        Icon(painter= painterResource(id = R.drawable.baseline_volume_up_24),"speak")
+
+                                    }
+                                }
                                 listMeaning?.forEach { wordData ->
                                     Column(modifier = Modifier
                                         .fillMaxWidth()
@@ -442,11 +461,12 @@ fun ImageList(bitmapList: List<Bitmap?>,chatViewModelWithImage: ChatViewModelWit
 fun SummaryDialog(
     setShowDialog: (Boolean) -> Unit,
     summaryViewModel: SummaryViewModel,
+    audioViewModel: AudioViewModel,
     setOffset: (Int)->Unit
 ) {
 
     val appUiState=summaryViewModel.uiState.collectAsState().value
-
+val context= LocalContext.current
     Dialog(onDismissRequest = {
         setOffset(1)
         setShowDialog(false)
@@ -458,6 +478,11 @@ fun SummaryDialog(
             modifier = Modifier.height(700.dp),
             color = Color.White
         ) {
+            DisposableEffect(Unit){
+                onDispose {
+                    audioViewModel.stopTextToSpeech()
+                }
+            }
             Column(modifier = Modifier.fillMaxSize()) {
                 val scroll = rememberScrollState()
                 Column(
@@ -467,6 +492,7 @@ fun SummaryDialog(
                         .fillMaxWidth()
                         .verticalScroll(scroll)
                 ) {
+                    Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
                     Text(
                         text = "Summary",
                         style = TextStyle(
@@ -477,8 +503,21 @@ fun SummaryDialog(
 
                         modifier = Modifier
                             .padding(20.dp)
-                            .align(Alignment.CenterHorizontally)
                     )
+                    AnimatedContent(targetState = appUiState,modifier=Modifier ,label="appUiState") {appUiState->
+                        when(appUiState) {
+                            is DiscussUiState.Success->{ IconButton(modifier= Modifier
+                                .background(Color.Black, CircleShape)
+                                .align(Alignment.CenterVertically),onClick = { /*TODO*/
+                                    audioViewModel.justSpeech(appUiState.outputText,context)
+                            }) {
+                                Icon(painter= painterResource(id = R.drawable.baseline_volume_up_24),"speak")
+
+                            }}
+                            else-> {}
+                        }
+                    }
+                    }
 
                     when(appUiState) {
                         is DiscussUiState.Success->TypewriterText(texts = listOf(appUiState.outputText))
@@ -559,11 +598,12 @@ fun SummaryDialog(
 fun InterpretDialog(
     setShowDialog: (Boolean) -> Unit,
     chatViewModelWithImage: ChatViewModelWithImage,
+    audioViewModel: AudioViewModel,
     setOffset: (Int)->Unit
 ) {
 
     val interpretUiState=chatViewModelWithImage.interpretUiState.collectAsState().value
-
+val context= LocalContext.current
     Dialog(onDismissRequest = {
         setShowDialog(false)
 
@@ -583,6 +623,12 @@ fun InterpretDialog(
                         .fillMaxWidth()
                         .verticalScroll(scroll)
                 ) {
+                    Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
+DisposableEffect(Unit){
+    onDispose {
+        audioViewModel.stopTextToSpeech()
+    }
+}
                     Text(
                         text = "Interpretation",
                         style = TextStyle(
@@ -593,8 +639,20 @@ fun InterpretDialog(
 
                         modifier = Modifier
                             .padding(20.dp)
-                            .align(Alignment.CenterHorizontally)
                     )
+                        AnimatedContent(targetState = interpretUiState,modifier=Modifier ,label="interpretUiState") {interpretUiState->
+                            when(interpretUiState) {
+                                is InterpretUiState.Success->{ IconButton(modifier= Modifier
+                                    .background(Color.Black, CircleShape)
+                                    .align(Alignment.CenterVertically),onClick = { /*TODO*/
+                                    audioViewModel.justSpeech(interpretUiState.responseText,context)
+                                }) {
+                                    Icon(painter= painterResource(id = R.drawable.baseline_volume_up_24),"speak")
+
+                                }}
+                                else-> {}
+                            }
+                        }}
 
                     when(interpretUiState) {
                         is InterpretUiState.Success->TypewriterText(texts = listOf(interpretUiState.responseText))

@@ -25,6 +25,7 @@ import com.example.imgselect.model.TextRecognitionViewModel
 import com.example.imgselect.model.WebHistoryViewModel
 import com.example.mytestapp.GridOfARowOfFlashLib
 import com.example.mytestapp.flashCardLibrary
+import com.kamatiaakash.text_to_speech_using_jetpack_compose.AudioViewModel
 
 @Composable
 fun Navigation(window: Window,applicationContext: Context,currScreen: (String)->Unit) {
@@ -38,6 +39,7 @@ fun Navigation(window: Window,applicationContext: Context,currScreen: (String)->
     val textRecognitionViewModel = viewModel<TextRecognitionViewModel>()
 
     NavHost(navController = navController, startDestination = Screen.HomeScreen.route)
+
     {
 
         composable(route = Screen.MainScreen.route) {
@@ -74,6 +76,7 @@ fun Navigation(window: Window,applicationContext: Context,currScreen: (String)->
                 navController = navController,
                 summaryViewModel = summaryViewModel
             ) { summary ->
+
                 navController.navigate("${Screen.FullSummaryList.route}/${summary.id}")
             }
             currScreen(Screen.SummaryScreen.route)
