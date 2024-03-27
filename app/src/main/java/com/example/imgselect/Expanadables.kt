@@ -94,7 +94,7 @@ fun ExpandableItem2(
         }
     }
     Divider(modifier= Modifier
-        .padding(start = 20.dp, end = 20.dp, top = 15.dp, bottom = 15.dp)
+        //padding(start = 20.dp, end = 20.dp, top = 15.dp, bottom = 15.dp)
         .height(2.dp),color= Color.Green)
 }
 

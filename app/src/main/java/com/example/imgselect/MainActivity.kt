@@ -312,6 +312,7 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf(false)
             }
             var summaryViewModel=viewModel<SummaryViewModel>()
+
             ImgselectTheme {
                 // flashCardLibrary()
 
@@ -1147,6 +1148,7 @@ interpretDialog=true
                 }
 
             }
+
 
         }
     }

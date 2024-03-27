@@ -97,6 +97,7 @@ import com.example.imgselect.model.WebHistoryViewModel
 import com.example.imgselect.ui.theme.GhostWhite
 import com.example.imgselect.ui.theme.OpenSans
 import com.example.imgselect.ui.theme.aliceBlue
+import com.example.imgselect.ui.theme.interestcolour1
 import com.example.imgselect.ui.theme.lightWhite
 import com.example.imgselect.ui.theme.lighterPurple
 import com.example.imgselect.ui.theme.lighterTeal
@@ -487,7 +488,7 @@ val context= LocalContext.current
                 val scroll = rememberScrollState()
                 Column(
                     modifier = Modifier
-                        .background(Color(0xff1E1E1E))
+                        .background(interestcolour1)
                         .fillMaxHeight(0.88f)
                         .fillMaxWidth()
                         .verticalScroll(scroll)
@@ -536,7 +537,7 @@ val context= LocalContext.current
 
                 Row(
                     modifier = Modifier
-                        .background(Color(0xff141414))
+                        .background(interestcolour1)
                         .fillMaxSize()
                         .align(Alignment.CenterHorizontally)
                         .padding(16.dp),
@@ -821,7 +822,8 @@ fun TypewriterText(texts: List<String>, durationMillis: Int = 2000) {
 
     Text(
         text = currentText,
-        modifier = Modifier.padding(16.dp)
+        modifier = Modifier.padding(16.dp),
+        color = Color.White
     )
 }
 

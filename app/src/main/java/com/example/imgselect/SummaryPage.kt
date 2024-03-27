@@ -45,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,10 +56,16 @@ import androidx.lifecycle.LiveData
 import androidx.navigation.NavController
 import com.example.imgselect.data.Summary
 import com.example.imgselect.model.SummaryViewModel
+import com.example.imgselect.ui.theme.OpenSans
+import com.example.imgselect.ui.theme.aliceBlue
 import com.example.imgselect.ui.theme.backgroundcolor
+import com.example.imgselect.ui.theme.interestcolour
+import com.example.imgselect.ui.theme.interestcolour1
+import com.example.imgselect.ui.theme.interestcolour2
 import com.example.imgselect.ui.theme.lightblue
 import com.example.imgselect.ui.theme.lighterPurple
 import com.example.imgselect.ui.theme.lighterYellow
+import com.example.imgselect.ui.theme.midnightBlue
 import java.nio.file.Files.delete
 import kotlin.random.Random
 
@@ -162,9 +169,9 @@ fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavContro
 fun HeadlineText(){
     Column(modifier = Modifier.padding(vertical = 15.dp, horizontal = 24.dp)) {
         Text(text = "Summary",
-            color= Color.White,
-            fontSize = 34.sp,
 
+            color= aliceBlue,
+            fontSize = 40.sp,
             fontStyle = FontStyle.Normal,
         )
     }
@@ -360,10 +367,10 @@ fun summaryCard(summary: Summary, delete:() -> Unit , goToSummaryListPage: (Summ
     ) {
         Column (modifier = Modifier.padding(horizontal = 27.dp, vertical = 24.dp)){
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Absolute.SpaceBetween) {
-                Text(text = summary.title, fontSize = 24.sp, fontWeight = FontWeight.Medium , color = Color.Black)
+                Text(text = summary.title, fontSize = 24.sp, fontWeight = FontWeight.SemiBold , color = midnightBlue,fontFamily= OpenSans)
                 Row(horizontalArrangement = Arrangement.Absolute.SpaceBetween , modifier = Modifier.width(70.dp)) {
-                    Icon(painter = painterResource(id = R.drawable.generic), contentDescription = "Summary type" , tint = Color.Black , modifier = Modifier.size(30.dp))
-                    Icon(painter = painterResource(id = R.drawable.baseline_delete_24), contentDescription = "delete" , tint = Color.Black , modifier = Modifier
+                    Icon(painter = painterResource(id = R.drawable.generic), contentDescription = "Summary type" , tint = midnightBlue, modifier = Modifier.size(30.dp))
+                    Icon(painter = painterResource(id = R.drawable.baseline_delete_24), contentDescription = "delete" , tint = midnightBlue , modifier = Modifier
                         .clickable { delete() }
                         .size(30.dp))
                 }
@@ -374,7 +381,9 @@ fun summaryCard(summary: Summary, delete:() -> Unit , goToSummaryListPage: (Summ
                 summary.summary?.let {
                     Text(
                         text = it,
-                        color = Color.Black
+                        color = Color.DarkGray,
+                        fontSize = 16.sp,
+                        fontFamily = OpenSans
                     )
                 }
             } else {
@@ -383,7 +392,9 @@ fun summaryCard(summary: Summary, delete:() -> Unit , goToSummaryListPage: (Summ
                         text = it,
                         maxLines = 3,
                         overflow = TextOverflow.Ellipsis,
-                        color = Color.Black
+                        color = Color.DarkGray,
+                        fontSize = 16.sp,
+                        fontFamily = OpenSans
                     )
                 }
             }
@@ -391,7 +402,9 @@ fun summaryCard(summary: Summary, delete:() -> Unit , goToSummaryListPage: (Summ
             Spacer(modifier = Modifier.height(28.dp))
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End){
-                Text(text = summary.time, fontSize = 12.sp, fontWeight = FontWeight.Medium , color = Color.Black)
+                Text(text = summary.time, fontSize = 12.sp, fontWeight = FontWeight.Light , color = interestcolour2,
+                    fontFamily= OpenSans
+                )
             }
         }
 
@@ -413,22 +426,35 @@ fun SummaryListPage(summary: Summary) {
             horizontalArrangement = Arrangement.SpaceAround,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Absolute.SpaceBetween) {
+                Text(text = "1.", fontSize = 28.sp, fontWeight = FontWeight.SemiBold , color = interestcolour2,modifier=Modifier.padding(start=16.dp,top=8.dp), fontFamily = OpenSans)
+                    Icon(painter = painterResource(id = R.drawable.generic), contentDescription = "Summary type" , tint = interestcolour2 , modifier = Modifier.size(45.dp).padding(end=16.dp,top=9.dp),)
+
+            }
+//            Text(
+//                text = summary.title,
+//                modifier = Modifier.padding(16.dp),
+//                color = Color.Black,
+//                fontSize = 26.sp,
+//                fontWeight = FontWeight.Bold
+//            )
+
+//            Text(
+//                text = summary.time,
+//                modifier = Modifier.padding(16.dp),
+//                color = Color.Black,
+//                fontSize = 16.sp,
+//                fontWeight = FontWeight.Bold
+//            )
+        }
+                    Text(
                 text = summary.title,
                 modifier = Modifier.padding(16.dp),
-                color = Color.Black,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold
+                color = interestcolour1,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = OpenSans
             )
-
-            Text(
-                text = summary.time,
-                modifier = Modifier.padding(16.dp),
-                color = Color.Black,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
 
         summary?.summary?.let {
             Text(
@@ -437,7 +463,9 @@ fun SummaryListPage(summary: Summary) {
                     .padding(16.dp)
                     .fillMaxWidth(),
                 color = Color.DarkGray,
-                fontSize = 16.sp
+                fontSize = 16.sp,
+                fontFamily = OpenSans
+
             )
         }
     }
