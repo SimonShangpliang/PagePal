@@ -130,7 +130,6 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
     var imageDialog by remember{ mutableStateOf(false)
     }
     val sortedCombinedMessages = combinedMessage.sortedBy { it.timestamp }
-
     if(chatViewModel.query == "" && chatViewModelWithImage.query == "") {
         sendButtonEnabled.value = false
     } else {
@@ -138,10 +137,10 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
 
 
     }
-//    LaunchedEffect(message,messageFromImageQuery)
-//    {
-//        viewModel.stateInitialSet()
-//    }
+    LaunchedEffect(message,messageFromImageQuery)
+    {
+        viewModel.stateInitialSet()
+    }
 
 
 
@@ -180,12 +179,13 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
                 .fillMaxWidth()
                 .height(20.dp))
             MessagesList(messages = sortedCombinedMessages, viewModel = viewModel)
+
             // Input field and send button
 
             Row(modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.CenterHorizontally)
-                .padding(16.dp)
+                .padding(horizontal = 8.dp, vertical = 16.dp)
             )
             {
                 val infiniteTransition= rememberInfiniteTransition(label = "circular motion")
@@ -251,7 +251,40 @@ Icon(painterResource(id = R.drawable.baseline_camera_24),contentDescription = "m
                     )} ,
                     singleLine = false,
                     trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                // Add message to list and clear input field
+                                if (!isImageMode.value) {
+                                    chatViewModel.getResponseFromChatBot({
+                                        Log.d("main", it)
+                                    })
 
+                                    query.value = chatViewModel.query
+                                    messageQuery.add(ChatQuery(query = chatViewModel.query))
+                                    chatViewModel.query = ""
+                                } else {
+                                    chatViewModelWithImage.getResponseFromChatBot()
+                                    query.value = chatViewModelWithImage.query
+                                    messageQuery.add(ChatQuery(query = chatViewModelWithImage.query))
+                                    chatViewModelWithImage.query = ""
+                                    //chatViewModelWithImage.imageList.clear()
+                                }
+
+                                //chatViewModel.imageText = ""
+                                //chatViewModel.isImageSelected = false
+
+                            },
+                            enabled = sendButtonEnabled.value,
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                                .padding(top = 5.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = null,
+                                modifier=Modifier.size(35.dp)
+                            )
+                        }
 
                     },
                     maxLines = Int.MAX_VALUE
@@ -262,44 +295,11 @@ Box(modifier=Modifier.fillMaxHeight()) {
                                                         chatViewModel.query=""
         chatViewModelWithImage.query=""
                                                         },modifier= Modifier
-        .scale(0.6f)
+        .scale(0.7f)
         .align(Alignment.TopCenter),colors= SwitchDefaults.colors(checkedTrackColor = Color.White, checkedBorderColor = Color.White, checkedIconColor = Color.White, checkedThumbColor = Color.Black)
     )
 
-    IconButton(
-        onClick = {
-            // Add message to list and clear input field
-            if (!isImageMode.value) {
-                chatViewModel.getResponseFromChatBot({
-                    Log.d("main", it)
-                })
 
-                query.value = chatViewModel.query
-                messageQuery.add(ChatQuery(query = chatViewModel.query))
-                chatViewModel.query = ""
-            } else {
-                chatViewModelWithImage.getResponseFromChatBot()
-                query.value = chatViewModelWithImage.query
-                messageQuery.add(ChatQuery(query = chatViewModelWithImage.query))
-                chatViewModelWithImage.query = ""
-                //chatViewModelWithImage.imageList.clear()
-            }
-
-            //chatViewModel.imageText = ""
-            //chatViewModel.isImageSelected = false
-
-        },
-        enabled = sendButtonEnabled.value,
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .padding(top = 5.dp),
-    ) {
-        Icon(
-            imageVector = Icons.Default.Search,
-            contentDescription = null,
-            modifier=Modifier.size(35.dp)
-        )
-    }
 
 }
             }
@@ -363,6 +363,8 @@ fun ChatScreenPreview() {
 
 @Composable
 fun MessagesList(messages: List<ChatQueryResponse>, viewModel: TypewriterViewModel) {
+    val loading =viewModel.uiState.collectAsState().value
+
     LazyColumn(contentPadding = PaddingValues(bottom = 80.dp) , modifier = Modifier
         .fillMaxHeight(0.85f)
         .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -385,10 +387,14 @@ Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceB
 
         IconButton(onClick = { /*TODO*/
 
-                             },modifier=Modifier.size(30.dp).padding(end=5.dp)) {
+                             },modifier= Modifier
+            .size(30.dp)
+            .padding(end = 5.dp)) {
             Icon(painter = painterResource(id = R.drawable.baseline_volume_up_24),"deete")
         }
-    IconButton(onClick = { /*TODO*/ },modifier=Modifier.padding(end=20.dp).size(30.dp)) {
+    IconButton(onClick = { /*TODO*/ },modifier= Modifier
+        .padding(end = 20.dp)
+        .size(30.dp)) {
         Icon(painter = painterResource(id = R.drawable.save_alt),"deete")
     }}
 }
@@ -399,8 +405,10 @@ Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceB
 
                 TypewriterTextSingle(message = message, viewModel = viewModel)
             }
+
         }
     }
+
 }
 
 
@@ -651,7 +659,7 @@ data class ChatQuery(
 
 class TypewriterViewModel : ViewModel() {
     private val messagesState = mutableMapOf<Long, TypewriterState>()
-    private val _uiState: MutableStateFlow<AnimationState> = MutableStateFlow(AnimationState.Initial)
+    private val _uiState: MutableStateFlow<AnimationState> = MutableStateFlow(AnimationState.Completed)
     val uiState=_uiState.asStateFlow()
     fun getMessageState(timestamp: Long): TypewriterState {
       //  _uiState.value=AnimationState.Initial

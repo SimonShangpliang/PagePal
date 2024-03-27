@@ -436,6 +436,7 @@ AnimatedContent(targetState = isImageMode.value,label="top Bar") {it->
                             }
 
 if(cropBox==true){
+    selectedBitmapSS=null
     cropBox = false
     setHeight = 80.dp
 }else{
@@ -623,8 +624,14 @@ if(cropBox==true){
                                     }.await()
                                 }
                             }
-                            cropBox3 = true
-                            setHeight = 140.dp
+                            if(cropBox3==true){
+                                selectedBitmapSS=null
+                                cropBox3 = false
+                                setHeight = 80.dp
+                            }else{
+                                cropBox3= true
+                                setHeight = 140.dp}
+
                         } else {
 
                             coroutineScope.launch {
@@ -730,9 +737,14 @@ if(cropBox==true){
                                     }.await()
                                 }
                             }
+                            if(cropBox2==true){
+                                selectedBitmapSS=null
+                                cropBox2 = false
+                                setHeight = 80.dp
+                            }else{
+                                cropBox2= true
+                                setHeight = 140.dp}
 
-                            cropBox2 = true
-                            setHeight = 140.dp
                         } else {
 
                             coroutineScope.launch {
