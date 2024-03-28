@@ -418,7 +418,8 @@ fun MessagesList(messages: List<ChatQueryResponse>, viewModel: TypewriterViewMod
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.baseline_volume_up_24),
-                                "deete"
+                                "deete",
+                                //tint = Color.White
                             )
                         }
                         IconButton(
@@ -442,6 +443,7 @@ fun MessagesList(messages: List<ChatQueryResponse>, viewModel: TypewriterViewMod
                                         )
                                     )
                                 );
+                                message.isSaved = true
                                 isSaved.value = true
 
                             },
@@ -451,7 +453,11 @@ fun MessagesList(messages: List<ChatQueryResponse>, viewModel: TypewriterViewMod
                             enabled = !isSaved.value
                         ) {
 
-                            Icon(painter = painterResource(id = R.drawable.save_alt), "deete")
+                            Icon(
+                                painter = painterResource(id = R.drawable.save_alt),
+                                "deete",
+                                //tint = Color.White
+                            )
                         }
 
                     }
