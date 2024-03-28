@@ -150,35 +150,17 @@ modifier=Modifier.padding(end=10.dp,top=10.dp),
             )
         }, bottomBar = {
                        NavigationBar(containerColor = darkBar, contentColor = darkBar, modifier= Modifier
-                           .shadow(
-                               elevation = 120.dp,
-                               ambientColor = Color.Black,
-                               spotColor = Color.Black,
-                          )
-                           .height(60.dp)) {
-                           //.padding(bottom = 10.dp, start = 15.dp, end = 15.dp))
 
-                           Box(modifier=Modifier.shadow(12.dp, shape = CircleShape, ambientColor = Color.Black, clip = true)){ Row(
+                           .height(85.dp)) {
+
+                           Box(modifier=Modifier.padding(bottom = 28.dp, start = 20.dp, end = 20.dp).height(50.dp) .coloredShadow(
+                               Color.Black, 0.8f, 16.dp, 30.dp,10.dp, 0.dp
+                           )
+                               .background(interestcolour1, RoundedCornerShape(12.dp))
+
+                            //   .shadow(12.dp, shape = CircleShape, ambientColor = Color.Black, clip = true)
+                           ){ Row(
                                modifier = Modifier
-                                   .padding(bottom = 10.dp, start = 15.dp, end = 15.dp)
-                                   .shadow(
-                                       elevation = 200.dp,
-                                       shape = RoundedCornerShape(10.dp),
-
-
-                                       ambientColor = Color.Black, spotColor = Color.Black
-                                   )
-
-                                   .background(interestcolour1)
-                                   .coloredShadow(
-                                       color = interestcolour2,
-                                       alpha = 0.5f,
-                                       borderRadius = 1.dp,
-                                       offsetX = 0.dp,
-                                       offsetY = 30.dp,
-                                       shadowRadius = 10.dp
-                                   )
-
                            ) {
 
 
@@ -196,7 +178,7 @@ modifier=Modifier.padding(end=10.dp,top=10.dp),
                                                if (index == selectedItemIndex) {
                                                    item.selectedIcon
                                                } else item.unselectedIcon,
-                                               contentDescription = item.title, tint = Color.White
+                                               contentDescription = item.title, tint = Color.White,modifier=Modifier
                                            )
                                        }
                                    )
@@ -208,7 +190,9 @@ modifier=Modifier.padding(end=10.dp,top=10.dp),
 
 
        }
-, containerColor = darkBar
+,
+
+        containerColor = darkBar
 
 
     ) { innerPadding ->

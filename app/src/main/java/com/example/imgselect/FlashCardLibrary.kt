@@ -121,8 +121,6 @@ fun flashCardLibrary(dictionaryViewModel: DictionaryViewModel , navController: N
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Image(painter=painterResource(id = R.drawable.searchbar3), contentDescription = "searchBar",modifier=Modifier.fillMaxWidth())
-            // gonna be replaced by mayank"s searchBar Ui
 
             shelfRow(shelfRowList = dictionaryViewModel.getMeaningList() , dictionaryViewModel = dictionaryViewModel , navController = navController)
 

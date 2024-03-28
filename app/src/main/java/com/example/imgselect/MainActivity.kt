@@ -830,8 +830,6 @@ class MainActivity : ComponentActivity() {
 
                                                 async{cropBox=false
                                                     setHeight=80.dp}.await()
-                                                delay(200)
-
                                                 if (currScreen == Screen.PdfScreen.route&&viewModel.docSelected.value) {
                                                     CoroutineScope(Dispatchers.IO).launch {
                                                         async {
@@ -882,8 +880,6 @@ class MainActivity : ComponentActivity() {
                                                 async { setHeight = 80.dp
                                                     cropBox=false
                                                 }.await()
-                                                delay(200)
-
                                                 coroutineScope.launch {
 
                                                     selectedBitmap = async {
@@ -940,8 +936,6 @@ class MainActivity : ComponentActivity() {
 
                                                 async{cropBox2=false
                                                     setHeight=80.dp}.await()
-                                                delay(200)
-
                                                 if (currScreen == Screen.PdfScreen.route&&viewModel.docSelected.value) {
                                                     CoroutineScope(Dispatchers.IO).launch {
                                                         async {

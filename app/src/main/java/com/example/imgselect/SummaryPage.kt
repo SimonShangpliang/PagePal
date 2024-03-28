@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material3.AlertDialog
@@ -44,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -53,12 +55,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.imgselect.data.Summary
 import com.example.imgselect.model.SummaryViewModel
 import com.example.imgselect.ui.theme.OpenSans
 import com.example.imgselect.ui.theme.aliceBlue
 import com.example.imgselect.ui.theme.backgroundcolor
+import com.example.imgselect.ui.theme.darkBar
 import com.example.imgselect.ui.theme.interestcolour
 import com.example.imgselect.ui.theme.interestcolour1
 import com.example.imgselect.ui.theme.interestcolour2
@@ -66,6 +70,7 @@ import com.example.imgselect.ui.theme.lightblue
 import com.example.imgselect.ui.theme.lighterPurple
 import com.example.imgselect.ui.theme.lighterYellow
 import com.example.imgselect.ui.theme.midnightBlue
+import com.kamatiaakash.text_to_speech_using_jetpack_compose.AudioViewModel
 import java.nio.file.Files.delete
 import kotlin.random.Random
 
@@ -413,7 +418,7 @@ fun summaryCard(summary: Summary, delete:() -> Unit , goToSummaryListPage: (Summ
 
 @Composable
 fun SummaryListPage(summary: Summary) {
-
+  val audioViewModel=viewModel<AudioViewModel>()
     Log.d("SummaryIsWhat" , "${summary}")
 
     Card(
@@ -447,15 +452,26 @@ fun SummaryListPage(summary: Summary) {
 //                fontWeight = FontWeight.Bold
 //            )
         }
-                    Text(
+        val context= LocalContext.current
+        Row(modifier=Modifier.fillMaxWidth()) {
+            Text(
                 text = summary.title,
                 modifier = Modifier.padding(16.dp),
                 color = interestcolour1,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.SemiBold,
-                fontFamily = OpenSans
+                fontFamily = OpenSans,
             )
+            IconButton(modifier= Modifier
+                .size(25.dp)
+                .background(darkBar, CircleShape)
+                .align(Alignment.CenterVertically),onClick = { /*TODO*/
+                audioViewModel.justSpeech(summary?.summary?:"", context =context )
+            }) {
+                Icon(painter= painterResource(id = R.drawable.baseline_volume_up_24),"speak",modifier=Modifier .size(25.dp))
 
+            }
+        }
         summary?.summary?.let {
             Text(
                 text = it,

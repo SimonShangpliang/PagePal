@@ -1,6 +1,7 @@
 package com.example.imgselect
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
@@ -60,6 +61,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
@@ -145,6 +147,10 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
         viewModel.stateInitialSet()
     }
 
+DisposableEffect(Unit)
+{
+    onDispose { audioViewModel.stopTextToSpeech() }
+}
 
 
 
@@ -233,7 +239,7 @@ Icon(painterResource(id = R.drawable.baseline_camera_24),contentDescription = "m
     })
                     }
                 }
-
+val context= LocalContext.current
                 OutlinedTextField(
                     value = if(!isImageMode.value) {chatViewModel.query} else { chatViewModelWithImage.query},
                     onValueChange = { if(!isImageMode.value) {chatViewModel.query = it} else {chatViewModelWithImage.query = it} },
@@ -269,10 +275,14 @@ Icon(painterResource(id = R.drawable.baseline_camera_24),contentDescription = "m
                                     messageQuery.add(ChatQuery(query = chatViewModel.query))
                                     chatViewModel.query = ""
                                 } else {
+                                    if(chatViewModelWithImage.imageList.value.isEmpty())
+                                    {
+                                        Toast.makeText(context,"Please add an Image",Toast.LENGTH_SHORT).show()
+                                    }else{
                                     chatViewModelWithImage.getResponseFromChatBot()
                                     query.value = chatViewModelWithImage.query
                                     messageQuery.add(ChatQuery(query = chatViewModelWithImage.query))
-                                    chatViewModelWithImage.query = ""
+                                    chatViewModelWithImage.query = ""}
                                     //chatViewModelWithImage.imageList.clear()
                                 }
 
