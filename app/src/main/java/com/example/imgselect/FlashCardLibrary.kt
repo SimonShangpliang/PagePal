@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,6 +52,7 @@ import androidx.lifecycle.LiveData
 import androidx.navigation.NavController
 import com.example.dictionary.model.DictionaryViewModel
 import com.example.imgselect.DictionaryNetwork.WordData
+import com.example.imgselect.MySearchBar
 import com.example.imgselect.R
 import com.example.imgselect.Screen
 import com.example.imgselect.data.Meaning
@@ -384,43 +386,72 @@ fun ShelfItem(name: String,  number: String,textAlign: TextAlign , goToOneDeck: 
 
 @Composable
 fun GridOfARowOfFlashLib(elements: List<String> , dictionaryViewModel: DictionaryViewModel , navController: NavController) {
-    val text = when(elements) {
+    val text = when (elements) {
         dictionaryViewModel.setOfTitle.toList() -> "Title"
         dictionaryViewModel.setOfDates.toList() -> "Date"
         else -> "Words"
     }
-    Column (
+    val searchQuery = remember { mutableStateOf("") }
+    val filteredList = if (searchQuery.value.isEmpty()) {
+        elements
+    } else {
+        elements.filter { element ->
+            element.contains(searchQuery.value, ignoreCase = true)
+        }
+    }
+    Column(
         modifier = Modifier.background(Color.Black)
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = 30.dp , vertical = 16.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(horizontal = 30.dp, vertical = 16.dp)
+                .fillMaxWidth(),
             color = Color.White,
             fontSize = 36.sp,
             fontWeight = FontWeight.Bold
         )
+        MySearchBar(
+            placeHolder = "Search",
+            onQueryChanged = { query -> searchQuery.value = query }
+        )
+        Spacer(modifier = Modifier.height(20.dp))
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            modifier = Modifier.background(Color.Black).padding(16.dp).fillMaxHeight()
+            modifier = Modifier
+                .background(Color.Black)
+                .padding(16.dp)
+                .fillMaxHeight()
         ) {
-            itemsIndexed(elements) {index,element->
-                if(elements == dictionaryViewModel.setOfTitle.toList()) {
-                    ShelfItem(name = element , number = (index+1).toString() , textAlign = TextAlign.Center) { time ->
-                        Log.d("DateNavigation" , "${element}")
+            itemsIndexed(filteredList) { index, element ->
+                if (elements == dictionaryViewModel.setOfTitle.toList()) {
+                    ShelfItem(
+                        name = element,
+                        number = (index + 1).toString(),
+                        textAlign = TextAlign.Center
+                    ) { time ->
+                        Log.d("DateNavigation", "${element}")
                         navController.navigate("${Screen.SingleDeckScreen.route}/${element}/${0}")
 
                     }
-                }
-                else if(elements == dictionaryViewModel.setOfDates.toList()) {
-                    ShelfItem(name = element , number = (index+1).toString() , textAlign = TextAlign.Center) {time ->
-                        Log.d("DateNavigation" , "${element}")
+                } else if (elements == dictionaryViewModel.setOfDates.toList()) {
+                    ShelfItem(
+                        name = element,
+                        number = (index + 1).toString(),
+                        textAlign = TextAlign.Center
+                    ) { time ->
+                        Log.d("DateNavigation", "${element}")
                         navController.navigate("${Screen.SingleDeckScreen.route}/${element}/${1}")
 
                     }
                 } else {
-                    ShelfItem(name = element , number = (index+1).toString() , textAlign = TextAlign.Center) {time ->
-                        Log.d("DateNavigation" , "${element}")
+                    ShelfItem(
+                        name = element,
+                        number = (index + 1).toString(),
+                        textAlign = TextAlign.Center
+                    ) { time ->
+                        Log.d("DateNavigation", "${element}")
                         navController.navigate("${Screen.SingleDeckScreen.route}/${element}/${2}")
 
                     }
