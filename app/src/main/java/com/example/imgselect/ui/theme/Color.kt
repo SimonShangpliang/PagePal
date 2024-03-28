@@ -23,6 +23,8 @@ val Pink40 = Color(0xFF7D5260)
 
 val interestcolour =Color(0xFF424242)
 val interestcolour1 =Color(0xFF424242)
+val interestcolour2=Color(0xFF555454)
+
 
 
 val profileborder =Color(0xFFFFFFFF)

@@ -56,8 +56,10 @@ import com.example.imgselect.ui.theme.outlinePurple
 import com.example.imgselect.ui.theme.outlineYellow
 import kotlin.math.abs
 import android.util.Log
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.IconButton
 import androidx.compose.material3.Icon
@@ -67,10 +69,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.imgselect.DictionaryNetwork.WebsiteCount
 import com.example.imgselect.model.WebHistoryViewModel
+import com.example.imgselect.ui.theme.OpenSans
+import com.example.imgselect.ui.theme.interestcolour
+import com.example.imgselect.ui.theme.interestcolour2
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,7 +119,7 @@ fun Home(navController: NavController) {
         BottomNavigationItem(
             title="PDF",
             selectedIcon = painterResource(R.drawable.picture_as_pdf),
-            unselectedIcon= painterResource(id = R.drawable.picture_as_pdf_grey),
+            unselectedIcon= painterResource(R.drawable.picture_as_pdf),
             route=Screen.PdfScreen.route
 
         )
@@ -129,7 +136,7 @@ fun Home(navController: NavController) {
                 ),
                 title = {
                     Row(modifier=Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween){
-                        Text(text="Welcome",modifier=Modifier.padding(start=10.dp,top=10.dp), textAlign= TextAlign.Start)
+                        Text(text="Welcome",modifier=Modifier.padding(start=10.dp,top=10.dp), textAlign= TextAlign.Start, fontFamily = OpenSans)
                         IconButton(
 modifier=Modifier.padding(end=10.dp,top=10.dp),
                          onClick = { navController.navigate(Screen.ProfileScreen.route) }
@@ -142,26 +149,43 @@ modifier=Modifier.padding(end=10.dp,top=10.dp),
                 }
             )
         }, bottomBar = {
-                       NavigationBar(containerColor = darkBar, contentColor = Color.White){
-                           items.forEachIndexed{ index,item ->
-                               NavigationBarItem(
-                                   selected = false,
-                                   onClick = {
-                                      // selectedItemIndex==index
+                       NavigationBar(containerColor = darkBar, contentColor = darkBar, modifier= Modifier
 
-                                             navController.navigate(item.route)}
+                           .height(85.dp)) {
 
-                                   ,
-                                   icon = {
-                                           Icon(painter =  item.selectedIcon,
-//                                           if(index==selectedItemIndex){
-//                                               item.selectedIcon}else item.unselectedIcon,
-                                          contentDescription = item.title
+                           Box(modifier=Modifier.padding(bottom = 28.dp, start = 20.dp, end = 20.dp).height(50.dp) .coloredShadow(
+                               Color.Black, 0.8f, 16.dp, 30.dp,10.dp, 0.dp
+                           )
+                               .background(interestcolour1, RoundedCornerShape(12.dp))
+
+                            //   .shadow(12.dp, shape = CircleShape, ambientColor = Color.Black, clip = true)
+                           ){ Row(
+                               modifier = Modifier
+                           ) {
+
+
+                               items.forEachIndexed { index, item ->
+                                   this@NavigationBar.NavigationBarItem(
+                                       selected = false,
+                                       onClick = {
+                                           // selectedItemIndex==index
+
+                                           navController.navigate(item.route)
+                                       },
+                                       icon = {
+                                           Icon(
+                                               painter =
+                                               if (index == selectedItemIndex) {
+                                                   item.selectedIcon
+                                               } else item.unselectedIcon,
+                                               contentDescription = item.title, tint = Color.White,modifier=Modifier
                                            )
-                                   }
-                               )
+                                       }
+                                   )
 
+                               }
                            }
+                       }
                        }
 
 
@@ -170,11 +194,13 @@ modifier=Modifier.padding(end=10.dp,top=10.dp),
 
         containerColor = darkBar
 
+
     ) { innerPadding ->
         val scroll= rememberScrollState()
         Column(
             modifier = Modifier
-                .padding(innerPadding).verticalScroll(scroll),
+                .padding(innerPadding)
+                .verticalScroll(scroll),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Spacer(modifier=Modifier.height(38.dp))
@@ -252,9 +278,10 @@ fun FlashcardsHome(navController: NavController){
 
                 ) {
                     Text(text=cardReverse[page].title,
-                        fontSize = 36.sp,
+                        fontSize = 30.sp,
                         fontWeight = FontWeight.SemiBold,
                         color= interestcolour1,
+                        fontFamily = OpenSans
                         )
                 }
             }
@@ -273,7 +300,7 @@ fun MakeRows(title:String, recentList:MutableList<recent>){
                 Image(painter= painterResource(id =R.drawable.fa_solid_chevron_circle_right ),
                     contentDescription = null,
                     modifier= Modifier
-                        .padding(end = 13.dp,top=2.5.dp,start=2.dp),
+                        .padding(end = 13.dp,start=2.dp),
                     Alignment.TopEnd)
             }
             Spacer(modifier = Modifier.height(20.dp))
@@ -313,7 +340,7 @@ fun MakeRows2(title:String, recentList:List<WebsiteCount>){
                 Image(painter= painterResource(id =R.drawable.fa_solid_chevron_circle_right ),
                     contentDescription = null,
                     modifier= Modifier
-                        .padding(end = 13.dp,top=2.5.dp,start=2.dp),
+                        .padding(end = 13.dp,start=2.dp),
                     Alignment.TopEnd)
             }
             Spacer(modifier = Modifier.height(20.dp))

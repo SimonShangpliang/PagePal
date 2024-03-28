@@ -45,6 +45,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,7 +57,9 @@ import com.example.dictionary.model.DictionaryViewModel
 import com.example.imgselect.DictionaryNetwork.Definition
 import com.example.imgselect.DictionaryNetwork.Meaning
 import com.example.imgselect.DictionaryNetwork.WordData
+import com.example.imgselect.ui.theme.OpenSans
 import com.example.imgselect.ui.theme.darkBar
+import com.example.imgselect.ui.theme.interestcolour1
 import com.example.imgselect.ui.theme.lightBar
 import com.example.imgselect.ui.theme.lighterPurple
 import com.example.imgselect.ui.theme.lighterTeal
@@ -239,7 +243,10 @@ fun singleCard(term:String,modifier: Modifier,colorCard: Color,colorBorder:Color
                 if(whichMeaning.value == 0){
                     Text(
                         text = term,
-                        color = Color.Black
+                        color = interestcolour1,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily= OpenSans,
+                        fontSize=36.sp
                     )
                     Log.d( "Lilac haze", "Your message 3")
 
@@ -248,23 +255,42 @@ fun singleCard(term:String,modifier: Modifier,colorCard: Color,colorBorder:Color
                     if (finalNouns != null && finalNouns.isNotEmpty()) {
                         Text(
                             text = "Noun",
-                            color = Color.Black
+                            color = interestcolour1,
+                            fontFamily = OpenSans,
+                            fontStyle = FontStyle.Italic,
+                            fontWeight = FontWeight.Bold
                         )
+                        Spacer(modifier=Modifier.height(4.dp))
                         finalNouns.forEach { noun->
-                                    Column() {
+                                    Column(modifier=Modifier.fillMaxWidth(0.8f), Arrangement.SpaceAround,
+                                         ) {
                                         Text(
                                             text = noun.definition,
-                                            color = Color.Black
+                                            color = interestcolour1,
+                                            modifier = Modifier,
+                                            fontStyle = FontStyle.Normal,
+                                            fontFamily = OpenSans,
+                                            fontSize = 15.sp
+
+
                                         )
 
                                         noun.example?.let {
                                             Text(
-                                                text = "Examples:-",
-                                                color = Color.Black
+                                                text = "e.g.",
+                                                color = interestcolour1,
+                                                modifier = Modifier,
+                                                fontFamily = OpenSans,
+                                                fontSize = 14.sp
+
                                             )
                                             Text(
                                                 text = it,
-                                                color = Color.Black
+                                                color = interestcolour1,
+                                                modifier = Modifier,
+                                                fontStyle = FontStyle.Italic,
+                                                fontSize = 14.sp
+
                                             )
                                         }
                                     }
@@ -283,24 +309,39 @@ fun singleCard(term:String,modifier: Modifier,colorCard: Color,colorBorder:Color
                         Column {
                             Text(
                                 text = "Verb",
-                                color = Color.Black
+                                color = interestcolour1,
+                                fontFamily = OpenSans,
+                                fontStyle = FontStyle.Italic,
+                                fontWeight = FontWeight.Bold
                             )
+                            Spacer(modifier=Modifier.height(4.dp))
+
                             if (finalVerbs != null) {
                                 finalVerbs.forEach { verb->
-                                        Column() {
+                                    Column(modifier=Modifier.fillMaxWidth(0.8f), Arrangement.SpaceAround,){
                                                 Text(
                                                     text = verb.definition,
-                                                    color = Color.Black
+                                                    color = interestcolour1,
+                                                    modifier = Modifier,
+                                                    fontStyle = FontStyle.Normal,
+                                                    fontFamily = OpenSans,
+                                                    fontSize = 15.sp
                                                 )
 
                                                 verb.example?.let {
                                                     Text(
-                                                        text = "Examples:-",
-                                                        color = Color.Black
+                                                        text = "e.g.",
+                                                        color = interestcolour1,
+                                                        modifier = Modifier,
+                                                        fontFamily = OpenSans,
+                                                        fontSize = 14.sp
                                                     )
                                                     Text(
                                                         text = it,
-                                                        color = Color.Black
+                                                        color = interestcolour1,
+                                                        modifier = Modifier,
+                                                        fontStyle = FontStyle.Italic,
+                                                        fontSize = 14.sp
                                                     )
                                                 }
                                             }
@@ -321,24 +362,39 @@ fun singleCard(term:String,modifier: Modifier,colorCard: Color,colorBorder:Color
                         Column {
                             Text(
                                 text = "Adjectives",
-                                color = Color.Black
+                                color = interestcolour1,
+                                fontFamily = OpenSans,
+                                fontStyle = FontStyle.Italic,
+                                fontWeight = FontWeight.Bold
                             )
+                            Spacer(modifier=Modifier.height(4.dp))
+
                             if (finalAdjectives != null) {
                                 finalAdjectives.forEach { adjective->
-                                            Column() {
+                                    Column(modifier=Modifier.fillMaxWidth(0.8f), Arrangement.SpaceAround){
                                                 Text(
                                                     text = adjective.definition,
-                                                    color = Color.Black
+                                                    color = interestcolour1,
+                                                    modifier = Modifier,
+                                                    fontStyle = FontStyle.Normal,
+                                                    fontFamily = OpenSans,
+                                                    fontSize = 15.sp
                                                 )
 
                                                 adjective.example?.let {
                                                     Text(
-                                                        text = "Examples:-",
-                                                        color = Color.Black
+                                                        text = "e.g.",
+                                                        color = interestcolour1,
+                                                        modifier = Modifier,
+                                                        fontFamily = OpenSans,
+                                                        fontSize = 14.sp
                                                     )
                                                     Text(
                                                         text = it,
-                                                        color = Color.Black
+                                                        color = interestcolour1,
+                                                        modifier = Modifier,
+                                                        fontStyle = FontStyle.Italic,
+                                                        fontSize = 14.sp
                                                     )
                                                 }
                                             }
