@@ -152,11 +152,12 @@ modifier=Modifier.padding(end=10.dp,top=10.dp),
                 }
             )
         }, bottomBar = {
-                       NavigationBar(containerColor = darkBar, contentColor = darkBar, modifier= Modifier
+                       NavigationBar(
+                           containerColor = darkBar, contentColor = darkBar, modifier= Modifier
 
                            .height(85.dp)) {
 
-                           Box(modifier=Modifier.padding(bottom = 28.dp, start = 20.dp, end = 20.dp).height(50.dp) .coloredShadow(
+                           Box(modifier=Modifier.padding(bottom = 20.dp, start = 20.dp, end = 20.dp,top=8.dp).height(50.dp) .coloredShadow(
                                Color.Black, 0.8f, 16.dp, 30.dp,10.dp, 0.dp
                            )
                                .background(interestcolour1, RoundedCornerShape(12.dp)),

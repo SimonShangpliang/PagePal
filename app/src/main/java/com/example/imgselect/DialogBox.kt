@@ -97,7 +97,9 @@ import com.example.imgselect.model.WebHistoryViewModel
 import com.example.imgselect.ui.theme.GhostWhite
 import com.example.imgselect.ui.theme.OpenSans
 import com.example.imgselect.ui.theme.aliceBlue
+import com.example.imgselect.ui.theme.backgroundcolor
 import com.example.imgselect.ui.theme.interestcolour1
+import com.example.imgselect.ui.theme.interestcolour2
 import com.example.imgselect.ui.theme.lightWhite
 import com.example.imgselect.ui.theme.lighterPurple
 import com.example.imgselect.ui.theme.lighterTeal
@@ -477,7 +479,7 @@ val context= LocalContext.current
         Surface(
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.height(700.dp),
-            color = Color.White
+            color = Color.Black
         ) {
             DisposableEffect(Unit){
                 onDispose {
@@ -488,7 +490,7 @@ val context= LocalContext.current
                 val scroll = rememberScrollState()
                 Column(
                     modifier = Modifier
-                        .background(interestcolour1)
+                        .background(Color(0xff1E1E1E))
                         .fillMaxHeight(0.88f)
                         .fillMaxWidth()
                         .verticalScroll(scroll)

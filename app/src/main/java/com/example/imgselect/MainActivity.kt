@@ -97,6 +97,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -104,6 +105,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -185,10 +187,17 @@ class MainActivity : ComponentActivity() {
                     }
                 })
             }
+            val context = LocalContext.current
+
             val configuration = LocalConfiguration.current
+            val displayMetrics = context.resources.displayMetrics
+
             val screenHeight = configuration.screenHeightDp
             val screenWidth = configuration.screenWidthDp
-            val context = LocalContext.current
+            val width = (screenWidth * displayMetrics.density).toInt()
+            val height = (screenHeight * displayMetrics.density).toInt()
+
+            val statusBarHeight = getStatusBarHeight(context)
             //coordinates
             var startOffsetX by remember { mutableStateOf(0f) }
             var endOffsetX by remember { mutableStateOf(0f) }
@@ -824,17 +833,20 @@ class MainActivity : ComponentActivity() {
                                     )
                                     .background(Color.Black)
                                 )
-                                {
-                                    val scope= rememberCoroutineScope()
+                                {                                    val scope= rememberCoroutineScope()
+
                                     Row(modifier= Modifier
                                         .fillMaxWidth()
                                         .padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween)
                                     {
+
                                         OutlinedButton(onClick = {
                                             scope.launch {
 
-                                                async{cropBox=false
-                                                    setHeight=80.dp}.await()
+                                                cropBox=false
+                                                    setHeight=80.dp
+                                                delay(200)
+
                                                 if (currScreen == Screen.PdfScreen.route&&viewModel.docSelected.value) {
                                                     CoroutineScope(Dispatchers.IO).launch {
                                                         async {
@@ -881,32 +893,38 @@ class MainActivity : ComponentActivity() {
                                         }
                                         OutlinedButton(onClick = {
 
-                                            scope.launch {
-                                                async { setHeight = 80.dp
+                                            CoroutineScope(Dispatchers.IO).launch {
+                                                 setHeight = 80.dp
                                                     cropBox=false
-                                                }.await()
-                                                coroutineScope.launch {
+                                                Log.d("MainAct", "clicked")
 
-                                                    selectedBitmap = async {
-                                                        //     captureSelectedRegion(window, startOffsetX, startOffsetY, endOffsetX, endOffsetY)
-                                                        captureEntireScreen(
-                                                            context = context,
-                                                            window,
-                                                            screenWidth,
-                                                            screenHeight
-                                                        )
-                                                    }.await()
-                                                }
+                                               delay(200)
+
+
+                                                selectedBitmap = async {
+                                                    captureEntireScreen(
+                                                        context = context,
+                                                        window,
+                                                        screenWidth,
+                                                        screenHeight
+                                                    )
+
+                                                }.await()
+                                                Log.d("MainAct", "entire Screen")
+
+
                                                 val textResponse = async {
                                                     textViewModel.performOnlyTextRecognition(
                                                         selectedBitmap
                                                     )
 
                                                 }.await()
-                                                summaryDialog = true
+                                                Log.d("MainAct", "clicked")
+
                                                 summaryText = textResponse
                                                 selectedBitmapSS=null
                                                 Log.d("MainAct", textResponse)
+                                                summaryDialog = true
                                                 summaryViewModel.questioningSummary(summaryText)}
                                         }) {
                                             Text(text = "Full Screen",color=Color.LightGray)
@@ -939,8 +957,10 @@ class MainActivity : ComponentActivity() {
 
                                             scope.launch {
 
-                                                async{cropBox2=false
-                                                    setHeight=80.dp}.await()
+                                                cropBox2=false
+                                                    setHeight=80.dp
+                                                delay(200)
+
                                                 if (currScreen == Screen.PdfScreen.route&&viewModel.docSelected.value) {
                                                     CoroutineScope(Dispatchers.IO).launch {
                                                         async {
@@ -1150,10 +1170,43 @@ class MainActivity : ComponentActivity() {
                             if ((endOffsetX != 0f &&  endOffsetY != 0f)) {
 
                                 drawRect(
-                                    color = Color.Blue.copy(alpha = 0.3f),
-                                    topLeft =  Offset(startOffsetX,startOffsetY),
-                                    size = Size(Math.abs(endOffsetX - startOffsetX), Math.abs(endOffsetY - startOffsetY))
+                                    color = Color.Black.copy(alpha = 0.3f),
+                                    topLeft =  Offset(0f,0f),
+                                    size = Size(Math.abs(width.toFloat()), Math.abs(startOffsetY))
                                 )
+                                drawRect(
+                                    color = Color.Black.copy(alpha = 0.3f),
+                                    topLeft =  Offset(0f,startOffsetY),
+                                    size = Size(Math.abs(startOffsetX), Math.abs(endOffsetY - startOffsetY))
+                                )
+                                drawRect(
+                                    color = Color.Black.copy(alpha = 0.3f),
+                                    topLeft =  Offset(endOffsetX,startOffsetY),
+                                    size = Size(Math.abs(width.toFloat() - endOffsetX), Math.abs(endOffsetY - startOffsetY))
+                                )
+                                drawRect(
+                                        color = Color.Black.copy(alpha = 0.3f),
+                                topLeft =  Offset(0f,endOffsetY),
+                                size = Size(Math.abs(width.toFloat()), Math.abs(height.toFloat()-endOffsetY-(80*density.toFloat())))
+                                )
+
+//                                drawArc(
+//                                    color = Color.DarkGray,
+//                                    startAngle = 270f,
+//                                    sweepAngle = 90f,
+//                                    topLeft =  Offset(startOffsetX,startOffsetY),
+//                                    useCenter = false,
+//                                    style = Stroke(width=3.dp.toPx())
+//                                )
+                                drawRoundRect(
+                                    color = Color.Black,
+                                    topLeft =  Offset(startOffsetX-(density),startOffsetY-(density)),
+                                    cornerRadius= CornerRadius(20f, 20f), // Defines corner radius (optional)
+
+                                style=Stroke(width = 2.dp.toPx(),miter=4f),
+                                    size = Size(Math.abs(endOffsetX - startOffsetX+(2*density)), Math.abs(endOffsetY - startOffsetY+(2*density)))
+                                )
+
 
                             }
 
