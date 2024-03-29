@@ -111,7 +111,12 @@ import com.example.imgselect.model.ChatViewModel
 import com.example.imgselect.model.ChatViewModelWithImage
 import com.example.imgselect.model.DiscussUiState
 import com.example.imgselect.model.ModeViewModel
+import com.example.imgselect.ui.theme.OpenSans
 import com.example.imgselect.ui.theme.Purple80
+import com.example.imgselect.ui.theme.aliceBlue
+import com.example.imgselect.ui.theme.interestcolour1
+import com.example.imgselect.ui.theme.interestcolour2
+import com.example.imgselect.ui.theme.lighterTeal
 import com.example.imgselect.ui.theme.lighterYellow
 import com.kamatiaakash.text_to_speech_using_jetpack_compose.AudioViewModel
 import kotlinx.coroutines.delay
@@ -522,14 +527,14 @@ fun MySearchBar(
                 )
             },
             colors =TextFieldDefaults.outlinedTextFieldColors(
-                focusedBorderColor = Color.White),
+                focusedBorderColor = lighterTeal, textColor = aliceBlue, cursorColor = lighterTeal, unfocusedBorderColor = interestcolour2),
 
             trailingIcon = {
                 IconButton(onClick = { }) {
-                    Icon(painter = painterResource(id = R.drawable.search), contentDescription ="Search" )
+                    Icon(painter = painterResource(id = R.drawable.search), contentDescription ="Search",tint= aliceBlue )
                 }
             },
-            shape = MaterialTheme.shapes.extraLarge
+            shape = MaterialTheme.shapes.extraLarge,
         )
     }
 }
@@ -556,9 +561,10 @@ fun SavedChatsScreen(chatList: LiveData<List<Chat>>, chatViewModel: ChatViewMode
     ) {
         Text(
             text = "Chats",
-            fontSize = 35.sp,
-            color = Color.White,
+            fontSize = 22.sp,
+            color = aliceBlue,
             modifier = Modifier.padding(24.dp)
+            , fontFamily = OpenSans, fontWeight = FontWeight.SemiBold
         )
         MySearchBar(placeHolder = "Search", onQueryChanged = {query -> searchQuery.value = query})
 
@@ -619,7 +625,7 @@ fun ChatRow(chat: Chat , goToFullChat: (Chat) -> Unit , deleteChat: () -> Unit) 
 
         Card(
             onClick = { goToFullChat(chat) },
-            colors = CardDefaults.cardColors(lighterYellow),
+            colors = CardDefaults.cardColors(lighterTeal),
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
@@ -638,7 +644,7 @@ fun ChatRow(chat: Chat , goToFullChat: (Chat) -> Unit , deleteChat: () -> Unit) 
                                 color = Color.DarkGray,
                                 modifier = Modifier
                                     .padding(16.dp)
-                                    .weight(0.8f)
+                                    .weight(0.8f), fontWeight = FontWeight.Medium, fontFamily = OpenSans
                             )
                             Icon(
                                 painter = painterResource(id = R.drawable.baseline_delete_24),
@@ -647,7 +653,7 @@ fun ChatRow(chat: Chat , goToFullChat: (Chat) -> Unit , deleteChat: () -> Unit) 
                                     .clickable { deleteChat() }
                                     .padding(16.dp)
                                     .weight(0.2f),
-                                tint = Color.Black
+                                tint = interestcolour2
                             )
 
                         }
@@ -662,7 +668,7 @@ fun ChatRow(chat: Chat , goToFullChat: (Chat) -> Unit , deleteChat: () -> Unit) 
                             maxLines = 3,
                             overflow = TextOverflow.Ellipsis,
                             color = Color.DarkGray,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(16.dp),fontWeight = FontWeight.Medium,fontFamily = OpenSans
                         )
 
 

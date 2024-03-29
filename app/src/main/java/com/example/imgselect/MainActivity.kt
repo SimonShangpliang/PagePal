@@ -137,6 +137,11 @@ import com.example.imgselect.model.SummaryViewModel
 import com.example.imgselect.model.TextRecognitionViewModel
 import com.example.imgselect.model.TextResult
 import com.example.imgselect.ui.theme.ImgselectTheme
+import com.example.imgselect.ui.theme.OpenSans
+import com.example.imgselect.ui.theme.aliceBlue
+import com.example.imgselect.ui.theme.lightWhite
+import com.example.imgselect.ui.theme.lighterPurple
+import com.example.imgselect.ui.theme.lighterTeal
 
 import com.kamatiaakash.text_to_speech_using_jetpack_compose.AudioViewModel
 
@@ -1282,7 +1287,7 @@ class MainActivity : ComponentActivity() {
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ){
-                androidx.compose.material.Text(text = "List view",color= Color.White)
+                androidx.compose.material.Text(text = "List view",color= aliceBlue)
                 Spacer(modifier = Modifier.width(16.dp))
                 Switch(
                     checked = viewModel.switchState.value,
@@ -1291,13 +1296,15 @@ class MainActivity : ComponentActivity() {
 
                     },
                     colors = SwitchDefaults.colors(
-                        uncheckedThumbColor = androidx.compose.material.MaterialTheme.colors.secondaryVariant,
-                        uncheckedTrackColor = androidx.compose.material.MaterialTheme.colors.secondaryVariant,
+                        uncheckedThumbColor = lighterTeal,
+                        //androidx.compose.material.MaterialTheme.colors.secondaryVariant,
+                        uncheckedTrackColor = lighterPurple,
+                        //androidx.compose.material.MaterialTheme.colors.secondaryVariant,
                         uncheckedTrackAlpha = 0.54f
                     )
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                androidx.compose.material.Text(text = "Pager view",color= Color.White)
+                androidx.compose.material.Text(text = "Pager view",color= aliceBlue,fontFamily= OpenSans)
             }
         }
     }

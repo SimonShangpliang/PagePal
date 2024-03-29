@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter.State.Empty.painter
 import com.example.imgselect.model.PhotoTakenViewModel
 import com.example.imgselect.ui.theme.CameraBottom
+import com.example.imgselect.ui.theme.aliceBlue
+import com.example.imgselect.ui.theme.interestcolour2
 
 @Composable
 fun CameraScreen(applicationContext:Context,photoViewModel: PhotoTakenViewModel)
@@ -105,7 +107,7 @@ Box(modifier = Modifier.fillMaxSize())
                                 ) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.insert_photo),
-                                        contentDescription = null
+                                        contentDescription = null, tint= aliceBlue
                                     )
                                 }
                                 IconButton(
@@ -125,7 +127,7 @@ Box(modifier = Modifier.fillMaxSize())
                                         image = painterResource(id = R.drawable.ellipse_9),
                                         modifier = Modifier
                                             .size(80.dp),
-                                        color = Color.White,
+                                        color = aliceBlue,
                                         borderWidth = 2f
                                     )
                                 }
@@ -140,7 +142,7 @@ Box(modifier = Modifier.fillMaxSize())
                                 ) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.flash_auto),
-                                        contentDescription = null
+                                        contentDescription = null,tint= aliceBlue
                                     )
                                 }
                             }

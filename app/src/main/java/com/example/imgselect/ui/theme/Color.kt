@@ -10,6 +10,7 @@ val Pink80 = Color(0xFFEFB8C8)
 val lighterTeal = Color(0xFFD4EFDF)
 val lighterYellow= Color(0xFFFFF2C5)
 val outlineYellow= Color(0xFFD6D6BE)
+val tinyTeal= Color(0xFFCDE7BE)
 
 val medTeal = Color(0xFFA9C5C4)
 val lightBar = Color(0xFFE8ECEF)
@@ -24,6 +25,8 @@ val Pink40 = Color(0xFF7D5260)
 val interestcolour =Color(0xFF424242)
 val interestcolour1 =Color(0xFF424242)
 val interestcolour2=Color(0xFF555454)
+val interestcolour3=Color(0xFF202020)
+
 
 
 

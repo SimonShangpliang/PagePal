@@ -56,6 +56,7 @@ import com.example.imgselect.ui.theme.outlinePurple
 import com.example.imgselect.ui.theme.outlineYellow
 import kotlin.math.abs
 import android.util.Log
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -76,8 +77,10 @@ import androidx.navigation.NavController
 import com.example.imgselect.DictionaryNetwork.WebsiteCount
 import com.example.imgselect.model.WebHistoryViewModel
 import com.example.imgselect.ui.theme.OpenSans
+import com.example.imgselect.ui.theme.aliceBlue
 import com.example.imgselect.ui.theme.interestcolour
 import com.example.imgselect.ui.theme.interestcolour2
+import com.example.imgselect.ui.theme.tinyTeal
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -132,16 +135,16 @@ fun Home(navController: NavController) {
             TopAppBar(
                 colors = smallTopAppBarColors(
                     containerColor = darkBar,
-                    titleContentColor = lightBar
+                    titleContentColor = aliceBlue
                 ),
                 title = {
                     Row(modifier=Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween){
-                        Text(text="Welcome",modifier=Modifier.padding(start=10.dp,top=10.dp), textAlign= TextAlign.Start, fontFamily = OpenSans)
+                        Text(text="Welcome",modifier=Modifier.padding(start=10.dp,top=10.dp), textAlign= TextAlign.Start, fontFamily = OpenSans ,fontWeight=FontWeight.SemiBold)
                         IconButton(
 modifier=Modifier.padding(end=10.dp,top=10.dp),
                          onClick = { navController.navigate(Screen.ProfileScreen.route) }
                          ){
-                            Icon(painter= painterResource(id =R.drawable.profile_icon ) , contentDescription ="profile" )
+                            Icon(painter= painterResource(id =R.drawable.profile_icon ) , contentDescription ="profile",)
                         }
 
 
@@ -156,11 +159,11 @@ modifier=Modifier.padding(end=10.dp,top=10.dp),
                            Box(modifier=Modifier.padding(bottom = 28.dp, start = 20.dp, end = 20.dp).height(50.dp) .coloredShadow(
                                Color.Black, 0.8f, 16.dp, 30.dp,10.dp, 0.dp
                            )
-                               .background(interestcolour1, RoundedCornerShape(12.dp))
+                               .background(interestcolour1, RoundedCornerShape(12.dp)),
 
                             //   .shadow(12.dp, shape = CircleShape, ambientColor = Color.Black, clip = true)
                            ){ Row(
-                               modifier = Modifier
+                               modifier = Modifier,Arrangement.Center, Alignment.CenterVertically
                            ) {
 
 
@@ -205,11 +208,12 @@ modifier=Modifier.padding(end=10.dp,top=10.dp),
         ) {
             Spacer(modifier=Modifier.height(38.dp))
             FlashcardsHome(navController)
+
+            MakeRows(title = "PDF", recentList = RecentList )
             websiteCounts?.let { counts ->
                 // Access counts here when it's not null
                 MakeRows2(title = "Websites", recentList = counts)
             }
-            MakeRows(title = "PDF", recentList = RecentList )
 
         }
     }
@@ -220,9 +224,9 @@ modifier=Modifier.padding(end=10.dp,top=10.dp),
 fun FlashcardsHome(navController: NavController){
     val cardsPage = remember{
         mutableStateListOf(
-            homeCard("Flashcards", lighterPurple, outlinePurple,Screen.MeaningScreen.route),
-            homeCard("Summary Shelf", lighterTeal, medTeal,Screen.SummaryScreen.route),
-            homeCard("Chats Saved", lighterYellow, outlineYellow,Screen.ChatListScreen.route)
+            homeCard("FLASHCARDS", lighterPurple, outlinePurple,Screen.MeaningScreen.route),
+            homeCard("SUMMARY SHELF", lighterTeal, medTeal,Screen.SummaryScreen.route),
+            homeCard("CHATS SAVED", lighterYellow, outlineYellow,Screen.ChatListScreen.route)
            )}
     val configuration = LocalConfiguration.current
     val cardReverse = cardsPage.reversed()
@@ -251,18 +255,18 @@ fun FlashcardsHome(navController: NavController){
                         pagerState.offsetForPage(page)
                     ) * -50 else 0f
                 }
-                .padding(start = 10.dp, end = 34.dp),
+                .padding(start = 10.dp, end = 34.dp,top=4.dp),
 
             contentAlignment = Alignment.BottomCenter,
         ) {
             Card(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(12.dp))
                     .background(androidx.compose.material.MaterialTheme.colors.background)
                     .fillMaxWidth()
                     .aspectRatio(1.94f)
                     .padding(horizontal = 0.dp),
-                shape = RoundedCornerShape(8.dp),
+                shape = RoundedCornerShape(12.dp),
                 backgroundColor = cardReverse[page].color,
                 elevation = 6.dp,
                 border = BorderStroke( 2.dp,cardReverse[page].color1
@@ -294,13 +298,13 @@ fun MakeRows(title:String, recentList:MutableList<recent>){
     var index=0
     Column(modifier=Modifier) {
         Row(modifier=Modifier,){
-            Text(text="Recent $title",modifier=Modifier.padding(start=19.dp), textAlign= TextAlign.Start,color= lightBar, fontWeight = FontWeight.Bold,)
-            Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End){
-                Text(text="Show All",color= lightBar,textAlign=TextAlign.End,fontSize = 11.5.sp,)
+            Text(text="Recent $title",modifier=Modifier.padding(start=19.dp), textAlign= TextAlign.Start,color= aliceBlue, fontWeight = FontWeight.SemiBold,)
+            Row(modifier=Modifier.fillMaxWidth().padding(top=3.dp), horizontalArrangement = Arrangement.End){
+                Text(text="Show All",color= tinyTeal,textAlign=TextAlign.End,fontSize = 11.5.sp,)
                 Image(painter= painterResource(id =R.drawable.fa_solid_chevron_circle_right ),
                     contentDescription = null,
                     modifier= Modifier
-                        .padding(end = 13.dp,start=2.dp),
+                        .padding(end = 13.dp,start=2.dp,top=1.1.dp),
                     Alignment.TopEnd)
             }
             Spacer(modifier = Modifier.height(20.dp))
@@ -334,13 +338,13 @@ fun MakeRows2(title:String, recentList:List<WebsiteCount>){
     var index=0
     Column(modifier=Modifier) {
         Row(modifier=Modifier,){
-            Text(text="Frequently Visited $title",modifier=Modifier.padding(start=19.dp), textAlign= TextAlign.Start,color= lightBar, fontWeight = FontWeight.Bold,)
-            Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End){
-                Text(text="Show All",color= lightBar,textAlign=TextAlign.End,fontSize = 11.5.sp,)
+            Text(text="Frequently Visited $title",modifier=Modifier.padding(start=19.dp), textAlign= TextAlign.Start,color= aliceBlue, fontWeight = FontWeight.SemiBold,)
+            Row(modifier=Modifier.fillMaxWidth().padding(top=3.dp), horizontalArrangement = Arrangement.End){
+                Text(text="Show All",color= tinyTeal,textAlign=TextAlign.End,fontSize = 11.5.sp,)
                 Image(painter= painterResource(id =R.drawable.fa_solid_chevron_circle_right ),
                     contentDescription = null,
                     modifier= Modifier
-                        .padding(end = 13.dp,start=2.dp),
+                        .padding(end = 13.dp,start=2.dp,top=1.1.dp),
                     Alignment.TopEnd)
             }
             Spacer(modifier = Modifier.height(20.dp))

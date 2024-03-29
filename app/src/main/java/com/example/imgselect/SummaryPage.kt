@@ -1,6 +1,7 @@
 package com.example.imgselect
 
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -44,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -66,6 +68,7 @@ import com.example.imgselect.ui.theme.darkBar
 import com.example.imgselect.ui.theme.interestcolour
 import com.example.imgselect.ui.theme.interestcolour1
 import com.example.imgselect.ui.theme.interestcolour2
+import com.example.imgselect.ui.theme.interestcolour3
 import com.example.imgselect.ui.theme.lightblue
 import com.example.imgselect.ui.theme.lighterPurple
 import com.example.imgselect.ui.theme.lighterYellow
@@ -109,7 +112,7 @@ fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavContro
     Surface(
 
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xff1E1E1E)
+        color =darkBar
     ) {
         Column(
             modifier = Modifier
@@ -119,7 +122,7 @@ fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavContro
             HeadlineText()
             Spacer(modifier = Modifier.size(14.dp))
             MySearchBar(
-                placeHolder ="Search date,title",
+                placeHolder ="Search date, title",
                 onQueryChanged = {query-> searchQuery.value = query}
             )
             Spacer(modifier = Modifier.size(20.dp))
@@ -173,11 +176,12 @@ fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavContro
 @Composable
 fun HeadlineText(){
     Column(modifier = Modifier.padding(vertical = 15.dp, horizontal = 24.dp)) {
-        Text(text = "Summary",
+        Text(text = "Summary Shelf",
 
             color= aliceBlue,
-            fontSize = 40.sp,
-            fontStyle = FontStyle.Normal,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.SemiBold,
+            fontFamily= OpenSans
         )
     }
 }
@@ -248,13 +252,13 @@ fun SortAndSearch(onSortSelected: (SortOrder) -> Unit , onSearchBySelected:(Sear
         horizontalArrangement = Arrangement.SpaceBetween) {
         Button(onClick = { isSortDialogOpen = true  },
             modifier = Modifier
-                .height(40.dp),colors=ButtonDefaults.buttonColors(containerColor = Color.Black, contentColor = Color.White)) {
-            Text(text = " Sort By ")
+                .height(40.dp),colors=ButtonDefaults.buttonColors(containerColor = interestcolour3, contentColor = Color.White)) {
+            Text(text = " Sort By ", fontFamily = OpenSans,fontSize = 12.sp)
         }
-        Button(onClick = {isSearchByDialogOpen = true },colors=ButtonDefaults.buttonColors(containerColor = Color.Black, contentColor = Color.White),
+        Button(onClick = {isSearchByDialogOpen = true },colors=ButtonDefaults.buttonColors(containerColor = interestcolour3, contentColor = Color.White),
                         modifier = Modifier
                 .height(40.dp)) {
-            Text(text = "Search By")
+            Text(text = "Search By",fontFamily = OpenSans, fontSize = 12.sp)
         }
     }
     if (isSortDialogOpen){
@@ -375,7 +379,7 @@ fun summaryCard(summary: Summary, delete:() -> Unit , goToSummaryListPage: (Summ
                 Text(text = summary.title, fontSize = 24.sp, fontWeight = FontWeight.SemiBold , color = midnightBlue,fontFamily= OpenSans)
                 Row(horizontalArrangement = Arrangement.Absolute.SpaceBetween , modifier = Modifier.width(70.dp)) {
                     Icon(painter = painterResource(id = R.drawable.generic), contentDescription = "Summary type" , tint = midnightBlue, modifier = Modifier.size(30.dp))
-                    Icon(painter = painterResource(id = R.drawable.baseline_delete_24), contentDescription = "delete" , tint = midnightBlue , modifier = Modifier
+                    Icon(painter = painterResource(id = R.drawable.baseline_delete_24), contentDescription = "delete" , tint = interestcolour1 , modifier = Modifier
                         .clickable { delete() }
                         .size(30.dp))
                 }
