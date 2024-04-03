@@ -53,6 +53,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
+import androidx.navigation.NavController
 import com.example.dictionary.model.DictionaryViewModel
 import com.example.imgselect.DictionaryNetwork.Definition
 import com.example.imgselect.DictionaryNetwork.Meaning
@@ -417,7 +418,7 @@ fun singleCard(term:String,modifier: Modifier,colorCard: Color,colorBorder:Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SingleDeckScreen(basis: String , identifier: Int , dictionaryViewModel: DictionaryViewModel , list: LiveData<List<com.example.imgselect.data.Meaning>>){
+fun SingleDeckScreen(basis: String , identifier: Int , dictionaryViewModel: DictionaryViewModel , list: LiveData<List<com.example.imgselect.data.Meaning>> , navController: NavController){
     val usableList by list.observeAsState(initial = emptyList())
     val listOfWords : MutableList<WordData> = mutableListOf()
     usableList.forEach { meaning->
@@ -480,6 +481,7 @@ fun SingleDeckScreen(basis: String , identifier: Int , dictionaryViewModel: Dict
                         modifier= Modifier
                             .padding(start = 13.dp, top = 5.dp)
                             .size(15.dp, 20.dp)
+                            .clickable { navController.popBackStack() }
                             ,
                         Alignment.TopStart
                     )

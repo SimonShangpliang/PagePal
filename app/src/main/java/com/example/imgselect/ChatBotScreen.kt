@@ -471,7 +471,7 @@ fun MessagesList(messages: List<ChatQueryResponse>, viewModel: TypewriterViewMod
                             Icon(
                                 painter = painterResource(id = R.drawable.save_alt),
                                 "deete",
-                                //tint = Color.White
+                                tint = if(!isSaved.value) Color.White else Color.LightGray
                             )
                         }
 

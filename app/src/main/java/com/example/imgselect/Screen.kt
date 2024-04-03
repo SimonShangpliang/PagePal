@@ -24,5 +24,9 @@ sealed class Screen(val route:String) {
 
     object SingleRowOfFlashLib: Screen("single_row_of_flash_lib")
 
+    object GridOfRecentPDF: Screen("grid_of_recent_pdf")
+
+    object GridOfRecentWebsites: Screen("grid_of_recent_websites")
+
 
 }

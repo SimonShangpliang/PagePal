@@ -56,9 +56,13 @@ import com.example.imgselect.ui.theme.outlinePurple
 import com.example.imgselect.ui.theme.outlineYellow
 import kotlin.math.abs
 import android.util.Log
-import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -74,6 +78,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.dictionary.model.DictionaryViewModel
 import com.example.imgselect.DictionaryNetwork.WebsiteCount
 import com.example.imgselect.model.WebHistoryViewModel
 import com.example.imgselect.ui.theme.OpenSans
@@ -81,6 +86,9 @@ import com.example.imgselect.ui.theme.aliceBlue
 import com.example.imgselect.ui.theme.interestcolour
 import com.example.imgselect.ui.theme.interestcolour2
 import com.example.imgselect.ui.theme.tinyTeal
+import com.example.mytestapp.ShelfItem
+
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -210,10 +218,14 @@ modifier=Modifier.padding(end=10.dp,top=10.dp),
             Spacer(modifier=Modifier.height(38.dp))
             FlashcardsHome(navController)
 
-            MakeRows(title = "PDF", recentList = RecentList )
+            MakeRows(title = "PDF", recentList = RecentList ) {
+                navController.navigate(Screen.GridOfRecentPDF.route)
+            }
             websiteCounts?.let { counts ->
                 // Access counts here when it's not null
-                MakeRows2(title = "Websites", recentList = counts)
+                MakeRows2(title = "Websites", recentList = counts) {
+                    navController.navigate(Screen.GridOfRecentWebsites.route)
+                }
             }
 
         }
@@ -295,12 +307,18 @@ fun FlashcardsHome(navController: NavController){
 }
 
 @Composable
-fun MakeRows(title:String, recentList:MutableList<recent>){
+fun MakeRows(title:String, recentList:MutableList<recent> , goToGridView:()->Unit){
     var index=0
     Column(modifier=Modifier) {
         Row(modifier=Modifier,){
             Text(text="Recent $title",modifier=Modifier.padding(start=19.dp), textAlign= TextAlign.Start,color= aliceBlue, fontWeight = FontWeight.SemiBold,)
-            Row(modifier=Modifier.fillMaxWidth().padding(top=3.dp), horizontalArrangement = Arrangement.End){
+            Row(
+                modifier=Modifier
+                    .fillMaxWidth()
+                    .padding(top=3.dp)
+                    .clickable { goToGridView() },
+                horizontalArrangement = Arrangement.End
+            ){
                 Text(text="Show All",color= tinyTeal,textAlign=TextAlign.End,fontSize = 11.5.sp,)
                 Image(painter= painterResource(id =R.drawable.fa_solid_chevron_circle_right ),
                     contentDescription = null,
@@ -335,12 +353,21 @@ fun MakeRows(title:String, recentList:MutableList<recent>){
 }
 
 @Composable
-fun MakeRows2(title:String, recentList:List<WebsiteCount>){
+fun MakeRows2(title:String, recentList:List<WebsiteCount> , goToSingleGridScreen: () -> Unit){
     var index=0
     Column(modifier=Modifier) {
         Row(modifier=Modifier,){
             Text(text="Frequently Visited $title",modifier=Modifier.padding(start=19.dp), textAlign= TextAlign.Start,color= aliceBlue, fontWeight = FontWeight.SemiBold,)
-            Row(modifier=Modifier.fillMaxWidth().padding(top=3.dp), horizontalArrangement = Arrangement.End){
+            Row(
+                modifier=Modifier
+                    .fillMaxWidth()
+                    .padding(top=3.dp)
+                    .clickable {
+                         goToSingleGridScreen()
+                    }
+                ,
+                horizontalArrangement = Arrangement.End
+            ){
                 Text(text="Show All",color= tinyTeal,textAlign=TextAlign.End,fontSize = 11.5.sp,)
                 Image(painter= painterResource(id =R.drawable.fa_solid_chevron_circle_right ),
                     contentDescription = null,
@@ -403,4 +430,115 @@ fun SingleRecent(singleTitle:String,subSingleTitle:String,backColor:Color,outCol
             color = lightBar)
 
     }
+}
+@Composable
+fun GridOfRowOfRecentPDF() {
+    val RecentList= mutableListOf<recent>(
+        recent("Design","ME101"),
+        recent("Design","ME101"),
+        recent("Design","ME101"),
+        recent("Design","ME101"),
+        recent("Design","ME101"),
+        recent("Design","ME101"),
+        recent("Design","ME101"),
+        )
+
+    Column(
+        modifier = Modifier.background(Color.Black).fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Recent PDF",
+            modifier = Modifier
+                .padding(horizontal = 30.dp, vertical = 16.dp)
+                .fillMaxWidth(),
+            color = Color.White,
+            fontSize = 36.sp,
+            fontWeight = FontWeight.Bold
+        )
+//        MySearchBar(
+//            placeHolder = "Search",
+//            onQueryChanged = { query -> searchQuery.value = query }
+//        )
+        Spacer(modifier = Modifier.height(20.dp))
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier
+                .background(Color.Black)
+                .padding(top = 12.dp , end = 12.dp , bottom = 12.dp , start = 50.dp)
+                .fillMaxHeight()
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            itemsIndexed(RecentList) {index,recentUI->
+                SingleRecent(
+                    singleTitle =recentUI.singleTitle,
+                    subSingleTitle =recentUI.subSingleTitle,
+                    backColor = if(index%3==0){
+                        lighterTeal}else if(index%3==1){
+                        lighterPurple}else{
+                        lighterYellow},
+                    outColor= if(index%3==0){
+                        medTeal}else if(index%3==1){
+                        outlinePurple}else{
+                        outlineYellow},
+                )
+            }
+        }
+    }
+
+}
+
+@Composable
+fun GridOfRowOfRecentWebsites(webHistoryViewModel: WebHistoryViewModel) {
+    val websiteCounts by webHistoryViewModel.websiteCounts.observeAsState(emptyList())
+    var index = 0
+
+    Column(
+        modifier = Modifier.background(Color.Black).fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Recent Websites",
+            modifier = Modifier
+                .padding(horizontal = 30.dp, vertical = 16.dp)
+                .fillMaxWidth(),
+            color = Color.White,
+            fontSize = 36.sp,
+            fontWeight = FontWeight.Bold
+        )
+//        MySearchBar(
+//            placeHolder = "Search",
+//            onQueryChanged = { query -> searchQuery.value = query }
+//        )
+        Spacer(modifier = Modifier.height(20.dp))
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier
+                .background(Color.Black)
+                .padding(top = 12.dp , end = 12.dp , bottom = 12.dp , start = 50.dp)
+                .fillMaxHeight()
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            this.items(websiteCounts) { recentUI  ->
+                SingleRecent(
+                    singleTitle =recentUI.websiteName,
+                    subSingleTitle ="",
+                    backColor = if(index%3==0){
+                        lighterTeal}else if(index%3==1){
+                        lighterPurple}else{
+                        lighterYellow},
+                    outColor= if(index%3==0){
+                        medTeal}else if(index%3==1){
+                        outlinePurple}else{
+                        outlineYellow},
+                )
+                index++
+            }
+        }
+    }
+
 }

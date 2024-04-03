@@ -37,6 +37,7 @@ fun Navigation(window: Window,applicationContext: Context,currScreen: (String)->
     val chatViewModelWithImage = viewModel<ChatViewModelWithImage>()
     val typewriterViewModel = viewModel<TypewriterViewModel>()
     val textRecognitionViewModel = viewModel<TextRecognitionViewModel>()
+    val webHistoryViewModel = viewModel<WebHistoryViewModel>()
 
     NavHost(navController = navController, startDestination = Screen.HomeScreen.route)
 
@@ -159,7 +160,8 @@ fun Navigation(window: Window,applicationContext: Context,currScreen: (String)->
                         basis = id,
                         identifier = identifier,
                         dictionaryViewModel = dictionaryViewModel,
-                        list = dictionaryViewModel.getMeaningList()
+                        list = dictionaryViewModel.getMeaningList(),
+                        navController = navController
                     )
                 }
             }
@@ -185,7 +187,8 @@ fun Navigation(window: Window,applicationContext: Context,currScreen: (String)->
                     basis = date,
                     identifier = identifier,
                     dictionaryViewModel = dictionaryViewModel,
-                    list = dictionaryViewModel.getMeaningList()
+                    list = dictionaryViewModel.getMeaningList(),
+                    navController = navController
                 )
             }
         }
@@ -209,6 +212,13 @@ fun Navigation(window: Window,applicationContext: Context,currScreen: (String)->
             }
             
             GridOfARowOfFlashLib(elements = list.toList() , dictionaryViewModel , navController)
+        }
+
+        composable(route = Screen.GridOfRecentPDF.route) {
+            GridOfRowOfRecentPDF()
+        }
+        composable(route = Screen.GridOfRecentWebsites.route) {
+            GridOfRowOfRecentWebsites(webHistoryViewModel = webHistoryViewModel)
         }
     }
 }
