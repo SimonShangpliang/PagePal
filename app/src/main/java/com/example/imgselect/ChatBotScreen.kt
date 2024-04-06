@@ -19,6 +19,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
@@ -40,10 +42,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.BottomSheetScaffold
+import androidx.compose.material.BottomSheetValue
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material.rememberBottomSheetState
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -71,6 +82,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -103,6 +115,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.example.imgselect.animations.LoadingAnimation
@@ -122,9 +135,10 @@ import com.kamatiaakash.text_to_speech_using_jetpack_compose.AudioViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewModelWithImage , viewModel: TypewriterViewModel,modeViewModel: ModeViewModel  , audioViewModel: AudioViewModel) {
     //val messages = remember { mutableStateListOf<ChatQueryResponse>() }
@@ -137,8 +151,7 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
     var query  = remember { mutableStateOf("") }
     val isImageMode=modeViewModel.isImageMode.collectAsState()
     val combinedMessage = message + messageFromImageQuery
-    var imageDialog by remember{ mutableStateOf(false)
-    }
+
     val sortedCombinedMessages = combinedMessage.sortedBy { it.timestamp }
     if(chatViewModel.query == "" && chatViewModelWithImage.query == "") {
         sendButtonEnabled.value = false
@@ -156,28 +169,12 @@ DisposableEffect(Unit)
 {
     onDispose { audioViewModel.stopTextToSpeech() }
 }
-
-
-
-
-
         Column(modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
             ) {
 
-            AnimatedVisibility(imageDialog)
-            {
 
-                ImageDialog(setShowDialog = {imageDialog = it
-                    Log.d("main","jere herere")
-
-                }, chatViewModelWithImage,{
-                    //setZeroOffset=it
-
-                })
-
-
-            }
 //            Row() {
 //                IconButton(
 //                    onClick = {
@@ -189,85 +186,158 @@ DisposableEffect(Unit)
 //                    Icon(painter = painterResource(id = R.drawable.save_alt), contentDescription =null )
 //                }
 //            }
-            Spacer(modifier = Modifier
-                .fillMaxWidth()
-                .height(20.dp))
-
+//            Spacer(modifier = Modifier
+//                .fillMaxWidth()
+//                .height(20.dp))
             MessagesList(messages = sortedCombinedMessages, viewModel = viewModel , audioViewModel = audioViewModel , chatViewModel = chatViewModel)
+            var sheetState= rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
 
-
-
+            var scaffoldState = rememberBottomSheetScaffoldState(sheetState
+            )
+//val modalState= rememberModalBottomSheetState()
             // Input field and send button
+            Column() {
+                AnimatedVisibility(
+                    visible = isImageMode.value,
+                    modifier = Modifier.fillMaxHeight(0.20f)
+                ) {
+                    HorizontalImageList(chatViewModelWithImage = chatViewModelWithImage)
 
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.CenterHorizontally)
-                .padding(horizontal = 8.dp, vertical = 16.dp)
-            )
-            {
-                val infiniteTransition= rememberInfiniteTransition(label = "circular motion")
-                val rotatedAnimation=infiniteTransition.animateFloat(label = "circular motion",
-                    initialValue = 0f,
-                    targetValue = 360f,
-                    animationSpec = infiniteRepeatable(tween(1000, easing = LinearEasing))
-                )
-                val rainbowColors = listOf(
-                    Color.Red,
-                    Color(0xFFFF7F00), // Orange
-                    Color.Yellow,
-                    Color.Green,
-                    Color.Blue,
-                    Color(0xFF4B0082), // Indigo
-                    Color(0xFF8B00FF)  // Violet
-                )
 
-                val rainbowColorsBrush = Brush.linearGradient(
-                    colors = rainbowColors,
-                    start = Offset.Zero,
-                    end = Offset(100f, 0f)
-                )
-
-                AnimatedVisibility(visible = isImageMode.value,modifier=Modifier.fillMaxHeight()) {
-                    IconButton(onClick = {imageDialog=true},modifier=Modifier.align(Alignment.CenterVertically)
-                        )
-                    {
-Icon(painterResource(id = R.drawable.baseline_camera_24),contentDescription = "more photos",modifier= Modifier
-    .size(30.dp)
-    .align(Alignment.CenterVertically)
-    .drawBehind {
-        rotate(rotatedAnimation.value) {
-            drawCircle(
-                rainbowColorsBrush,
-                style = Stroke(2f)
-            )
-        }
-    })
-                    }
                 }
-val context= LocalContext.current
-                OutlinedTextField(
-                    value = if(!isImageMode.value) {chatViewModel.query} else { chatViewModelWithImage.query},
-                    onValueChange = { if(!isImageMode.value) {chatViewModel.query = it} else {chatViewModelWithImage.query = it} },
+                Row(
                     modifier = Modifier
-                        .weight(1f)
-                        .heightIn(min = 40.dp, max = 200.dp)
-                        .verticalScroll(rememberScrollState())
-                        .wrapContentSize()
-                        .align(Alignment.CenterVertically)
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min)
+                        .align(Alignment.CenterHorizontally)
+                        .animateContentSize()
+
+                        .background(Color(0xff1E1E1E))
+                        .padding(horizontal = 8.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                )
+                {
+//                    val infiniteTransition = rememberInfiniteTransition(label = "circular motion")
+//                    val rotatedAnimation = infiniteTransition.animateFloat(
+//                        label = "circular motion",
+//                        initialValue = 0f,
+//                        targetValue = 360f,
+//                        animationSpec = infiniteRepeatable(tween(1000, easing = LinearEasing))
+//                    )
+//                    val rainbowColors = listOf(
+//                        Color.Red,
+//                        Color(0xFFFF7F00), // Orange
+//                        Yellow,
+//                        Green,
+//                        Color.Blue,
+//                        Color(0xFF4B0082), // Indigo
+//                        Color(0xFF8B00FF)  // Violet
+//                    )
+//
+//                    val rainbowColorsBrush = Brush.linearGradient(
+//                        colors = rainbowColors,
+//                        start = Offset.Zero,
+//                        end = Offset(100f, 0f)
+//                    )
+//                    AnimatedVisibility(
+//                        visible = isImageMode.value,
+//                        modifier = Modifier.fillMaxHeight()
+//                    ) {
+//                        IconButton(
+//                            onClick = { imageDialog = true },
+//                            modifier = Modifier.align(Alignment.CenterVertically)
+//                        )
+//                        {
+//                            Icon(painterResource(id = R.drawable.baseline_camera_24),
+//                                contentDescription = "more photos",
+//                                modifier = Modifier
+//                                    .size(30.dp)
+//                                    .align(Alignment.CenterVertically)
+//                                    .drawBehind {
+//                                        rotate(rotatedAnimation.value) {
+//                                            drawCircle(
+//                                                rainbowColorsBrush,
+//                                                style = Stroke(2f)
+//                                            )
+//                                        }
+//                                    })
+//                        }
+//                    }
+
+                    val context = LocalContext.current
+                    OutlinedTextField(
+                        value = if (!isImageMode.value) {
+                            chatViewModel.query
+                        } else {
+                            chatViewModelWithImage.query
+                        },
+                        onValueChange = {
+                            if (!isImageMode.value) {
+                                chatViewModel.query = it
+                            } else {
+                                chatViewModelWithImage.query = it
+                            }
+                        },
+                        modifier = Modifier
+                            // .weight(1f)
+                            .heightIn(min = 40.dp, max = 200.dp)
+                           .fillMaxWidth(0.88f)
+                        //    .width(IntrinsicSize.Max)
+                            //          .verticalScroll(rememberScrollState())
+                            //.wrapContentSize()
+                            .animateContentSize()
+                            .align(Alignment.CenterVertically)
 
                         // .border(1.dp, Color.White, RoundedCornerShape(20.dp))
-                        .width(328.dp),
-                    colors= TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color.White),
-                    shape = MaterialTheme.shapes.extraLarge,
+                        // .width(328.dp)
+                        ,
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = Color.White
+                        ),
+                        shape = MaterialTheme.shapes.extraLarge,
 
-                    placeholder = { Text(
-                        text = "Type in your question",
-                        modifier = Modifier.fillMaxHeight(),
-                        fontSize = 20.sp,
-                    )} ,
-                    singleLine = false,
-                    trailingIcon = {
+                        placeholder = {
+                            Text(
+                                text = "Type in your question",
+                                modifier = Modifier.fillMaxHeight(),
+                                fontSize = 20.sp,
+                            )
+                        },
+                        singleLine = false,
+//                        trailingIcon = {
+//
+//                        },
+                        maxLines = Int.MAX_VALUE
+
+                    )
+                    val scope = rememberCoroutineScope()
+                    Column(){
+                    Box(modifier = Modifier.fillMaxWidth().scale(0.60f)
+                        .requiredHeight(0.dp).padding(bottom = 4.dp)
+                        ) {
+                        Switch(
+                            checked = isImageMode.value,
+                            onCheckedChange = {
+                                modeViewModel.setMode(!isImageMode.value)
+                                chatViewModel.query = ""
+                                chatViewModelWithImage.query = ""
+                                scope.launch {
+                                    //  modalSheetState= ModalBottomSheetValue.Expanded
+                                }
+                            },
+                            modifier = Modifier
+
+                                .align(Alignment.TopCenter),
+                            colors = SwitchDefaults.colors(
+                                checkedTrackColor = Color.White,
+                                checkedBorderColor = Color.White,
+                                checkedIconColor = Color.White,
+                                checkedThumbColor = Color.Black
+                            )
+                        )
+
+
+                    }
                         IconButton(
                             onClick = {
                                 // Add message to list and clear input field
@@ -284,10 +354,10 @@ val context= LocalContext.current
                                     {
                                         Toast.makeText(context,"Please add an Image",Toast.LENGTH_SHORT).show()
                                     }else{
-                                    chatViewModelWithImage.getResponseFromChatBot()
-                                    query.value = chatViewModelWithImage.query
-                                    messageQuery.add(ChatQuery(query = chatViewModelWithImage.query))
-                                    chatViewModelWithImage.query = ""}
+                                        chatViewModelWithImage.getResponseFromChatBot()
+                                        query.value = chatViewModelWithImage.query
+                                        messageQuery.add(ChatQuery(query = chatViewModelWithImage.query))
+                                        chatViewModelWithImage.query = ""}
                                     //chatViewModelWithImage.imageList.clear()
                                 }
 
@@ -297,7 +367,6 @@ val context= LocalContext.current
                             },
                             enabled = sendButtonEnabled.value,
                             modifier = Modifier
-                                .align(Alignment.CenterVertically)
                                 .padding(top = 5.dp),
                         ) {
                             Icon(
@@ -307,23 +376,10 @@ val context= LocalContext.current
                             )
                         }
 
-                    },
-                    maxLines = Int.MAX_VALUE
-
-                )
-Box(modifier=Modifier.fillMaxHeight()) {
-    Switch(checked=isImageMode.value, onCheckedChange = {modeViewModel.setMode(!isImageMode.value)
-                                                        chatViewModel.query=""
-        chatViewModelWithImage.query=""
-                                                        },modifier= Modifier
-        .scale(0.7f)
-        .align(Alignment.TopCenter),colors= SwitchDefaults.colors(checkedTrackColor = Color.White, checkedBorderColor = Color.White, checkedIconColor = Color.White, checkedThumbColor = Color.Black)
-    )
-
-
-
-}
+                    }
+                }
             }
+
         }
 
 }
@@ -391,7 +447,7 @@ fun MessagesList(messages: List<ChatQueryResponse>, viewModel: TypewriterViewMod
 
 
     LazyColumn(contentPadding = PaddingValues(bottom = 80.dp) , modifier = Modifier
-        .fillMaxHeight(0.85f)
+       // .fillMaxHeight(0.75f)
         .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         itemsIndexed(messages) {index, message ->
             val isSaved = remember { mutableStateOf(message.isSaved) }

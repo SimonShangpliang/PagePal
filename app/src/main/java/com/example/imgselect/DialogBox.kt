@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.animateValueAsState
@@ -14,6 +15,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -419,14 +421,15 @@ audioViewModel.justSpeech(listMeaning?.getOrNull(0)?.word ?: "", context = conte
 
 
 @Composable
-fun ImageList(bitmapList: List<Bitmap?>,chatViewModelWithImage: ChatViewModelWithImage) {
+fun ImageList(bitmap:Bitmap?,bitmapList: List<Bitmap?>,chatViewModelWithImage: ChatViewModelWithImage) {
     val scroll= rememberScrollState()
+
     if(bitmapList.size==0){
         Box(modifier=Modifier.fillMaxWidth()){
         Text("Add Images to send",modifier=Modifier.align(Alignment.Center))}
     }else{
     Column (modifier=Modifier.verticalScroll(scroll)){
-        bitmapList.forEach { bitmap ->
+//        bitmapList.forEach { bitmap ->
             if (bitmap != null) {
                 Row(modifier= Modifier
                     .fillMaxWidth()
@@ -457,7 +460,79 @@ fun ImageList(bitmapList: List<Bitmap?>,chatViewModelWithImage: ChatViewModelWit
                 )
             }
         }
-    }}
+    }
+//}
+}
+
+@Composable
+fun HorizontalImageList(chatViewModelWithImage: ChatViewModelWithImage) {
+
+    val bitmapList=chatViewModelWithImage.imageList.collectAsState().value
+    var imageDialog by remember{ mutableStateOf(false)
+    }
+    var currBitmap :Bitmap? by remember {
+        mutableStateOf(null)
+    }
+    AnimatedVisibility(imageDialog)
+    {
+        if(currBitmap!=null){
+        ImageDialog(currBitmap ,setShowDialog = {imageDialog = it
+            Log.d("main","jere herere")
+
+        }, chatViewModelWithImage,{
+        })}
+    }
+    val scroll= rememberScrollState()
+    if(bitmapList.size==0){
+//        Box(modifier=Modifier.fillMaxWidth()){
+//            Text("Add Images to send",modifier=Modifier.align(Alignment.Center))}
+    }else{
+      Row(modifier= Modifier
+          .horizontalScroll(scroll)
+          .animateContentSize()
+          .padding(horizontal = 5.dp)){
+            bitmapList.forEach { bitmap ->
+                if (bitmap != null) {
+                    Box(modifier= Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Color.Black, RoundedCornerShape(
+                                topStart = if (bitmap == bitmapList[0]) 10.dp else 0.dp,
+                                bottomStart = if (bitmap == bitmapList[0]) 10.dp else 0.dp,
+                                topEnd = if (bitmap == bitmapList[bitmapList.size - 1]) 10.dp else 0.dp,
+                                bottomEnd = if (bitmap == bitmapList[bitmapList.size - 1]) 10.dp else 0.dp
+                            )
+                        )
+                        .padding(5.dp)
+                        ) {
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth(0.8f)
+                                .clip(RoundedCornerShape(4.dp))
+                                .padding(5.dp)
+                                .clickable { currBitmap=bitmap
+                                           imageDialog=true},
+                            contentScale = ContentScale.FillHeight
+                        )
+                        IconButton(onClick = { /*TODO*/
+                            chatViewModelWithImage.removeBitmapFromList(bitmap)
+                        },modifier= Modifier
+                            .size(35.dp)
+                            .align(Alignment.TopEnd)
+                            .padding(end = 5.dp)) {
+                            Icon(Icons.Default.Delete,"delete_item",tint=Color.Gray)
+                        }
+                    }
+                } else {
+                    Text(
+                        text = "Image not available",
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+        }}
 }
 @OptIn(ExperimentalTextApi::class)
 @Composable
@@ -711,7 +786,7 @@ DisposableEffect(Unit){
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
-fun ImageDialog(
+fun ImageDialog(currBitmap: Bitmap?,
     setShowDialog: (Boolean) -> Unit,
     chatViewModelWithImage: ChatViewModelWithImage,
     setOffset: (Int)->Unit
@@ -738,7 +813,7 @@ fun ImageDialog(
                         .fillMaxWidth()
                 ) {
                     Text(
-                        text = "Images",
+                        text = "Image",
                         style = TextStyle(
                             fontFamily = MaterialTheme.typography.titleSmall.fontFamily,
                             fontWeight = FontWeight.Bold,
@@ -750,7 +825,7 @@ fun ImageDialog(
                             .align(Alignment.CenterHorizontally)
                     )
 
-                    ImageList(imageList.value,chatViewModelWithImage)
+                    ImageList(currBitmap,imageList.value,chatViewModelWithImage)
 
 
 
@@ -874,7 +949,9 @@ fun WebHistoryDialog(
             color = Color(0xff1E1E1E)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                Spacer(modifier = Modifier.height(10.dp).background(Color(0xff1E1E1E)))
+                Spacer(modifier = Modifier
+                    .height(10.dp)
+                    .background(Color(0xff1E1E1E)))
                 MySearchBar1(
                     placeHolder = "Search",
                     onQueryChanged = {query -> searchQuery.value = query}

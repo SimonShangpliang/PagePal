@@ -955,54 +955,52 @@ class MainActivity : ComponentActivity() {
                                     {
                                         OutlinedButton(onClick = {
 
-                                            scope.launch {
+                                            CoroutineScope(Dispatchers.IO).launch {
 
-                                                cropBox2=false
-                                                    setHeight=80.dp
+                                                cropBox2 = false
+                                                setHeight = 80.dp
                                                 delay(200)
 
-                                                if (currScreen == Screen.PdfScreen.route&&viewModel.docSelected.value) {
-                                                    CoroutineScope(Dispatchers.IO).launch {
-                                                        async {
-                                                            selectedBitmapSS =
-                                                                captureEntireScreen(
-                                                                    context = context,
-                                                                    window,
-                                                                    screenWidth,
-                                                                    screenHeight
-                                                                )
+                                                if (currScreen == Screen.PdfScreen.route && viewModel.docSelected.value) {
+                                                    //      CoroutineScope(Dispatchers.IO).launch {
+                                                    //         async {
+                                                    selectedBitmapSS =
+                                                        captureEntireScreen(
+                                                            context = context,
+                                                            window,
+                                                            screenWidth,
+                                                            screenHeight
+                                                        )
 
-                                                        }.await()
+                                                    //            }.await()
 
-                                                    }
+                                                    //      }
                                                 }
-                                            }
 
 
-                                            cropDone2=false
-                                            if (focus == true) {
-                                                startOffsetX = 0f
-                                                startOffsetY = 0f
-                                                endOffsetX = 0f
-                                                endOffsetY = 0f
-                                            } else {
-                                                startOffsetX = 300f
-                                                startOffsetY = 300f
-                                                endOffsetX = 600f
-                                                endOffsetY = 600f
-                                            }
-                                            photoTakenViewModel.setFocus(true)
-                                            focus = !focus
+
+                                                cropDone2 = false
+                                                if (focus == true) {
+                                                    startOffsetX = 0f
+                                                    startOffsetY = 0f
+                                                    endOffsetX = 0f
+                                                    endOffsetY = 0f
+                                                } else {
+                                                    startOffsetX = 300f
+                                                    startOffsetY = 300f
+                                                    endOffsetX = 600f
+                                                    endOffsetY = 600f
+                                                }
+                                                photoTakenViewModel.setFocus(true)
+                                                focus = !focus
 //                                            scope.launch{
 //                                                scaffoldState.bottomSheetState.collapse()}
-                                            if(focus==true)
-                                            {
-                                                setModifier(default_mod)
-                                            }else
-                                            {
-                                                setModifier(Modifier)
+                                                if (focus == true) {
+                                                    setModifier(default_mod)
+                                                } else {
+                                                    setModifier(Modifier)
+                                                }
                                             }
-
 
                                         }) {
                                             Text(text = "Crop Region",color=Color.LightGray)
@@ -1063,49 +1061,49 @@ class MainActivity : ComponentActivity() {
                                         .padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween)
                                     {
                                         OutlinedButton(onClick = {
-                                            cropBox3=false
-                                            setHeight=80.dp
+                                            CoroutineScope(Dispatchers.IO).launch {
 
+                                                cropBox3 = false
+                                                setHeight = 80.dp
+delay(200)
 
-                                            if (currScreen == Screen.PdfScreen.route&&viewModel.docSelected.value) {
-                                                CoroutineScope(Dispatchers.IO).launch {
-                                                    async {
-                                                        selectedBitmapSS =
-                                                            captureEntireScreen(
-                                                                context = context,
-                                                                window,
-                                                                screenWidth,
-                                                                screenHeight
-                                                            )
+                                                if (currScreen == Screen.PdfScreen.route && viewModel.docSelected.value) {
+                                    //                CoroutineScope(Dispatchers.IO).launch {
+                                     //                   async {
+                                                            selectedBitmapSS =
+                                                                captureEntireScreen(
+                                                                    context = context,
+                                                                    window,
+                                                                    screenWidth,
+                                                                    screenHeight
+                                                                )
 
-                                                    }.await()
+                                  //                      }.await()
 
+                                    //                }
+                                                }
+
+                                                cropDone3 = false
+                                                if (focus == true) {
+                                                    startOffsetX = 0f
+                                                    startOffsetY = 0f
+                                                    endOffsetX = 0f
+                                                    endOffsetY = 0f
+                                                } else {
+                                                    startOffsetX = 300f
+                                                    startOffsetY = 300f
+                                                    endOffsetX = 600f
+                                                    endOffsetY = 600f
+                                                }
+                                                photoTakenViewModel.setFocus(true)
+                                                focus = !focus
+
+                                                if (focus === true) {
+                                                    setModifier(default_mod)
+                                                } else {
+                                                    setModifier(Modifier)
                                                 }
                                             }
-
-                                            cropDone3=false
-                                            if (focus == true) {
-                                                startOffsetX = 0f
-                                                startOffsetY = 0f
-                                                endOffsetX = 0f
-                                                endOffsetY = 0f
-                                            } else {
-                                                startOffsetX = 300f
-                                                startOffsetY = 300f
-                                                endOffsetX = 600f
-                                                endOffsetY = 600f
-                                            }
-                                            photoTakenViewModel.setFocus(true)
-                                            focus = !focus
-
-                                            if(focus===true)
-                                            {
-                                                setModifier(default_mod)
-                                            }else
-                                            {
-                                                setModifier(Modifier)
-                                            }
-
 
                                         }) {
                                             Text(text = "Crop Region",color=Color.LightGray)
@@ -1147,8 +1145,6 @@ class MainActivity : ComponentActivity() {
 
                             }
 
-
-
                             ChatScreen(chatViewModel = chatViewModel, chatViewModelWithImage = chatViewModelWithImage , viewModel = typewriterViewModel,modeViewModel , audioViewModel = audioViewModel)
                         },
                         sheetPeekHeight = setHeight, // Set this to the desired height to show a peek of the bottom sheet
@@ -1161,9 +1157,6 @@ class MainActivity : ComponentActivity() {
                         Modifier
                             .fillMaxSize()
                             .zIndex(6f)
-//
-
-
                         ) {
 
 
