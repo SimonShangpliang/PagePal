@@ -490,6 +490,7 @@ fun HorizontalImageList(chatViewModelWithImage: ChatViewModelWithImage) {
       Row(modifier= Modifier
           .horizontalScroll(scroll)
           .animateContentSize()
+          .fillMaxHeight(0.2f)
           .padding(horizontal = 5.dp)){
             bitmapList.forEach { bitmap ->
                 if (bitmap != null) {

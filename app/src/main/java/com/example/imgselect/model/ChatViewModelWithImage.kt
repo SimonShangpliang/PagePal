@@ -96,6 +96,8 @@ class ChatViewModelWithImage: ViewModel() {
     }
 
     fun getResponseFromChatBot() {
+        _interpretUiState.value = InterpretUiState.Loading
+
         viewModelScope.launch {
             Log.d("imageList" , "There are ${imageList.value.size} images")
             Log.d("imageList" , query)
@@ -114,10 +116,14 @@ class ChatViewModelWithImage: ViewModel() {
             try {
                 val responseText = generativeModel.generateContent(inputContent).text.toString()
                 Log.d("responseTextforImage", responseText)
+                _interpretUiState.value = InterpretUiState.Success(responseText)
+
                 val updatedResponse = _messages.value.orEmpty() + ChatQueryResponse(responseText , false , System.currentTimeMillis())
                 _messages.value = updatedResponse
                 _response.postValue(responseText)
             } catch (e: Exception) {
+                _interpretUiState.value = InterpretUiState.Error(e.localizedMessage ?: "Error interpreting image")
+
                 Log.e("getResponseFromChatBot", "Error generating content: ${e.message}", e)
             }
 

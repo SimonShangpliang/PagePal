@@ -22,13 +22,16 @@ import com.example.imgselect.data.Summary
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.generationConfig
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonNull.content
 
 
 class ChatViewModel(application: Application): AndroidViewModel(application) {
-
+    private val _uiState: MutableStateFlow<ChatUiState> = MutableStateFlow(ChatUiState.Initial)
+    val uiState=_uiState.asStateFlow()
 
     private var generativeModel: GenerativeModel
     var query: String by mutableStateOf("")
@@ -100,22 +103,35 @@ class ChatViewModel(application: Application): AndroidViewModel(application) {
 
 
     fun getResponseFromChatBot(onText:(String)->Unit) {
+        _uiState.value= ChatUiState.Loading
+
         viewModelScope.launch {
             try {
                 //Log.d("finalQuery" , imageText)
                 val updatedMessages = _messages.value.orEmpty() + ChatQueryResponse(query, true , System.currentTimeMillis())
                 _messages.value = updatedMessages
                val responseText = generativeModel.generateContent(query).text.toString()
+                _uiState.value = ChatUiState.Success(responseText)
+
                 val updatedResponse = _messages.value.orEmpty() + ChatQueryResponse(responseText , false , System.currentTimeMillis())
                 _messages.value = updatedResponse
                 _response.postValue(responseText)
                 Log.d("ChatViewModel", "Response updated to: $response")
             } catch(e: Exception) {
+                _uiState.value=
+                    ChatUiState.Error(e.localizedMessage ?: "Error in Generating content")
                 Log.e("getResponseFromChatBot", "Error generating content: ${e.message}", e)
             }
 
         }
     }
 
+
+}
+sealed interface ChatUiState{
+    object Initial: ChatUiState
+    object Loading: ChatUiState
+    data class Success(val outputText:String): ChatUiState
+    data class Error(val error:String): ChatUiState
 
 }

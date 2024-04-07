@@ -59,10 +59,9 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
 
                     text(prompt)
                 }
-                //var output=""
+                //var output=""                _uiState.value = DiscussUiState.Success(output)
                 output+= generativeModel.generateContent(content).text
 
-                _uiState.value = DiscussUiState.Success(output)
                 Log.d("MainActivity","Response done")
 
 //                generativeModel.generateContentStream(content).collect{

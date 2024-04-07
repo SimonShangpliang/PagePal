@@ -3,8 +3,10 @@ package com.example.imgselect
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColor
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -90,6 +92,7 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Green
@@ -120,9 +123,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.example.imgselect.animations.LoadingAnimation
 import com.example.imgselect.data.Chat
+import com.example.imgselect.model.ChatUiState
 import com.example.imgselect.model.ChatViewModel
 import com.example.imgselect.model.ChatViewModelWithImage
 import com.example.imgselect.model.DiscussUiState
+import com.example.imgselect.model.InterpretUiState
 import com.example.imgselect.model.ModeViewModel
 import com.example.imgselect.ui.theme.OpenSans
 import com.example.imgselect.ui.theme.Purple80
@@ -151,6 +156,8 @@ fun ChatScreen(chatViewModel: ChatViewModel  , chatViewModelWithImage: ChatViewM
     var query  = remember { mutableStateOf("") }
     val isImageMode=modeViewModel.isImageMode.collectAsState()
     val combinedMessage = message + messageFromImageQuery
+   val chatUiState=chatViewModel.uiState.collectAsState()
+    val interpretUiState= chatViewModelWithImage.interpretUiState.collectAsState()
 
     val sortedCombinedMessages = combinedMessage.sortedBy { it.timestamp }
     if(chatViewModel.query == "" && chatViewModelWithImage.query == "") {
@@ -173,33 +180,30 @@ DisposableEffect(Unit)
             .fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
             ) {
-
-
-//            Row() {
-//                IconButton(
-//                    onClick = {
-//                        val content = Chat(0,message = combinedMessage)
-//                        chatViewModel.saveChat(content)
-//                    },
-//                    modifier = Modifier.background(Color.Transparent,CircleShape)
-//                ) {
-//                    Icon(painter = painterResource(id = R.drawable.save_alt), contentDescription =null )
-//                }
-//            }
-//            Spacer(modifier = Modifier
-//                .fillMaxWidth()
-//                .height(20.dp))
+            Column(modifier = Modifier.weight(1f)){
+                Spacer(modifier= Modifier
+                    .fillMaxWidth()
+                    .height(20.dp))
             MessagesList(messages = sortedCombinedMessages, viewModel = viewModel , audioViewModel = audioViewModel , chatViewModel = chatViewModel)
+        if(chatUiState.value== ChatUiState.Loading||interpretUiState.value==InterpretUiState.Loading) {
+                    LoadingAnimation(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        circleSize = 16.dp,
+                        spaceBetween = 7.dp,
+                        travelDistance = 13.dp
+                    )
+                }
+            }
             var sheetState= rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
 
             var scaffoldState = rememberBottomSheetScaffoldState(sheetState
             )
 //val modalState= rememberModalBottomSheetState()
             // Input field and send button
-            Column() {
+            Column(modifier=Modifier) {
                 AnimatedVisibility(
                     visible = isImageMode.value,
-                    modifier = Modifier.fillMaxHeight(0.20f)
+                    modifier = Modifier
                 ) {
                     HorizontalImageList(chatViewModelWithImage = chatViewModelWithImage)
 
@@ -217,29 +221,7 @@ DisposableEffect(Unit)
                     horizontalArrangement = Arrangement.SpaceBetween
                 )
                 {
-//                    val infiniteTransition = rememberInfiniteTransition(label = "circular motion")
-//                    val rotatedAnimation = infiniteTransition.animateFloat(
-//                        label = "circular motion",
-//                        initialValue = 0f,
-//                        targetValue = 360f,
-//                        animationSpec = infiniteRepeatable(tween(1000, easing = LinearEasing))
-//                    )
-//                    val rainbowColors = listOf(
-//                        Color.Red,
-//                        Color(0xFFFF7F00), // Orange
-//                        Yellow,
-//                        Green,
-//                        Color.Blue,
-//                        Color(0xFF4B0082), // Indigo
-//                        Color(0xFF8B00FF)  // Violet
-//                    )
-//
-//                    val rainbowColorsBrush = Brush.linearGradient(
-//                        colors = rainbowColors,
-//                        start = Offset.Zero,
-//                        end = Offset(100f, 0f)
-//                    )
-//                    AnimatedVisibility(
+                    //                    AnimatedVisibility(
 //                        visible = isImageMode.value,
 //                        modifier = Modifier.fillMaxHeight()
 //                    ) {
@@ -264,6 +246,37 @@ DisposableEffect(Unit)
 //                        }
 //                    }
 
+                    val infiniteTransition = rememberInfiniteTransition(label = "circular motion")
+                    val rotatedAnimation = infiniteTransition.animateFloat(
+                        label = "circular motion",
+                        initialValue = 0f,
+                        targetValue = 360f,
+                        animationSpec = infiniteRepeatable(tween(1000, easing = LinearEasing))
+                    )
+                    val rainbowColors = listOf(
+                        Color.Red,
+                        Color(0xFFFF7F00), // Orange
+                        Yellow,
+                        Green,
+                        Color.Blue,
+                        Color(0xFF4B0082), // Indigo
+                        Color(0xFF8B00FF)  // Violet
+                    )
+
+//                    val rainbowColorsBrush = Brush.linearGradient(
+//                        colors = rainbowColors,
+//                        start = Offset.Zero,
+//                        end = Offset(100f, 0f)
+//                    )
+//                    val transition = rememberInfiniteTransition()
+//                    val borderColor by transition.animateColor(
+//                        initialValue = Color.Black,
+//                        targetValue = Color.White,
+//                        animationSpec = infiniteRepeatable(
+//                            animation = tween(1000, easing = LinearEasing),
+//                            repeatMode = RepeatMode.Reverse
+//                        )
+//                    )
                     val context = LocalContext.current
                     OutlinedTextField(
                         value = if (!isImageMode.value) {
@@ -279,10 +292,22 @@ DisposableEffect(Unit)
                             }
                         },
                         modifier = Modifier
+//                            .drawBehind {
+//                                                                        rotate(rotatedAnimation.value) {
+//                                            drawCircle(
+//                                                rainbowColorsBrush,
+//                                                radius=size.width,
+//                                                blendMode = BlendMode.Src,
+//                                                style = Stroke(2f)
+//                                            )
+//                                        }
+//
+//                            }
+                            //    .border(2.dp,borderColor,MaterialTheme.shapes.extraLarge)
                             // .weight(1f)
-                            .heightIn(min = 40.dp, max = 200.dp)
-                           .fillMaxWidth(0.88f)
-                        //    .width(IntrinsicSize.Max)
+                            .heightIn(min = 40.dp, max = 150.dp)
+                            .fillMaxWidth(0.88f)
+                            //    .width(IntrinsicSize.Max)
                             //          .verticalScroll(rememberScrollState())
                             //.wrapContentSize()
                             .animateContentSize()
@@ -312,8 +337,11 @@ DisposableEffect(Unit)
                     )
                     val scope = rememberCoroutineScope()
                     Column(){
-                    Box(modifier = Modifier.fillMaxWidth().scale(0.60f)
-                        .requiredHeight(0.dp).padding(bottom = 4.dp)
+                    Box(modifier = Modifier
+                        .fillMaxWidth()
+                        .scale(0.60f)
+                        .requiredHeight(0.dp)
+                        .padding(bottom = 4.dp)
                         ) {
                         Switch(
                             checked = isImageMode.value,
@@ -446,9 +474,12 @@ fun MessagesList(messages: List<ChatQueryResponse>, viewModel: TypewriterViewMod
     val loading =viewModel.uiState.collectAsState().value
 
 
-    LazyColumn(contentPadding = PaddingValues(bottom = 80.dp) , modifier = Modifier
-       // .fillMaxHeight(0.75f)
-        .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+    LazyColumn(
+    //    contentPadding = PaddingValues(bottom = 80.dp)
+      //  ,
+        modifier = Modifier
+            .animateContentSize()
+            .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         itemsIndexed(messages) {index, message ->
             val isSaved = remember { mutableStateOf(message.isSaved) }
             if (message.fromUser == true) {
