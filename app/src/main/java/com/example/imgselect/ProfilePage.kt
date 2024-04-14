@@ -1,8 +1,13 @@
 package com.example.imgselect
 
+import android.content.Context
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -28,6 +33,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,6 +43,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,17 +68,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
+import com.example.imgselect.model.PhotoTakenViewModel
 import com.example.imgselect.ui.theme.Purple80
 import com.example.imgselect.ui.theme.PurpleGrey80
+import com.example.imgselect.ui.theme.backgroundcolor
 import com.example.imgselect.ui.theme.interestcolour
 import com.example.imgselect.ui.theme.profileborder
 
 
 @Composable
 fun ProfileScreen(navController: NavController) {
-    Surface(modifier = Modifier.fillMaxSize(),
-        color = Color.Black) {
-        Column {
+
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .background(color = backgroundcolor)
+        ) {
             HeadlineText(text = "Profile")
             Spacer(modifier = Modifier.size(28.dp))
             RoundImage(
@@ -84,9 +96,8 @@ fun ProfileScreen(navController: NavController) {
             Introdution()
             Spacer(modifier = Modifier.size(72.dp))
             Interests()
-
         }
-    }}
+    }
 
 
 
@@ -116,6 +127,7 @@ fun RoundImage(
 
 ) {
 
+
     Row(modifier = Modifier.padding(horizontal = 20.dp)) {
         Box {
             Image(
@@ -124,27 +136,34 @@ fun RoundImage(
                     .aspectRatio(1f, matchHeightConstraintsFirst = true)
                     .border(borderWidth.dp, color = color, shape = CircleShape)
                     .padding(4.dp)
-                    .clip(CircleShape)
-            )
-        }
-    }
+                    .clip(CircleShape))
+                    }}
 
-}
+        }
+
 
 
 
 @Composable
 fun Introdution() {
+    var showDialog by remember { mutableStateOf(false) }
+    val context: Context = LocalContext.current
+    val Sharedpreferences = remember {
+        ProfileData(context)
+    }
+    var name= remember {
+        mutableStateOf(Sharedpreferences.name)
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Black)
+            .background(backgroundcolor)
             .height(41.dp)
             .padding(horizontal = 20.dp), horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(modifier = Modifier.height(41.dp)) {
             Text(
-                text = "Mayank Choudhary",
+                text =name.value ,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -157,16 +176,64 @@ fun Introdution() {
             )
         }
         OutlinedButton(
-            onClick = { /*TODO*/ }, modifier = Modifier
+            onClick = { showDialog=true }, modifier = Modifier
                 .height(42.dp)
-                .background(Color.Black)
+                .background(backgroundcolor)
         ) {
             Text(
-                text = "Edit Profile",
+                text = "Edit Username",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color.White
             )
+            if (showDialog){
+                Dialog(onDismissRequest = { showDialog = false }) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .background(
+                                backgroundcolor,
+                                RoundedCornerShape(4.dp)
+                            )
+                            .border(
+                                1.dp,
+                                MaterialTheme.colors.onBackground,
+                                RoundedCornerShape(8.dp)
+                            )
+                            .padding(20.dp)
+                            .align(Alignment.CenterVertically)
+                    ) {
+                        Column {
+                            androidx.compose.material.Text(
+                                text = "Username:",
+                                color = Color.White,
+                                fontSize = 18.sp,
+
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            OutlinedTextField(
+                                value =name.value ,
+                                onValueChange = { name.value = it },
+                                modifier = Modifier
+                                    .border(1.dp, Color.White)
+                                    .fillMaxWidth()
+                                    .height(48.dp),
+                                textStyle = TextStyle(
+                                    color = Color.White
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(15.dp))
+
+                            androidx.compose.material.Button(onClick = {
+                               Sharedpreferences.name=name.value
+                                showDialog = false
+                            }) {
+                                androidx.compose.material.Text(text = "Save")
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

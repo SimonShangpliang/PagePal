@@ -9,6 +9,9 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.imgselect.Genre
+import com.example.imgselect.Website
+import com.example.imgselect.WebsiteRecommand
 
 @Database(entities = [Meaning::class , Summary::class, Web::class] , version = 8, exportSchema = false)
 @TypeConverters(Converters::class)
@@ -76,4 +79,19 @@ abstract class LocalStorageDatabaseForChat: RoomDatabase() {
         }
     }
 }
-
+@Database(entities =[Website::class, Genre::class], version = 1)
+abstract class WebsiteDatabase : RoomDatabase() {
+    abstract fun websiteRecommand() : WebsiteRecommand
+    companion object {
+        @Volatile
+        private var Instance: WebsiteDatabase? = null
+        fun getDatabase(context: Context): WebsiteDatabase {
+            // if the Instance is not null, return it, otherwise create a new database instance.
+            return Instance ?: synchronized(this) {
+                Room.databaseBuilder(context, WebsiteDatabase::class.java, "website_database")
+                    .build()
+                    .also { Instance = it }
+            }
+        }
+    }
+}
