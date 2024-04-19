@@ -78,6 +78,7 @@ import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -93,6 +94,7 @@ import kotlinx.coroutines.delay
 import kotlin.streams.toList
 import com.example.imgselect.data.Summary
 import com.example.imgselect.data.Web
+import com.example.imgselect.data.WebBookMarked
 import com.example.imgselect.model.ChatViewModelWithImage
 import com.example.imgselect.model.InterpretUiState
 import com.example.imgselect.model.WebHistoryViewModel
@@ -193,7 +195,7 @@ val context= LocalContext.current
                                         .align(Alignment.CenterVertically),onClick = { /*TODO*/
 audioViewModel.justSpeech(listMeaning?.getOrNull(0)?.word ?: "", context = context)
                                     }) {
-                                        Icon(painter= painterResource(id = R.drawable.baseline_volume_up_24),"speak")
+                                        Icon(painter= painterResource(id = R.drawable.baseline_volume_up_24),"speak",tint=Color.White)
 
                                     }
                                 }
@@ -513,8 +515,10 @@ fun HorizontalImageList(chatViewModelWithImage: ChatViewModelWithImage) {
                                 .fillMaxWidth(0.8f)
                                 .clip(RoundedCornerShape(4.dp))
                                 .padding(5.dp)
-                                .clickable { currBitmap=bitmap
-                                           imageDialog=true},
+                                .clickable {
+                                    currBitmap = bitmap
+                                    imageDialog = true
+                                },
                             contentScale = ContentScale.FillHeight
                         )
                         IconButton(onClick = { /*TODO*/
@@ -590,7 +594,7 @@ val context= LocalContext.current
                                 .align(Alignment.CenterVertically),onClick = { /*TODO*/
                                     audioViewModel.justSpeech(appUiState.outputText,context)
                             }) {
-                                Icon(painter= painterResource(id = R.drawable.baseline_volume_up_24),"speak")
+                                Icon(painter= painterResource(id = R.drawable.baseline_volume_up_24),"speak", tint=Color.White)
 
                             }}
                             else-> {}
@@ -631,7 +635,7 @@ val context= LocalContext.current
                         colors = ButtonDefaults.buttonColors(
                             // Change the background color here
                             contentColor = Color.White,
-                            containerColor = Color.Green// Change the text color here
+                            containerColor = lighterPurple// Change the text color here
                         ),
                         modifier = Modifier
                             .height(50.dp)
@@ -655,7 +659,7 @@ val context= LocalContext.current
                         colors = ButtonDefaults.buttonColors(
                             // Change the background color here
                             contentColor = Color.White,
-                            containerColor = Color.Green// Change the text color here
+                            containerColor = lighterPurple// Change the text color here
                         ),
                         modifier = Modifier
                             .height(50.dp)
@@ -726,7 +730,7 @@ DisposableEffect(Unit){
                                     .align(Alignment.CenterVertically),onClick = { /*TODO*/
                                     audioViewModel.justSpeech(interpretUiState.responseText,context)
                                 }) {
-                                    Icon(painter= painterResource(id = R.drawable.baseline_volume_up_24),"speak")
+                                    Icon(painter= painterResource(id = R.drawable.baseline_volume_up_24),"speak",tint=Color.White)
 
                                 }}
                                 else-> {}
@@ -766,7 +770,7 @@ DisposableEffect(Unit){
                         colors = ButtonDefaults.buttonColors(
                             // Change the background color here
                             contentColor = Color.White,
-                            containerColor = Color.Green// Change the text color here
+                            containerColor = lighterPurple// Change the text color here
                         ),
                         modifier = Modifier
                             .height(50.dp)
@@ -856,7 +860,7 @@ fun ImageDialog(currBitmap: Bitmap?,
                         colors = ButtonDefaults.buttonColors(
                             // Change the background color here
                             contentColor = Color.White,
-                            containerColor = Color.Green// Change the text color here
+                            containerColor = lighterPurple// Change the text color here
                         ),
                         modifier = Modifier
                             .height(50.dp)
@@ -927,6 +931,8 @@ fun String.splitToCodePoints(): List<String> {
 fun WebHistoryDialog(
     setShowDialog: (Boolean) -> Unit,
     history :List<Web>,
+    webBookMarked: List<WebBookMarked>,
+
     webHistoryViewModel: WebHistoryViewModel,
     setUrl:(String)->Unit
 ) {
@@ -936,11 +942,19 @@ fun WebHistoryDialog(
         history
     } else {
         history.filter { website->
-            website.website?.contains(searchQuery.value , ignoreCase = true) ?: false
+            website.title?.contains(searchQuery.value , ignoreCase = true) ?: false
         }
     }
 
+    val updatedBookmarked = if(searchQuery.value.isEmpty()) {
+        webBookMarked
+    } else {
+        webBookMarked.filter { webBookMarked->
+            webBookMarked.title?.contains(searchQuery.value , ignoreCase = true) ?: false
+        }
+    }
 
+var isBookmarkedScreen by remember{ mutableStateOf(false) }
 
     Dialog(onDismissRequest = { setShowDialog(false) }
     ) {
@@ -953,58 +967,151 @@ fun WebHistoryDialog(
                 Spacer(modifier = Modifier
                     .height(10.dp)
                     .background(Color(0xff1E1E1E)))
+                Text(
+                    text = if(isBookmarkedScreen)
+                        "Bookmarks" else "History",
+                    style = TextStyle(
+                        fontFamily = MaterialTheme.typography.titleSmall.fontFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 32.sp),
+                    color = Color.White,
+
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
                 MySearchBar1(
                     placeHolder = "Search",
                     onQueryChanged = {query -> searchQuery.value = query}
                 )
+                Row(modifier=Modifier.fillMaxWidth(0.8f).padding(10.dp).height(40.dp).clip(RoundedCornerShape(10.dp)).align(Alignment.CenterHorizontally), horizontalArrangement = Arrangement.Center)
+                {
+                    Box(modifier=Modifier.fillMaxWidth(0.5f).fillMaxHeight().clickable {
+
+                            isBookmarkedScreen=false
+
+
+                    }.background(color=if(isBookmarkedScreen) Color.Black else lighterPurple )){
+                        Text("History",modifier= Modifier.align(Alignment.Center),color=if(isBookmarkedScreen) Color.White else Color.Black)
+                    }
+
+                    Box(modifier=Modifier.fillMaxWidth(1f).fillMaxHeight().clickable {
+                       isBookmarkedScreen=true
+
+                    }.background(color=if(!isBookmarkedScreen) Color.Black else lighterPurple )){
+                        Text("Bookmarks",modifier= Modifier.align(Alignment.Center),color=if(!isBookmarkedScreen) Color.White else Color.Black)
+                    }
+
+                }
+
+
                 Column(
                     modifier = Modifier
                         .background(Color(0xff1E1E1E))
                         .fillMaxHeight(0.88f)
                         .fillMaxWidth()
                 ) {
-                    Text(
-                        text = "History",
-                        style = TextStyle(
-                            fontFamily = MaterialTheme.typography.titleSmall.fontFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 32.sp),
-                        color = Color.White,
 
-                        modifier = Modifier
-                            .padding(20.dp)
-                            .align(Alignment.CenterHorizontally)
-                    )
+                    if(isBookmarkedScreen){
+                        LazyColumn(
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier.fillMaxSize(), // Ensure the LazyColumn takes up all available space
 
-                    LazyColumn(
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        modifier = Modifier.fillMaxSize(), // Ensure the LazyColumn takes up all available space
-
-                    ) {
-                        items(updatedHistory.sortedByDescending { it.date }){ web ->
-                            Box(
-                                modifier = Modifier
-                                    .background(Color.Black)
-                                    .clickable {
-                                        setUrl(web.website ?: "www.google.com")
-                                    }
-                                    .padding(8.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Row() {
-                                    Text(text = web.website ?: "Unknown Website", color = Color.White, maxLines = 1,modifier=Modifier.fillMaxWidth(0.8f))
-                                    IconButton(onClick = {
-                                        CoroutineScope(Dispatchers.IO).launch{
-                                            webHistoryViewModel.deleteWeb(web)
+                        ) {
+                            items(updatedBookmarked.sortedByDescending { it.date }) { web ->
+                                Box(
+                                    modifier = Modifier
+                                        .background(Color.Black)
+                                        .clickable {
+                                            setUrl(web.website ?: "www.google.com")
+                                        }
+                                        .padding(8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Row() {
+                                        Column(Modifier.fillMaxWidth(0.8f)){
+                                        Text(
+                                            text = web.title ?: "Unknown Website",
+                                            color = Color.White,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.fillMaxWidth(1f)
+                                        )
+                                            Text(
+                                                text = web.website ?: "Unknown Website",
+                                                color = Color.Gray,
+                                                style = TextStyle(fontStyle = FontStyle.Italic),
+                                                        fontSize = 10.sp,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier.fillMaxWidth(1f)
+                                            )
 
                                         }
-                                    }) {
-                                        Icon(Icons.Default.Delete,"delete",tint=Color.White)
+                                        IconButton(onClick = {
+                                            CoroutineScope(Dispatchers.IO).launch {
+                                                webHistoryViewModel.deleteWebBookmarked(web)
+
+                                            }
+                                        }) {
+                                            Icon(Icons.Default.Delete, "delete", tint = Color.White)
+                                        }
                                     }
                                 }
-                            }                        }
-                    }
 
+                            }
+                        }
+
+
+                    }else {
+                        LazyColumn(
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier.fillMaxSize(), // Ensure the LazyColumn takes up all available space
+
+                        ) {
+                            items(updatedHistory.sortedByDescending { it.date }) { web ->
+                                Box(
+                                    modifier = Modifier
+                                        .background(Color.Black)
+                                        .clickable {
+                                            setUrl(web.website ?: "www.google.com")
+                                        }
+                                        .padding(8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Row() {
+                                        Column(Modifier.fillMaxWidth(0.8f)){
+                                            Text(
+                                                text = web.title ?: "Unknown Website",
+                                                color = Color.White,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier.fillMaxWidth(1f)
+                                            )
+                                            Text(
+                                                text = web.website ?: "Unknown Website",
+                                                color = Color.Gray,
+                                                style = TextStyle(fontStyle = FontStyle.Italic),
+                                                fontSize = 10.sp,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier.fillMaxWidth(1f)
+                                            )
+
+                                        }
+                                        IconButton(onClick = {
+                                            CoroutineScope(Dispatchers.IO).launch {
+                                                webHistoryViewModel.deleteWeb(web)
+
+                                            }
+                                        }) {
+                                            Icon(Icons.Default.Delete, "delete", tint = Color.White)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                 }
 
@@ -1025,7 +1132,7 @@ fun WebHistoryDialog(
                         colors = ButtonDefaults.buttonColors(
                             // Change the background color here
                             contentColor = Color.White,
-                            containerColor = Color.Green// Change the text color here
+                            containerColor = lighterPurple// Change the text color here
                         ),
                         modifier = Modifier
                             .height(50.dp)
@@ -1072,26 +1179,26 @@ fun MySearchBar1(
                 .height(50.dp)
                 .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(1.dp))
                 .padding(horizontal = 20.dp)
-                .border(0.5.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(10.dp)),
+                ,
+
             placeholder = {
                 Text(
                     text = placeHolder,
                     color = Color.White.copy(alpha = 0.5f)
                 )
             },
-            colors = TextFieldDefaults.textFieldColors(
-                textColor = Color.White,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                placeholderColor = Color.White.copy(alpha = 0.5f)
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = Color.White,
+                textColor = Color.White
+
             ),
+            shape = MaterialTheme.shapes.extraLarge,
 
             trailingIcon = {
                 IconButton(onClick = { }) {
-                    Icon(painter = painterResource(id = R.drawable.search), contentDescription ="Search" )
+                    Icon(painter = painterResource(id = R.drawable.search), contentDescription ="Search" ,tint=Color.White)
                 }
-            },
-            shape = RoundedCornerShape(10.dp)
+            }
         )
     }
 }

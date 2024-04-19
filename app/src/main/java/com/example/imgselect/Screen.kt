@@ -3,6 +3,8 @@ package com.example.imgselect
 
 sealed class Screen(val route:String) {
     object WebViewScreen:Screen("web_view_screen")
+    object StartScreen:Screen("start_screen")
+
     object HomeScreen:Screen("home_view_screen")
     object ProfileScreen:Screen("profile_screen")
     object MainScreen:Screen("main_screen")

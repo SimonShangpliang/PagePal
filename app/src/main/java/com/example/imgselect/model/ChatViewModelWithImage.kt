@@ -123,7 +123,10 @@ class ChatViewModelWithImage: ViewModel() {
                 _response.postValue(responseText)
             } catch (e: Exception) {
                 _interpretUiState.value = InterpretUiState.Error(e.localizedMessage ?: "Error interpreting image")
-
+                val errorMessage = "Error in Generating content: ${e.localizedMessage ?: "Unknown error"}"
+                val errorResponse = _messages.value.orEmpty() + ChatQueryResponse(errorMessage, false, System.currentTimeMillis())
+                _messages.value = errorResponse
+                _response.postValue(errorMessage)
                 Log.e("getResponseFromChatBot", "Error generating content: ${e.message}", e)
             }
 

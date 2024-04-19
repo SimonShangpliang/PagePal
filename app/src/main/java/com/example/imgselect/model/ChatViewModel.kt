@@ -118,8 +118,13 @@ class ChatViewModel(application: Application): AndroidViewModel(application) {
                 _response.postValue(responseText)
                 Log.d("ChatViewModel", "Response updated to: $response")
             } catch(e: Exception) {
-                _uiState.value=
-                    ChatUiState.Error(e.localizedMessage ?: "Error in Generating content")
+                _uiState.value= ChatUiState.Error(e.localizedMessage ?: "Error in Generating content")
+                val errorMessage = "Error in Generating content: ${e.localizedMessage ?: "Unknown error"}"
+                val errorResponse = _messages.value.orEmpty() + ChatQueryResponse(errorMessage, false, System.currentTimeMillis())
+                _messages.value = errorResponse
+                _response.postValue(errorMessage)
+
+
                 Log.e("getResponseFromChatBot", "Error generating content: ${e.message}", e)
             }
 

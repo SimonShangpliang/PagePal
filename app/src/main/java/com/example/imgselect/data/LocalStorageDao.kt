@@ -56,6 +56,16 @@ interface WebDao {
     @Query("SELECT * FROM content_table_webHistory")
     fun readAllWeb(): LiveData<List<Web>>
 
+
+
+    @Query("SELECT * FROM content_table_bookMarked ")
+    fun readBookmarkedWeb(): LiveData<List<WebBookMarked>>
+
+    @Insert
+    fun addBookMarkedWeb(web: WebBookMarked)
+
+    @Delete
+    fun deleteBookMarkedWeb(web: WebBookMarked)
     @Query("SELECT SUBSTR(website, INSTR(website, '.') + 1, INSTR(website, '.com') - INSTR(website, '.') - 1) AS websiteName, COUNT(*) AS websiteCount FROM content_table_webHistory WHERE website NOT LIKE '%google.com%' GROUP BY websiteName ORDER BY websiteCount DESC")
     suspend fun getWebsiteCounts(): List<WebsiteCount>
 

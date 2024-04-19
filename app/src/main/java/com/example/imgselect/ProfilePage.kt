@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,6 +44,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -80,19 +82,13 @@ import com.example.imgselect.ui.theme.profileborder
 fun ProfileScreen(navController: NavController) {
 
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .background(color = backgroundcolor)
         ) {
             HeadlineText(text = "Profile")
             Spacer(modifier = Modifier.size(28.dp))
-            RoundImage(
-                image = painterResource(id = R.drawable.ic_launcher_background), modifier = Modifier
-                    .height(82.dp)
-                    .width(82.dp),
-                color = profileborder,
-                borderWidth = 1.4f
-            )
-            Spacer(modifier = Modifier.size(12.dp))
+
             Introdution()
             Spacer(modifier = Modifier.size(72.dp))
             Interests()
@@ -240,15 +236,20 @@ fun Introdution() {
 
 @Composable
 fun Interests() {
-    var interests = mutableListOf<String>()
-
-
+    val context= LocalContext.current
+    var interest =remember{ProfileData(context)}
+   var interests=interest.getInterests()
+    var count by remember{ mutableStateOf(0) }
+    LaunchedEffect(count)
+    {
+        interests=interest.getInterests()
+    }
     Card(
         modifier = Modifier
             .padding(horizontal = 20.dp)
-            .height(418.dp),
+            .height(440.dp),
         colors = CardDefaults.cardColors(
-            containerColor = interestcolour)
+            containerColor = Color(0x70424242))
     ) {
         Column(
             modifier = Modifier
@@ -260,27 +261,72 @@ fun Interests() {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(42.dp),
+                        .height(50.dp),
                     horizontalArrangement = Arrangement.Absolute.Center,
                 ) {
-                    InterestButton(name = "Fiction", selected = interests.contains("Fiction"))
-                    InterestButton(name = "Novel", selected = interests.contains("Novel"))
-                    InterestButton(name = "Narrative", selected = interests.contains("Narrative"))
+                    InterestButton({action,name->
+                        if(action=="add"){
+                                   interest.addInterest(name)
+                        count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },name = "Fiction", _selected = interests.contains("Fiction"))
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },name = "Novel", _selected = interests.contains("Novel"))
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },name = "Narrative", _selected = interests.contains("Narrative"))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(42.dp),
+                        .height(50.dp),
                     horizontalArrangement = Arrangement.Absolute.Center,
                 ) {
-                    InterestButton(
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },
                         name = "Historical Fiction",
-                        selected = interests.contains("Historical Fiction")
+                        _selected = interests.contains("Historical Fiction")
                     )
-                    InterestButton(
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },
                         name = "Non Fiction",
-                        selected = interests.contains("Non Fiction")
+                        _selected = interests.contains("Non Fiction")
                     )
                 }
 
@@ -288,84 +334,178 @@ fun Interests() {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(42.dp),
+                        .height(50.dp),
                     horizontalArrangement = Arrangement.Absolute.Center,
                 ) {
-                    InterestButton(name = "Romantic", selected = interests.contains("Romantic"))
-                    InterestButton(name = "Biography", selected = interests.contains("Biography"))
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },name = "Romantic", _selected = interests.contains("Romantic"))
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },name = "Biography", _selected = interests.contains("Biography"))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(42.dp),
+                        .height(50.dp),
                     horizontalArrangement = Arrangement.Absolute.Center,
                 ) {
-                    InterestButton(
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },
                         name = "Childern's literature",
-                        selected = interests.contains("Childern's literature")
+                        _selected = interests.contains("Childern's literature")
                     )
-                    InterestButton(name = "Thriller", selected = interests.contains("Thriller"))
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },name = "Thriller", _selected = interests.contains("Thriller"))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(42.dp),
+                        .height(50.dp),
                     horizontalArrangement = Arrangement.Absolute.Center,
                 ) {
-                    InterestButton(name = "Sci-Fi", selected = interests.contains("Sci-Fi"))
-                    InterestButton(name = "Mystery", selected = interests.contains("Mystery"))
-                    InterestButton(name = "History", selected = interests.contains("History"))
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },name = "Sci-Fi", _selected = interests.contains("Sci-Fi"))
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },name = "Mystery", _selected = interests.contains("Mystery"))
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },name = "History", _selected = interests.contains("History"))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(42.dp),
+                        .height(50.dp),
                     horizontalArrangement = Arrangement.Absolute.Center,
                 ) {
-                    InterestButton(name = "Poetry", selected = interests.contains("Poetry"))
-                    InterestButton(name = "Horror", selected = interests.contains("Horror"))
-                    InterestButton(name = "Crime", selected = interests.contains("Crime"))
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },name = "Poetry", _selected = interests.contains("Poetry"))
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },name = "Horror", _selected = interests.contains("Horror"))
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },name = "Crime", _selected = interests.contains("Crime"))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(42.dp),
+                        .height(50.dp),
                     horizontalArrangement = Arrangement.Absolute.Center,
                 ) {
-                    InterestButton(
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },
                         name = "AutoBiography",
-                        selected = interests.contains("AutoBiography")
+                        _selected = interests.contains("AutoBiography")
                     )
-                    InterestButton(name = "Cookbook", selected = interests.contains("Cookbook"))
+                    InterestButton({action,name->
+                        if(action=="add"){
+                            interest.addInterest(name)
+                            count++}
+                        else
+                        {
+                            count++
+                            interest.removeInterest(name)
+                        }
+                    },name = "Cookbook", _selected = interests.contains("Cookbook"))
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(horizontalArrangement = Arrangement.Center, modifier = Modifier
-                .fillMaxWidth()
-                .height(18.dp)) {
-                Text(
-                    text = "Show More",
-                    modifier = Modifier.clickable(onClick = {}),
-                    color = PurpleGrey80,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+
         }
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun InterestButton(name: String, selected: Boolean) {
-    var _selected by remember {
-        mutableStateOf(selected)
-    }
+fun InterestButton(onClick:(String,String)->Unit,name: String, _selected: Boolean) {
 
     var ran = (1..2).random()
     val bb = if (_selected) {
@@ -375,22 +515,22 @@ fun InterestButton(name: String, selected: Boolean) {
     Box(
         modifier = Modifier
             .padding(horizontal = 1.dp)
-            .border(1.dp, Color.Black, shape = CircleShape)
             .background(
                 bb,
                 RoundedCornerShape(20.dp)
             )
+            .border(1.dp, Color.Black, shape = RoundedCornerShape(20.dp))
+
             .clickable {
                 if (_selected) {
-                    _selected = false
-
+                    onClick("remove", name)
                 } else {
-                    _selected = true
+                    onClick("add", name)
                 }
             }
             .padding(vertical = 5.dp)
     ) {
-        Row(modifier = Modifier.padding(horizontal = 2.dp), horizontalArrangement = Arrangement.Center) {
+        Row(modifier = Modifier.padding(horizontal = 0.dp).fillMaxHeight(), horizontalArrangement =Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "   $name   ",
                 fontSize = 18.sp,
@@ -401,17 +541,17 @@ fun InterestButton(name: String, selected: Boolean) {
                     .basicMarquee(
                         iterations = 100
                     ),
-                color = Color.White
+                color = if(!_selected) Color.White else Color.Black
             )
             if (_selected){
                 Icon(
                     painter = painterResource(id = R.drawable.checked),
-                    contentDescription = null,)
+                    contentDescription = null,tint=Color.Black)
             }
             else{
                 Icon(
                     painter = painterResource(id = R.drawable.uil_plus_circle),
-                    contentDescription = null,)
+                    contentDescription = null)
             }
 
         }

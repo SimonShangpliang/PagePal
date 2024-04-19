@@ -132,6 +132,7 @@ import com.example.imgselect.model.ModeViewModel
 import com.example.imgselect.ui.theme.OpenSans
 import com.example.imgselect.ui.theme.Purple80
 import com.example.imgselect.ui.theme.aliceBlue
+import com.example.imgselect.ui.theme.darkBar
 import com.example.imgselect.ui.theme.interestcolour1
 import com.example.imgselect.ui.theme.interestcolour2
 import com.example.imgselect.ui.theme.lighterTeal
@@ -317,7 +318,9 @@ DisposableEffect(Unit)
                         // .width(328.dp)
                         ,
                         colors = TextFieldDefaults.outlinedTextFieldColors(
-                            focusedBorderColor = Color.White
+                            focusedBorderColor = Color.White,
+                            textColor = Color.White
+
                         ),
                         shape = MaterialTheme.shapes.extraLarge,
 
@@ -326,6 +329,7 @@ DisposableEffect(Unit)
                                 text = "Type in your question",
                                 modifier = Modifier.fillMaxHeight(),
                                 fontSize = 20.sp,
+                                color = Color.White.copy(alpha = 0.5f)
                             )
                         },
                         singleLine = false,
@@ -400,7 +404,8 @@ DisposableEffect(Unit)
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = null,
-                                modifier=Modifier.size(35.dp)
+                                modifier=Modifier.size(35.dp),
+                                tint=Color.White
                             )
                         }
 
@@ -520,7 +525,10 @@ fun MessagesList(messages: List<ChatQueryResponse>, viewModel: TypewriterViewMod
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.baseline_volume_up_24),
+
                                 "deete",
+                                tint=Color.White
+
                                 //tint = Color.White
                             )
                         }
@@ -643,16 +651,11 @@ fun SavedChatsScreen(chatList: LiveData<List<Chat>>, chatViewModel: ChatViewMode
 
     Column(
         modifier = Modifier
-            .background(Color.Black)
+            .background(darkBar)
             .fillMaxSize()
     ) {
-        Text(
-            text = "Chats",
-            fontSize = 22.sp,
-            color = aliceBlue,
-            modifier = Modifier.padding(24.dp)
-            , fontFamily = OpenSans, fontWeight = FontWeight.SemiBold
-        )
+        Text(text="Saved Chats", fontSize =30.sp , modifier=Modifier.padding(20.dp), color= aliceBlue,fontFamily =  OpenSans,textAlign= TextAlign.Start,fontWeight=FontWeight.SemiBold)
+
         MySearchBar(placeHolder = "Search", onQueryChanged = {query -> searchQuery.value = query})
 
         LazyColumn(
@@ -781,6 +784,7 @@ fun ChatRow(chat: Chat , goToFullChat: (Chat) -> Unit , deleteChat: () -> Unit) 
 fun FullChatScreen(chat: Chat) {
     //val convertedList: List<String> = chat.message?.map { it.toString() } ?: emptyList()
     val messages = chat.message ?: listOf()
+    Box(modifier=Modifier.fillMaxSize().background(darkBar)){
     Card (
         colors = CardDefaults.cardColors(Purple80),
         modifier = Modifier
@@ -815,7 +819,7 @@ fun FullChatScreen(chat: Chat) {
             }
 
         }
-    }
+    }}
 }
 
 data class ChatQueryResponse(

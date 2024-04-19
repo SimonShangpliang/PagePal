@@ -42,6 +42,17 @@ data class Web(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val website: String?,
+    val title:String?,
+    val date: Long = System.currentTimeMillis() // Default value is current timestamp
+
+)
+
+@Entity(tableName = "content_table_bookMarked")
+data class WebBookMarked(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val website: String?,
+    val title:String?,
     val date: Long = System.currentTimeMillis() // Default value is current timestamp
 
 )

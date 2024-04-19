@@ -8,12 +8,15 @@ import android.webkit.WebView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -33,18 +36,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -59,6 +67,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusTarget
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -82,10 +94,12 @@ import androidx.navigation.NavController
 import com.example.dictionary.model.DictionaryViewModel
 import com.example.imgselect.DictionaryNetwork.WordData
 import com.example.imgselect.data.Web
+import com.example.imgselect.data.WebBookMarked
 import com.example.imgselect.model.TextRecognitionViewModel
 import com.example.imgselect.model.TextResult
 import com.example.imgselect.model.WebHistoryViewModel
 import com.example.imgselect.ui.theme.backgroundcolor
+import com.example.imgselect.ui.theme.darkBar
 import com.kamatiaakash.text_to_speech_using_jetpack_compose.AudioViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -99,9 +113,10 @@ import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WebViewScreen(window:Window,navController: NavController,textViewModel:TextRecognitionViewModel,dictionaryViewModel: DictionaryViewModel) {
+fun WebViewScreen(urlt:String?) {
 
-    var url by rememberSaveable { mutableStateOf("https://www.google.com") }
+    var url by remember{ mutableStateOf(if (urlt==null) "https://www.google.com" else  urlt ) }
+    var currTitle by remember{ mutableStateOf(if (urlt==null) "Google" else  urlt ) }
     var currIndexPage by remember{ mutableStateOf(0) }
     var isLoading by remember{ mutableStateOf(false) }
     var urlList= mutableListOf<String>()
@@ -123,22 +138,22 @@ fun WebViewScreen(window:Window,navController: NavController,textViewModel:TextR
 
     }
 
-    val setUrl: (String) -> Unit = { newURl ->
+    val setUrl: (String,String) -> Unit = { newURl,newTitle ->
         Log.d("MainActivity","String set")
 
         url = newURl
-        if(!urlList.contains(url)){
+        currTitle=newTitle
+
+            if(!urlList.contains(url)){
 
             urlList.add(newURl)
 
-            val newWeb = Web(website = url, date = System.currentTimeMillis())
-            if(!newURl.contentEquals("https://www.google.com/")){
+            val newWeb = Web(website = url,title=newTitle, date = System.currentTimeMillis())
+            if(!newTitle.contains("Web page not available")){
                 CoroutineScope(Dispatchers.IO).launch {
-
                     webHistoryViewModel.addWeb(newWeb)
-                }}
-
-            currIndexPage+=1
+                }
+            currIndexPage+=1}
         }
     }
     val webViewHolder = remember { WebViewHolder(context,setLoading,setUrl) }
@@ -151,19 +166,19 @@ webViewHolder.loadUrl(newURl)
 
             urlList.add(newURl)
 
-            val newWeb = Web(website = url, date = System.currentTimeMillis())
-            if(!newURl.contentEquals("https://www.google.com/")){
-                CoroutineScope(Dispatchers.IO).launch {
 
-                    webHistoryViewModel.addWeb(newWeb)
-                }}
 
             currIndexPage+=1
         }
     }
     LaunchedEffect(Unit )
     {
-        urlList.add("https://www.google.com/")
+//        if(url!=null){
+//            urlList.add(url)
+//            webViewHolder.loadUrl(url)
+//        }else{
+       urlList.add(url)
+      //      }
     }
 
     DisposableEffect(Unit) {
@@ -206,6 +221,7 @@ webViewHolder.loadUrl(newURl)
 //    val isLoading by viewModel.isLoading
     //val imageBitmap: ImageBitmap = selectedBitmap!!.asImageBitmap()
     val webListHistory by webHistoryViewModel.webHistory.observeAsState(emptyList())
+    val webListBookmarked by webHistoryViewModel.bookmarkedWebs.observeAsState(emptyList())
 
     var box by remember { mutableStateOf(emptyList<TextResult>()) }
     Surface {
@@ -221,57 +237,114 @@ webViewHolder.loadUrl(newURl)
             else{
 if(webHistory)
 {
-    WebHistoryDialog(setShowDialog = { webHistory = it }, webListHistory,webHistoryViewModel,setUrlHistory)
+    WebHistoryDialog(setShowDialog = { webHistory = it }, webListHistory,webListBookmarked,webHistoryViewModel,setUrlHistory)
 }
+                var isTextFieldFocused by remember { mutableStateOf(false) }
+                val focusRequester = remember { FocusRequester() }
+
                 Column {
                 Row(modifier = Modifier
                     .fillMaxWidth()
-                    .height(IntrinsicSize.Min)) {
-                    TextField(
+                    .height(IntrinsicSize.Min).background(darkBar)) {
+                    OutlinedTextField(
 
-                        modifier=Modifier.fillMaxWidth(0.7f),
+                        modifier= Modifier
+                            .fillMaxWidth(if (isTextFieldFocused) 1f else 0.6f)
+                            .animateContentSize()
+//                            .clickable { if(isTextFieldFocused == false){
+//                                isTextFieldFocused=true
+//                             //   focusRequester.requestFocus()
+//                            }else
+//                            {
+//                              //  focusRequester.freeFocus()
+//                                isTextFieldFocused=falseOutlined
+//                            }}
+                            .onFocusChanged {
+                                if (it.isFocused) {
+                                    isTextFieldFocused = true
+
+
+                                } else {
+
+                                    isTextFieldFocused = false
+
+                                }
+                            }
+                        ,
                         value = url,
                         onValueChange = { newUrl -> url = newUrl },
                         singleLine = true,
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = Color.White,
+                            textColor = Color.White
+                        ),
+                        shape = MaterialTheme.shapes.extraLarge,
+
                         keyboardActions = KeyboardActions(
                             onDone = {
                                 isLoading = true
                                 webViewHolder.loadUrl(url)
                             }
                         ), trailingIcon = {
+                            Row(){
+                              if(isTextFieldFocused){  IconButton(modifier=Modifier,onClick = {isTextFieldFocused=false
+                              }) {
+
+                                    Icon(Icons.Default.Done,"clear",tint=Color.White)
+
+                                }}
 if(url!=""){IconButton(onClick = { url=""
 
 }) {
     Icon(Icons.Default.Clear,"clear",tint=Color.White)
 
-}}
+}}}
                         }
 
 
                     )
                     Row (verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxSize()){
+             AnimatedVisibility(visible = !isTextFieldFocused) {
+
+                 IconButton(modifier = Modifier.size(30.dp),
+                     onClick = {
+                         // Set loading state to true when clicking the button
+                         // Load the URL
+                         isLoading = true
+                         webViewHolder.loadUrl(url)
+                         if (!urlList.contains(url)) {
+                             currIndexPage++;
+                             urlList.add(url)
+
+                         }
+                     }
+                 ) {
+                     if (isLoading) {
+                         CircularProgressIndicator()
+                     } else {
+                         Icon(Icons.Default.Refresh, "refresh", tint = Color.White)
+                     }
+                 }
+             }
                         IconButton(modifier=Modifier.size(30.dp),
                             onClick = {
                                 // Set loading state to true when clicking the button
                                 // Load the URL
-                                isLoading = true
-                                webViewHolder.loadUrl(url)
-                                if(!urlList.contains(url)){
-                                    currIndexPage++;
-                                    urlList.add(url)
-                                    if(!url.contentEquals("https://www.google.com/")){
 
-                                        val newWeb = Web(website = url, date = System.currentTimeMillis())
-                                   CoroutineScope(Dispatchers.IO).launch {             webHistoryViewModel.addWeb(newWeb)
-                                    }}
-                                }
+
+//
+                                        val newWeb = WebBookMarked(website = url, title = currTitle, date = System.currentTimeMillis())
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            webHistoryViewModel.addWebBookmarked(newWeb)
+                                        }
+
+
                             }
                         ) {
-                            if (isLoading) {
-                                CircularProgressIndicator()
-                            }else{
-                            Icon(Icons.Default.Refresh,"refresh",tint=Color.White)}
+
+                                Icon(painter = painterResource(id = R.drawable.baseline_bookmark_24),"bookmarks",tint=Color.White)
                         }
+
 
 
                         IconButton(
@@ -474,7 +547,8 @@ if(showDialog)
             val eighty=80.00/density
             // Draw highlighted area around the text
             Box(
-                modifier = Modifier.offset(x = left.dp, y = top.dp)
+                modifier = Modifier
+                    .offset(x = left.dp, y = top.dp)
                     .size(width = right.dp - left.dp, height = bottom.dp - top.dp)
                     .background(
 //if (index == clickedBoxIndex)
@@ -486,7 +560,7 @@ if(showDialog)
                         // Handle click event for this bounding box
                         //handleClick(result)
                         clickedBoxIndex = index
-                        showDialog=true;
+                        showDialog = true;
 
                         CoroutineScope(Dispatchers.IO).launch {
                             dictionaryViewModel.word = result.word

@@ -52,6 +52,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -176,13 +177,8 @@ fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavContro
 @Composable
 fun HeadlineText(){
     Column(modifier = Modifier.padding(vertical = 15.dp, horizontal = 24.dp)) {
-        Text(text = "Summary Shelf",
+        Text(text="Summary Shelf", fontSize =30.sp , modifier=Modifier, fontFamily =  OpenSans,textAlign= TextAlign.Start,fontWeight=FontWeight.SemiBold, color = aliceBlue)
 
-            color= aliceBlue,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.SemiBold,
-            fontFamily= OpenSans
-        )
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
@@ -425,21 +421,37 @@ fun SummaryListPage(summary: Summary) {
   val audioViewModel=viewModel<AudioViewModel>()
     Log.d("SummaryIsWhat" , "${summary}")
 
-    Card(
-        colors = CardDefaults.cardColors(lighterYellow),
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceAround,
-            modifier = Modifier.fillMaxWidth()
+    Box(modifier=Modifier.fillMaxSize().background(darkBar)) {
+        Card(
+            colors = CardDefaults.cardColors(lighterYellow),
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
         ) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Absolute.SpaceBetween) {
-                Text(text = "1.", fontSize = 28.sp, fontWeight = FontWeight.SemiBold , color = interestcolour2,modifier=Modifier.padding(start=16.dp,top=8.dp), fontFamily = OpenSans)
-                    Icon(painter = painterResource(id = R.drawable.generic), contentDescription = "Summary type" , tint = interestcolour2 , modifier = Modifier.size(45.dp).padding(end=16.dp,top=9.dp),)
+            Row(
+                horizontalArrangement = Arrangement.SpaceAround,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Absolute.SpaceBetween
+                ) {
+                    Text(
+                        text = "1.",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = interestcolour2,
+                        modifier = Modifier.padding(start = 16.dp, top = 8.dp),
+                        fontFamily = OpenSans
+                    )
+                    Icon(
+                        painter = painterResource(id = R.drawable.generic),
+                        contentDescription = "Summary type",
+                        tint = interestcolour2,
+                        modifier = Modifier.size(45.dp).padding(end = 16.dp, top = 9.dp),
+                    )
 
-            }
+                }
 //            Text(
 //                text = summary.title,
 //                modifier = Modifier.padding(16.dp),
@@ -455,41 +467,46 @@ fun SummaryListPage(summary: Summary) {
 //                fontSize = 16.sp,
 //                fontWeight = FontWeight.Bold
 //            )
-        }
-        val context= LocalContext.current
-        Row(modifier=Modifier.fillMaxWidth()) {
-            Text(
-                text = summary.title,
-                modifier = Modifier.padding(16.dp),
-                color = interestcolour1,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.SemiBold,
-                fontFamily = OpenSans,
-            )
-            IconButton(modifier= Modifier
-                .size(25.dp)
-                .background(darkBar, CircleShape)
-                .align(Alignment.CenterVertically),onClick = { /*TODO*/
-                audioViewModel.justSpeech(summary?.summary?:"", context =context )
-            }) {
-                Icon(painter= painterResource(id = R.drawable.baseline_volume_up_24),"speak",modifier=Modifier .size(25.dp))
+            }
+            val context = LocalContext.current
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = summary.title,
+                    modifier = Modifier.padding(16.dp),
+                    color = interestcolour1,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = OpenSans,
+                )
+                IconButton(modifier = Modifier
+                    .size(25.dp)
+                    .background(darkBar, CircleShape)
+                    .align(Alignment.CenterVertically), onClick = { /*TODO*/
+                    audioViewModel.justSpeech(summary?.summary ?: "", context = context)
+                }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_volume_up_24),
+                        "speak",
+                        modifier = Modifier.size(25.dp),
+                        tint=Color.White
+                    )
 
+                }
+            }
+            summary?.summary?.let {
+                Text(
+                    text = it,
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    color = Color.DarkGray,
+                    fontSize = 16.sp,
+                    fontFamily = OpenSans
+
+                )
             }
         }
-        summary?.summary?.let {
-            Text(
-                text = it,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                color = Color.DarkGray,
-                fontSize = 16.sp,
-                fontFamily = OpenSans
-
-            )
-        }
     }
-
 }
 
 
