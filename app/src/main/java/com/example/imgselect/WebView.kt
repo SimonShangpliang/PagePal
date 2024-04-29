@@ -21,7 +21,7 @@ import android.widget.FrameLayout
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 
-class WebViewHolder(context: Context,onPageFinishedCallback: (Boolean) -> Unit,onPageCurrent:(String)->Unit){
+class WebViewHolder(context: Context,onPageFinishedCallback: (Boolean) -> Unit,onPageCurrent:(String,String)->Unit){
 
     var webView:WebView=WebView(context)
 
@@ -92,15 +92,24 @@ class WebViewHolder(context: Context,onPageFinishedCallback: (Boolean) -> Unit,o
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
             super.onPageStarted(view, url, favicon)
-            onPageCurrent(url?: "https://www.google.com")
+
+
+
+
             Log.d("???","onpagestarted")
 
         }
 
         override fun onPageFinished(view: WebView?, url: String?) {
             super.onPageFinished(view, url)
-onPageFinishedCallback(false)
+            onPageCurrent(url?: "https://www.google.com",view?.title?:"Google")
+
+            onPageFinishedCallback(false)
+            Log.d("TiTLe",view!!.title.toString())
+            Log.d("Orig URL",view!!.originalUrl.toString())
+            Log.d("Orig URL",url.toString())
             Log.d("???","onpagefinished")
+
 
         }
 

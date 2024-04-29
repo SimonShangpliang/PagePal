@@ -121,7 +121,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             val date = dateFormat.format(current.time)
             val imageByte = image?.toBytes()
             Log.d("SummaryIsWhat" , output)
-            val content = Summary(0,output,imageByte , "${date}" , title)
+            val content = Summary(0,output,null , "${date}" , title)
             repository.addSummary(content)
         }
     }

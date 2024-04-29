@@ -59,12 +59,25 @@ class LocalStorageRepositoryForWeb(private val webDao: WebDao) {
     fun addWeb(web: Web) {
         webDao.addWeb(web)
     }
+    fun addWebBookMarked(web: WebBookMarked) {
+        webDao.addBookMarkedWeb(web)
+    }
+
+    fun deleteWebBookMarked(web: WebBookMarked) {
+        webDao.deleteBookMarkedWeb(web)
+    }
+
+
 
     val readAllWeb: LiveData<List<Web>> = webDao.readAllWeb()
+    val readBookmarkedWeb: LiveData<List<WebBookMarked>> = webDao.readBookmarkedWeb()
 
     fun deleteWeb(web: Web) {
         webDao.deleteWeb(web)
     }
+
+
+
     suspend fun getWebsiteCounts(): List<WebsiteCount> {
 
         return webDao.getWebsiteCounts()

@@ -1,4 +1,5 @@
 package com.example.imgselect
+import android.Manifest
 import android.R
 import android.app.Activity
 import android.content.Context
@@ -40,6 +41,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -66,19 +68,22 @@ import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.LinearProgressIndicator
-import androidx.compose.material.Scaffold
+import androidx.compose.material3.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Switch
 import androidx.compose.material.SwitchDefaults
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -88,6 +93,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchColors
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -112,6 +119,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 
 import androidx.compose.ui.unit.dp
@@ -123,6 +132,7 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -141,6 +151,7 @@ import com.example.imgselect.model.TextResult
 import com.example.imgselect.ui.theme.ImgselectTheme
 import com.example.imgselect.ui.theme.OpenSans
 import com.example.imgselect.ui.theme.aliceBlue
+import com.example.imgselect.ui.theme.darkBar
 import com.example.imgselect.ui.theme.lightWhite
 import com.example.imgselect.ui.theme.lighterPurple
 import com.example.imgselect.ui.theme.lighterTeal
@@ -163,16 +174,17 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 import kotlin.math.sqrt
 
+@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     private val viewModel: PDFViewModel by viewModels()
 
     @OptIn(ExperimentalMaterialApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen()
 
         setContent {
             var currScreen by remember{ mutableStateOf(Screen.HomeScreen.route) }
-
             if(currScreen==Screen.PdfScreen.route)
             {
                 window.setFlags(
@@ -354,6 +366,7 @@ class MainActivity : ComponentActivity() {
                     {
 
                         SummaryDialog(setShowDialog = {summaryDialog = it
+
                             focus=false
                             Log.d("main","jere herere")
                             startOffsetX=0f
@@ -434,18 +447,23 @@ class MainActivity : ComponentActivity() {
                                                 )
                                                 .background(Color.Black)
                                                 .height(40.dp)
-                                                .border(width=if (cropBox) 2.dp else 0.dp,color=if (cropBox) Color.White else Color.Transparent, shape = RoundedCornerShape(20.dp))
+                                                .border(
+                                                    width = if (cropBox) 2.dp else 0.dp,
+                                                    color = if (cropBox) Color.White else Color.Transparent,
+                                                    shape = RoundedCornerShape(20.dp)
+                                                )
                                                 .clickable {
                                                     if (cropDone) {
 
 
-                                                        if(cropBox==true){
-                                                            selectedBitmapSS=null
+                                                        if (cropBox == true) {
+                                                            selectedBitmapSS = null
                                                             cropBox = false
                                                             setHeight = 80.dp
-                                                        }else{
+                                                        } else {
                                                             cropBox = true
-                                                            setHeight = 140.dp}
+                                                            setHeight = 140.dp
+                                                        }
                                                     } else {
 
                                                         coroutineScope.launch {
@@ -473,7 +491,9 @@ class MainActivity : ComponentActivity() {
                                                             selectedBitmapSS = null
                                                             setModifier(Modifier)
                                                             Log.d("MainAct", textResponse)
-                                                            summaryViewModel.questioningSummary(summaryText)
+                                                            summaryViewModel.questioningSummary(
+                                                                summaryText
+                                                            )
                                                             photoTakenViewModel.setFocus(false)
 
                                                         }
@@ -514,6 +534,7 @@ class MainActivity : ComponentActivity() {
                                             Box(
                                                 modifier = Modifier
                                                     .padding(8.dp)
+                                                    .weight(1f)
                                                     .align(Alignment.CenterVertically)
                                                     .animateContentSize(),
                                                 contentAlignment = Alignment.Center
@@ -521,8 +542,7 @@ class MainActivity : ComponentActivity() {
                                                 Divider(
                                                     color = Color.Gray,
                                                     modifier = Modifier
-
-                                                        .width(120.dp)
+                                                        .fillMaxWidth()
                                                         .height(5.dp)
                                                         .background(
                                                             Color.Gray,
@@ -574,9 +594,10 @@ class MainActivity : ComponentActivity() {
                                                         modifier = Modifier
                                                             .padding(
                                                                 start = if (cropDone) 20.dp else 15.dp,
-                                                                end = if ( cropDone) 20.dp else 8.dp
+                                                                end = if (cropDone) 20.dp else 8.dp
                                                             )
-                                                            .align(Alignment.CenterVertically)
+                                                            .align(Alignment.CenterVertically),
+                                                        maxLines = 1
                                                         //   .align(Alignment.Center)
 
                                                     )
@@ -611,17 +632,22 @@ class MainActivity : ComponentActivity() {
                                                 )
                                                 .background(Color.Black)
                                                 .height(40.dp)
-                                                .border(width=if (cropBox3) 2.dp else 0.dp,color=if (cropBox3) Color.White else Color.Transparent, shape = RoundedCornerShape(20.dp))
+                                                .border(
+                                                    width = if (cropBox3) 2.dp else 0.dp,
+                                                    color = if (cropBox3) Color.White else Color.Transparent,
+                                                    shape = RoundedCornerShape(20.dp)
+                                                )
                                                 .clickable {
                                                     if (cropDone3) {
 
-                                                        if(cropBox3==true){
-                                                            selectedBitmapSS=null
+                                                        if (cropBox3 == true) {
+                                                            selectedBitmapSS = null
                                                             cropBox3 = false
                                                             setHeight = 80.dp
-                                                        }else{
-                                                            cropBox3= true
-                                                            setHeight = 140.dp}
+                                                        } else {
+                                                            cropBox3 = true
+                                                            setHeight = 140.dp
+                                                        }
 
                                                     } else {
 
@@ -638,8 +664,12 @@ class MainActivity : ComponentActivity() {
                                                                 )
 
                                                             }.await()
-                                                            val byteArray = selectedBitmap?.let { compressBitmap(it) }
-                                                            chatViewModelWithImage.setInterpretImage(byteArray?.toBitmap())
+                                                            val byteArray = selectedBitmap?.let {
+                                                                compressBitmap(it)
+                                                            }
+                                                            chatViewModelWithImage.setInterpretImage(
+                                                                byteArray?.toBitmap()
+                                                            )
                                                             interpretDialog = true
                                                             //  summaryText = textResponse
                                                             cropDone3 = true
@@ -710,18 +740,24 @@ class MainActivity : ComponentActivity() {
                                                     RoundedCornerShape(20.dp)
                                                 )
                                                 .background(Color.Black)
-                                                .height(40.dp).border(width=if (cropBox2) 2.dp else 0.dp,color=if (cropBox2) Color.White else Color.Transparent, shape = RoundedCornerShape(20.dp))
+                                                .height(40.dp)
+                                                .border(
+                                                    width = if (cropBox2) 2.dp else 0.dp,
+                                                    color = if (cropBox2) Color.White else Color.Transparent,
+                                                    shape = RoundedCornerShape(20.dp)
+                                                )
                                                 .clickable {
 
                                                     if (cropDone2) {
 
-                                                        if(cropBox2==true){
-                                                            selectedBitmapSS=null
+                                                        if (cropBox2 == true) {
+                                                            selectedBitmapSS = null
                                                             cropBox2 = false
                                                             setHeight = 80.dp
-                                                        }else{
-                                                            cropBox2= true
-                                                            setHeight = 140.dp}
+                                                        } else {
+                                                            cropBox2 = true
+                                                            setHeight = 140.dp
+                                                        }
 
                                                     } else {
 
@@ -738,22 +774,27 @@ class MainActivity : ComponentActivity() {
                                                                 )
 
                                                             }.await()
-                                                            val byteArray = selectedBitmap?.let { compressBitmap(it) }
-                                                            chatViewModelWithImage.addBitmapToList(byteArray?.toBitmap())
-                                                            startOffsetX=0f
-                                                            startOffsetY=0f
-                                                            endOffsetX=0f
-                                                            endOffsetY=0f
+                                                            val byteArray = selectedBitmap?.let {
+                                                                compressBitmap(it)
+                                                            }
+                                                            chatViewModelWithImage.addBitmapToList(
+                                                                byteArray?.toBitmap()
+                                                            )
+                                                            startOffsetX = 0f
+                                                            startOffsetY = 0f
+                                                            endOffsetX = 0f
+                                                            endOffsetY = 0f
                                                             cropDone2 = true
                                                             selectedBitmapSS = null
                                                             setModifier(Modifier)
 
-                                                            focus=false
+                                                            focus = false
 
                                                             //   Log.d("MainAct", textResponse)
                                                             //   summaryViewModel.questioningSummary(summaryText)
                                                             photoTakenViewModel.setFocus(false)
-                                                        }}
+                                                        }
+                                                    }
 
 
                                                 }
@@ -841,52 +882,50 @@ class MainActivity : ComponentActivity() {
                                     {
 
                                         OutlinedButton(onClick = {
-                                            scope.launch {
+                                            CoroutineScope(Dispatchers.IO).launch {
 
-                                                cropBox=false
-                                                    setHeight=80.dp
+                                                cropBox = false
+                                                setHeight = 80.dp
                                                 delay(200)
 
-                                                if (currScreen == Screen.PdfScreen.route&&viewModel.docSelected.value) {
-                                                    CoroutineScope(Dispatchers.IO).launch {
-                                                        async {
-                                                            selectedBitmapSS =
-                                                                captureEntireScreen(
-                                                                    context = context,
-                                                                    window,
-                                                                    screenWidth,
-                                                                    screenHeight
-                                                                )
+                                                if (currScreen == Screen.PdfScreen.route && viewModel.docSelected.value) {
+                                                    // CoroutineScope(Dispatchers.IO).launch {
+                                                    //     async {
+                                                    selectedBitmapSS =
+                                                        captureEntireScreen(
+                                                            context = context,
+                                                            window,
+                                                            screenWidth,
+                                                            screenHeight
+                                                        )
 
-                                                        }.await()
+                                                    //       }.await()
 
-                                                    }
+                                                    //   }
                                                 }
-                                            }
+
 //                                            scope.launch{
 //                                            scaffoldState.bottomSheetState.collapse()}
-                                            cropDone=false
-                                            if (focus == true) {
-                                                startOffsetX = 0f
-                                                startOffsetY = 0f
-                                                endOffsetX = 0f
-                                                endOffsetY = 0f
-                                            } else {
-                                                startOffsetX = 300f
-                                                startOffsetY = 300f
-                                                endOffsetX = 600f
-                                                endOffsetY = 600f
+                                                cropDone = false
+                                                if (focus == true) {
+                                                    startOffsetX = 0f
+                                                    startOffsetY = 0f
+                                                    endOffsetX = 0f
+                                                    endOffsetY = 0f
+                                                } else {
+                                                    startOffsetX = 300f
+                                                    startOffsetY = 300f
+                                                    endOffsetX = 600f
+                                                    endOffsetY = 600f
+                                                }
+                                                photoTakenViewModel.setFocus(true)
+                                                focus = !focus
+                                                if (focus == true) {
+                                                    setModifier(default_mod)
+                                                } else {
+                                                    setModifier(Modifier)
+                                                }
                                             }
-                                            photoTakenViewModel.setFocus(true)
-                                            focus = !focus
-                                            if(focus==true)
-                                            {
-                                                setModifier(default_mod)
-                                            }else
-                                            {
-                                                setModifier(Modifier)
-                                            }
-
 
                                         }) {
                                             Text(text = "Crop Region",color=Color.LightGray)
@@ -1211,7 +1250,7 @@ delay(200)
                                 PDFViewer(selectedBitmapSS)
 
                             }else{
-                                Navigation(window = window, applicationContext = applicationContext,{currScreen=it})}
+                                Navigation(window = window,applicationContext = applicationContext,{currScreen=it})}
                             if(meaning){   DrawBoundingBoxes(
                                 selectedBitmap,
                                 textResults = box,
@@ -1282,239 +1321,351 @@ delay(200)
     fun SelectionElement(
         title: String,
         text: String,
-        onClick: () -> Unit
-    ) {
-        Card(
-            onClick = onClick,
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            backgroundColor = androidx.compose.material.MaterialTheme.colors.surface,
-            elevation = 4.dp
-        ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                androidx.compose.material.Text(
-                    text = title,
-                    modifier = Modifier.padding(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = 16.dp,
-                        bottom = 4.dp
-                    ),
-                    style = androidx.compose.material.MaterialTheme.typography.body1
+        onClick: () -> Unit) {
+
+
+                Card(
+                    onClick = onClick,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    backgroundColor = lighterPurple,
+                    elevation = 4.dp
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                       Text(
+                            text = title,
+                            modifier = Modifier.padding(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = 16.dp,
+                                bottom = 4.dp
+                            ),
+                            style = androidx.compose.material.MaterialTheme.typography.body1,
+                           color=Color.Black
+                        )
+                        androidx.compose.material.Text(
+                            text = text,
+                            modifier = Modifier.padding(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = 4.dp,
+                                bottom = 16.dp
+                            ),
+                            style = androidx.compose.material.MaterialTheme.typography.caption,
+                            color=Color.Black
+                        )
+                    }
+                }}
+
+
+            @OptIn(ExperimentalMaterial3Api::class)
+            @Composable
+            fun SelectionView() {
+                Scaffold(
+
+                    topBar = {
+                        TopAppBar(
+                            colors = TopAppBarDefaults.smallTopAppBarColors(
+                                containerColor = darkBar,
+                                titleContentColor = aliceBlue
+                            ),
+                            title = {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(text="Welcome", fontSize =30.sp , modifier=Modifier.padding(start=10.dp).align(Alignment.CenterVertically), fontFamily =  OpenSans,textAlign= TextAlign.Start,fontWeight=FontWeight.SemiBold)
+
+                                    IconButton(
+                                        modifier = Modifier.padding(end = 10.dp, top = 10.dp),
+                                        onClick = {
+                                         //   navController.navigate(Screen.ProfileScreen.route)
+
+                                        }
+                                    ) {
+                                        androidx.compose.material3.Icon(
+                                             Icons.Default.ArrowBack,
+                                            contentDescription = "profile",
+                                            tint=Color.Transparent
+                                        )
+                                    }
+
+
+                                }
+                            }
+                        )
+                    }, bottomBar = {},
+                    containerColor = darkBar
+
                 )
-                androidx.compose.material.Text(
-                    text = text,
-                    modifier = Modifier.padding(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = 4.dp,
-                        bottom = 16.dp
-                    ),
-                    style = androidx.compose.material.MaterialTheme.typography.caption
-                )
-            }
-        }
-    }
-
-    @Composable
-    fun SelectionView() {
-        Column(modifier = Modifier.fillMaxSize()) {
-            SelectionElement(
-                title = "Open Local file",
-                text = "Open a file in device memory"
-            ) {
-                openDocumentPicker()
-            }
-
-            Row(
-                modifier = Modifier
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                androidx.compose.material.Text(text = "List view",color= aliceBlue)
-                Spacer(modifier = Modifier.width(16.dp))
-                Switch(
-                    checked = viewModel.switchState.value,
-                    onCheckedChange = {
-                        viewModel.switchState.value = it
-
-                    },
-                    colors = SwitchDefaults.colors(
-                        uncheckedThumbColor = lighterTeal,
-                        //androidx.compose.material.MaterialTheme.colors.secondaryVariant,
-                        uncheckedTrackColor = lighterPurple,
-                        //androidx.compose.material.MaterialTheme.colors.secondaryVariant,
-                        uncheckedTrackAlpha = 0.54f
-                    )
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                androidx.compose.material.Text(text = "Pager view",color= aliceBlue,fontFamily= OpenSans)
-            }
-        }
-    }
-
-    @Composable
-    fun PDFView(
-        pdfState: VerticalPdfReaderState,
-        scaffoldState: ScaffoldState
-    ) {
-        Box(
-            contentAlignment = Alignment.TopStart
-        ) {
-            VerticalPDFReader(
-                state = pdfState,
-                modifier = Modifier
+                {innerPadding->
+                    Box(modifier=Modifier.padding(innerPadding)){
+                Column(modifier = Modifier
                     .fillMaxSize()
-                    .background(color = Color.Gray)
-                    .zIndex(0f)
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .zIndex(0f)
+                    .fillMaxWidth()) {
+                    SelectionElement(
+                        title = "Open Local file",
+                        text = "Open a file in device memory"
+                    ) {
+                        openDocumentPicker()
+                    }
+
+//                    Row(
+//                        modifier = Modifier
+//                            .padding(16.dp),
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.Center
+//                    ) {
+//                        androidx.compose.material.Text(text = "List view", color = aliceBlue)
+//                        Spacer(modifier = Modifier.width(16.dp))
+
+
+//                        Switch(
+//                            checked = viewModel.switchState.value,
+//                            onCheckedChange = {
+//                                viewModel.switchState.value = it
+//
+//                            },
+//                            colors = SwitchDefaults.colors(
+//                                uncheckedThumbColor = lighterTeal,
+//                                //androidx.compose.material.MaterialTheme.colors.secondaryVariant,
+//                                uncheckedTrackColor = lighterPurple,
+//                                //androidx.compose.material.MaterialTheme.colors.secondaryVariant,
+//                                uncheckedTrackAlpha = 0.54f
+//                            )
+//                        )
+                        Column(modifier= Modifier
+                            .fillMaxWidth(0.95f)
+                            .padding(10.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .fillMaxHeight(0.5f)
+                            .clip(RoundedCornerShape(10.dp)),
+                            horizontalAlignment = Alignment.CenterHorizontally)
+                        {
+                            Box(modifier= Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(0.5f).align(Alignment.CenterHorizontally)
+                                .clickable {
+
+                                    viewModel.switchState.value = false
+
+
+                                }
+                                .background(color = if (viewModel.switchState.value) Color.Black else lighterPurple)){
+                                Row(modifier=Modifier.align(Alignment.Center),horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
+                                Text("List View Mode",modifier= Modifier,fontWeight=FontWeight.SemiBold,color=if(viewModel.switchState.value) Color.White else Color.Black)
+                                    Image(painter= painterResource(id = com.example.imgselect.R.drawable.pager_view ),
+                                        contentDescription = null,
+                                        modifier= Modifier
+                                            .padding(20.dp),
+                                        Alignment.TopEnd)
+                            }}
+
+                            Box(modifier= Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight().align(Alignment.CenterHorizontally)
+                                .clickable {
+                                    viewModel.switchState.value = true
+
+                                }
+                                .background(color = if (!viewModel.switchState.value) Color.Black else lighterPurple)){
+                                Row(modifier=Modifier.align(Alignment.Center),horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
+
+                                Text("Pager View Mode",fontWeight=FontWeight.SemiBold,modifier= Modifier,color=if(!viewModel.switchState.value) Color.White else Color.Black)
+                                    Image(painter= painterResource(id = com.example.imgselect.R.drawable.list_view ),
+                                        contentDescription = null,
+                                        modifier= Modifier
+                                            .padding(20.dp),
+                                        Alignment.TopEnd)
+
+
+                                }}
+
+                      //  }
+
+
+
+
+//                        Spacer(modifier = Modifier.width(16.dp))
+//                        androidx.compose.material.Text(
+//                            text = "Pager view",
+//                            color = aliceBlue,
+//                            fontFamily = OpenSans
+//                        )
+                    }
+                }}}
+            }
+
+            @Composable
+            fun PDFView(
+                pdfState: VerticalPdfReaderState,
+                scaffoldState: ScaffoldState
             ) {
-                LinearProgressIndicator(
-                    progress = pdfState.loadPercent / 100f,
-                    color = Color.Red,
-                    backgroundColor = Color.Green,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Row {
-                    Spacer(modifier = Modifier.width(16.dp))
+                Box(
+                    contentAlignment = Alignment.TopStart
+                ) {
+                    VerticalPDFReader(
+                        state = pdfState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(color = Color.Gray)
+                            .zIndex(0f)
+                    )
                     Column(
                         modifier = Modifier
-                            .background(
-                                color = androidx.compose.material.MaterialTheme.colors.surface.copy(alpha = 0.5f),
-                                shape = androidx.compose.material.MaterialTheme.shapes.medium
-                            ),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .fillMaxWidth()
+                            .zIndex(0f)
                     ) {
-                        androidx.compose.material.Text(
-                            text = "Page: ${pdfState.currentPage}/${pdfState.pdfPageCount}",
-                            modifier = Modifier.padding(
-                                start = 8.dp,
-                                end = 8.dp,
-                                bottom = 4.dp,
-                                top = 8.dp
-                            )
+                        LinearProgressIndicator(
+                            progress = pdfState.loadPercent / 100f,
+                            color = Color.Red,
+                            backgroundColor = Color.Green,
+                            modifier = Modifier.fillMaxWidth()
                         )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row {
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(
+                                modifier = Modifier
+                                    .background(
+                                        color = androidx.compose.material.MaterialTheme.colors.surface.copy(
+                                            alpha = 0.5f
+                                        ),
+                                        shape = androidx.compose.material.MaterialTheme.shapes.medium
+                                    ),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                androidx.compose.material.Text(
+                                    text = "Page: ${pdfState.currentPage}/${pdfState.pdfPageCount}",
+                                    modifier = Modifier.padding(
+                                        start = 8.dp,
+                                        end = 8.dp,
+                                        bottom = 4.dp,
+                                        top = 8.dp
+                                    )
+                                )
 
+                            }
+                        }
+                    }
+                    LaunchedEffect(key1 = pdfState.error) {
+                        pdfState.error?.let {
+                            scaffoldState.snackbarHostState.showSnackbar(
+                                message = it.message ?: "Error"
+                            )
+                        }
                     }
                 }
             }
-            LaunchedEffect(key1 = pdfState.error) {
-                pdfState.error?.let {
-                    scaffoldState.snackbarHostState.showSnackbar(
-                        message = it.message ?: "Error"
-                    )
-                }
-            }
-        }
-    }
 
-    @Composable
-    fun HPDFView(
-        pdfState: HorizontalPdfReaderState,
-        scaffoldState: ScaffoldState
-    ) {
-        Box(
-            contentAlignment = Alignment.TopStart
-        ) {
-            HorizontalPDFReader(
-                state = pdfState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(color = Color.Gray)
-            )
-            Column(
-                modifier = Modifier.fillMaxWidth()
+            @Composable
+            fun HPDFView(
+                pdfState: HorizontalPdfReaderState,
+                scaffoldState: ScaffoldState
             ) {
-                LinearProgressIndicator(
-                    progress = pdfState.loadPercent / 100f,
-                    color = Color.Red,
-                    backgroundColor = Color.Green,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Row {
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(
+                Box(
+                    contentAlignment = Alignment.TopStart
+                ) {
+                    HorizontalPDFReader(
+                        state = pdfState,
                         modifier = Modifier
-                            .background(
-                                color = androidx.compose.material.MaterialTheme.colors.surface.copy(alpha = 0.5f),
-                                shape = androidx.compose.material.MaterialTheme.shapes.medium
-                            ),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .fillMaxSize()
+                            .background(color = Color.Gray)
+                    )
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        androidx.compose.material.Text(
-                            text = "Page: ${pdfState.currentPage}/${pdfState.pdfPageCount}",
-                            modifier = Modifier.padding(
-                                start = 8.dp,
-                                end = 8.dp,
-                                bottom = 4.dp,
-                                top = 8.dp
-                            )
+                        LinearProgressIndicator(
+                            progress = pdfState.loadPercent / 100f,
+                            color = Color.Red,
+                            backgroundColor = Color.Green,
+                            modifier = Modifier.fillMaxWidth()
                         )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row {
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(
+                                modifier = Modifier
+                                    .background(
+                                        color = androidx.compose.material.MaterialTheme.colors.surface.copy(
+                                            alpha = 0.5f
+                                        ),
+                                        shape = androidx.compose.material.MaterialTheme.shapes.medium
+                                    ),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                androidx.compose.material.Text(
+                                    text = "Page: ${pdfState.currentPage}/${pdfState.pdfPageCount}",
+                                    modifier = Modifier.padding(
+                                        start = 8.dp,
+                                        end = 8.dp,
+                                        bottom = 4.dp,
+                                        top = 8.dp
+                                    )
+                                )
 
 
+                            }
+                        }
+                    }
+                    LaunchedEffect(key1 = pdfState.error) {
+                        pdfState.error?.let {
+                            scaffoldState.snackbarHostState.showSnackbar(
+                                message = it.message ?: "Error"
+                            )
+                        }
                     }
                 }
             }
-            LaunchedEffect(key1 = pdfState.error) {
-                pdfState.error?.let {
-                    scaffoldState.snackbarHostState.showSnackbar(
-                        message = it.message ?: "Error"
+
+                    private fun openDocumentPicker() {
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                    type = "application/pdf"
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                }
+                startActivityForResult(intent, OPEN_DOCUMENT_REQUEST_CODE)
+            }
+
+                    private fun openDocument(documentUri: Uri) {
+                documentUri.path?.let {
+                    viewModel.openResource(
+                        ResourceType.Local(
+                            documentUri
+                        )
                     )
                 }
             }
-        }
-    }
 
-    private fun openDocumentPicker() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            type = "application/pdf"
-            addCategory(Intent.CATEGORY_OPENABLE)
-        }
-        startActivityForResult(intent, OPEN_DOCUMENT_REQUEST_CODE)
-    }
+                    override fun onActivityResult(
+                requestCode: Int,
+                resultCode: Int,
+                resultData: Intent?
+            ) {
+                super.onActivityResult(requestCode, resultCode, resultData)
+                if (requestCode == OPEN_DOCUMENT_REQUEST_CODE && resultCode == RESULT_OK) {
+                    resultData?.data?.also { documentUri ->
+                        contentResolver.takePersistableUriPermission(
+                            documentUri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                        openDocument(documentUri)
+                        viewModel.setDocSelected(true)
+                    }
+                } else {
+                    viewModel.setDocSelected(false)
 
-    private fun openDocument(documentUri: Uri) {
-        documentUri.path?.let {
-            viewModel.openResource(
-                ResourceType.Local(
-                    documentUri
-                )
-            )
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
-        super.onActivityResult(requestCode, resultCode, resultData)
-        if (requestCode == OPEN_DOCUMENT_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            resultData?.data?.also { documentUri ->
-                contentResolver.takePersistableUriPermission(
-                    documentUri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-                openDocument(documentUri)
-                viewModel.setDocSelected(true)
+                }
             }
-        }else
-        {
-            viewModel.setDocSelected(false)
-
-        }
-    }
 
 
-
-
-
-    private fun hasCameraPermission()=
-        ContextCompat.checkSelfPermission(this,android.Manifest.permission.CAMERA)== PackageManager.PERMISSION_GRANTED
+                    private fun hasCameraPermission() =
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.CAMERA
+                ) == PackageManager.PERMISSION_GRANTED
 
 }
 

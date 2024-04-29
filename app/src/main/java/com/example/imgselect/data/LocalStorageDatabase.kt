@@ -13,7 +13,7 @@ import com.example.imgselect.Genre
 import com.example.imgselect.Website
 import com.example.imgselect.WebsiteRecommand
 
-@Database(entities = [Meaning::class , Summary::class, Web::class] , version = 8, exportSchema = false)
+@Database(entities = [Meaning::class , Summary::class, Web::class,WebBookMarked::class] , version = 10, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class LocalStorageDatabase: RoomDatabase() {
 

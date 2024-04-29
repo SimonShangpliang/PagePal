@@ -9,8 +9,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -29,6 +33,8 @@ import com.kamatiaakash.text_to_speech_using_jetpack_compose.AudioViewModel
 
 @Composable
 fun Navigation(window: Window,applicationContext: Context,currScreen: (String)->Unit) {
+
+
     var navController = rememberNavController()
     val photoViewModel = viewModel<PhotoTakenViewModel>()
     val dictionaryViewModel = viewModel<DictionaryViewModel>()
@@ -39,7 +45,12 @@ fun Navigation(window: Window,applicationContext: Context,currScreen: (String)->
     val textRecognitionViewModel = viewModel<TextRecognitionViewModel>()
     val webHistoryViewModel = viewModel<WebHistoryViewModel>()
 
-    NavHost(navController = navController, startDestination = Screen.HomeScreen.route)
+    val context: Context = LocalContext.current
+    val Sharedpreferences = remember {
+        ProfileData(context)
+    }
+
+    NavHost(navController = navController, startDestination = if(Sharedpreferences.name=="")Screen.StartScreen.route else Screen.HomeScreen.route)
 
     {
 
@@ -54,6 +65,10 @@ fun Navigation(window: Window,applicationContext: Context,currScreen: (String)->
                 textRecognitionViewModel
             )
             currScreen(Screen.MainScreen.route)
+        }
+        composable(route = Screen.StartScreen.route) {
+            welcomeScreen(navController)
+            currScreen(Screen.StartScreen.route)
         }
         composable(route = Screen.ProfileScreen.route) {
             ProfileScreen(navController)
@@ -99,13 +114,10 @@ fun Navigation(window: Window,applicationContext: Context,currScreen: (String)->
             currScreen(Screen.ChatScreen.route)
 
         }
-        composable(route = Screen.WebViewScreen.route) {
-            WebViewScreen(
-                window = window,
-                navController = navController,
-                textRecognitionViewModel,
-                dictionaryViewModel
-            )
+        composable(route = "${Screen.WebViewScreen.route}/{url}") {
+            val url = it.arguments?.getString("url")
+            Log.d("URL",url.toString())
+            WebViewScreen(url)
             currScreen(Screen.WebViewScreen.route)
 
         }

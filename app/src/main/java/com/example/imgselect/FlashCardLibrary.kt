@@ -118,7 +118,7 @@ fun flashCardLibrary(dictionaryViewModel: DictionaryViewModel , navController: N
                     titleContentColor = aliceBlue
                 ),
                 title = {
-                    Text(text="FlashCard Library",fontWeight= FontWeight.Normal,  fontSize = 22.sp)
+                    Text(text="Flashcard Library", fontSize =30.sp , modifier=Modifier, fontFamily =  OpenSans,textAlign= TextAlign.Start,fontWeight=FontWeight.SemiBold)
                 }
 
             )
@@ -347,7 +347,7 @@ fun EachShelfRow(heading:String,navController: NavController,dictionaryViewModel
         )
 
         Image(
-            painter = painterResource(id = R.drawable.frame_30),
+            painter = painterResource(id = com.example.imgselect.R.drawable.frame_30),
             contentDescription = null,
             modifier = Modifier
                 .padding(bottom = 20.dp)
