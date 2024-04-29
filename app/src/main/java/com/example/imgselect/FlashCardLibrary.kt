@@ -118,7 +118,7 @@ fun flashCardLibrary(dictionaryViewModel: DictionaryViewModel , navController: N
                     titleContentColor = aliceBlue
                 ),
                 title = {
-                    Text(text="Flashcard Library", fontSize =30.sp , modifier=Modifier, fontFamily =  OpenSans,textAlign= TextAlign.Start,fontWeight=FontWeight.SemiBold)
+                    Text(text="Flashcard Library", fontSize =30.sp , modifier=Modifier,textAlign= TextAlign.Start,fontWeight=FontWeight.SemiBold)
                 }
 
             )

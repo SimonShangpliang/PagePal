@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.imgselect.ui.theme.Purple80
+import com.example.imgselect.ui.theme.aliceBlue
 import com.example.imgselect.ui.theme.backgroundcolor
 import com.example.imgselect.ui.theme.lighterPurple
 import com.example.imgselect.ui.theme.profileborder
@@ -96,9 +97,11 @@ Row(modifier=Modifier.fillMaxWidth(),
                             repeatMode = RepeatMode.Reverse
                         ))
         OutlinedTextField(value = usernameState.value,modifier=Modifier.border(2.dp,borderColor,MaterialTheme.shapes.extraLarge), onValueChange ={usernameState.value=it}
-            , label = { Text(text ="Username" ) },colors = TextFieldDefaults.outlinedTextFieldColors(
+            , label = { Text(text ="Username" ,color= Color.White.copy(alpha = 0.5f)) },colors = TextFieldDefaults.outlinedTextFieldColors(
                 unfocusedBorderColor = Color.Transparent,
-                focusedBorderColor = Color.Transparent
+                focusedBorderColor = Color.Transparent,
+                textColor = Color.White
+
             ),
             shape = MaterialTheme.shapes.extraLarge)
         Column(

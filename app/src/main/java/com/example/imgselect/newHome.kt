@@ -77,6 +77,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.key.Key.Companion.F
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -145,7 +146,7 @@ fun Home(navController: NavController) {
                 ),
                 title = {
                     Row(modifier=Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween){
-                       Text(text="Welcome", fontSize =30.sp , modifier=Modifier.padding(start=10.dp).align(Alignment.CenterVertically), fontFamily =  OpenSans,textAlign= TextAlign.Start,fontWeight=FontWeight.SemiBold)
+                       Text(text="Welcome", fontSize =30.sp , modifier=Modifier.padding(start=10.dp).align(Alignment.CenterVertically),textAlign= TextAlign.Start,fontWeight=FontWeight.Bold)
 
                         IconButton(
 modifier=Modifier.padding(end=10.dp,top=10.dp),
@@ -248,9 +249,9 @@ modifier=Modifier.padding(end=10.dp,top=10.dp),
 fun FlashcardsHome(navController: NavController){
     val cardsPage = remember{
         mutableStateListOf(
-            homeCard("FLASHCARDS", lighterPurple, outlinePurple,Screen.MeaningScreen.route),
-            homeCard("SUMMARY SHELF", lighterTeal, medTeal,Screen.SummaryScreen.route),
-            homeCard("CHATS SAVED", lighterYellow, outlineYellow,Screen.ChatListScreen.route)
+            homeCard("FLASHCARDS", lighterPurple, outlinePurple,Screen.MeaningScreen.route,"Flashcards are the pocket-sized keys to unlocking vast realms of knowledge, turning learning into a game and mastery into a habit.\""),
+            homeCard("SUMMARY SHELF", lighterTeal, medTeal,Screen.SummaryScreen.route,"Summaries distill oceans of information into droplets of understanding, guiding us through the labyrinth of knowledge with clarity and conciseness"),
+            homeCard("CHATS SAVED", lighterYellow, outlineYellow,Screen.ChatListScreen.route,"Conversations with a chatbot: where curiosity meets technology, weaving a tapestry of questions, answers, and endless possibilities.")
            )}
     val configuration = LocalConfiguration.current
     val cardReverse = cardsPage.reversed()
@@ -305,12 +306,26 @@ fun FlashcardsHome(navController: NavController){
                     Alignment.Center
 
                 ) {
+                 //   Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
                     Text(text=cardReverse[page].title,
                         fontSize = 30.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color= interestcolour1,
-                        fontFamily = OpenSans
+
+
+                                color= interestcolour1
+
                         )
+//                        Text(
+//                            text = cardReverse[page].description,
+//                            color = Color(0X001F1F1F).copy(alpha = 0.5f),
+//
+//                            style = TextStyle(fontStyle = FontStyle.Italic, fontSize = 18.sp),
+//                            modifier = Modifier.padding(20.dp).align(Alignment.CenterHorizontally),
+//                            overflow = TextOverflow.Ellipsis,
+//                            textAlign = TextAlign.Center,
+//                            fontWeight = FontWeight.SemiBold
+//                        )
+
+              //      }
                 }
             }
         }
@@ -435,7 +450,7 @@ fun RecommendedWebsites(title:String, recentList:List<Website> ,navController: N
     Column(modifier=Modifier) {
         if  (recentList.size>0){
         Row(modifier=Modifier,){
-       Text(text="$title",modifier=Modifier.padding(start=19.dp), textAlign= TextAlign.Start,color= aliceBlue, fontWeight = FontWeight.SemiBold)
+       Text(text="$title",modifier=Modifier.padding(start=19.dp), fontSize = 20.sp, textAlign= TextAlign.Start,color= aliceBlue, fontWeight = FontWeight.SemiBold)
 //            Row(
 //                modifier= Modifier
 //                    .fillMaxWidth()
@@ -455,6 +470,28 @@ fun RecommendedWebsites(title:String, recentList:List<Website> ,navController: N
 //            }
             Spacer(modifier = Modifier.height(20.dp))}
 
+        }else
+        {
+            Column() {
+                Text(
+                    text = "$title",
+                    modifier = Modifier.padding(start = 19.dp),
+                    textAlign = TextAlign.Start,
+                    color = aliceBlue,
+                    fontSize = 20.sp,
+
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "Pick your interests on Profile Page...",
+                    color = Color.Gray,
+                    style = TextStyle(fontStyle = FontStyle.Italic, fontSize = 10.sp),
+                    modifier = Modifier.padding(start = 19.dp),
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Start,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
         LazyRow(modifier = Modifier,
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),

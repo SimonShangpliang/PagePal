@@ -65,6 +65,8 @@ Box(modifier = Modifier.fillMaxSize())
             photoViewModel.setUriFocus(true)
         }
     }
+    var flashMode by remember{ mutableStateOf(2) }
+
     if(photo.value == null&&photoUri==null) {
         CameraPreview(controller = controller, modifier = Modifier)
 
@@ -113,10 +115,10 @@ Box(modifier = Modifier.fillMaxSize())
                                 IconButton(
                                     onClick = {
                                         takePhoto(
-                                            controller, applicationContext,
+                                            controller, applicationContext, flashMode = flashMode,
                                             {
                                                 photoViewModel.onTakePhoto(it)
-                                            },
+                                            }
                                         )/*TODO*/
                                     },
                                     modifier = Modifier.background(
@@ -132,17 +134,17 @@ Box(modifier = Modifier.fillMaxSize())
                                     )
                                 }
                                 IconButton(
-                                    onClick = { /*TODO*/ },
+                                    onClick = { if(flashMode==1){flashMode=2}else{flashMode=1} },
                                     modifier = Modifier
                                         .background(
                                             color = Color.Transparent
                                         )
                                         .padding(end = 39.3.dp)
-                                        .size(40.dp)
+                                        .size(if(flashMode ==2)40.dp else 50.dp)
                                 ) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.flash_auto),
-                                        contentDescription = null,tint= aliceBlue
+                                        contentDescription = null,tint=if(flashMode==2) aliceBlue else Color.Green
                                     )
                                 }
                             }
@@ -153,8 +155,9 @@ Box(modifier = Modifier.fillMaxSize())
         }
        else{
         Box(modifier=Modifier.fillMaxSize()){
+
             if(photoUri==null){
-                DisplayRotatedImage(photoTaken = photo.value, degrees = 90f, photoTakenViewModel = photoViewModel)
+                DisplayRotatedImage(photoTaken = photo.value, degrees = 0f, photoTakenViewModel = photoViewModel)
 
             }else
             {

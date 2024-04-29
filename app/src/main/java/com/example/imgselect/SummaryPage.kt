@@ -177,7 +177,7 @@ fun SummaryScreen(summaryList: LiveData<List<Summary>>, navController: NavContro
 @Composable
 fun HeadlineText(){
     Column(modifier = Modifier.padding(vertical = 15.dp, horizontal = 24.dp)) {
-        Text(text="Summary Shelf", fontSize =30.sp , modifier=Modifier, fontFamily =  OpenSans,textAlign= TextAlign.Start,fontWeight=FontWeight.SemiBold, color = aliceBlue)
+        Text(text="Summary Shelf", fontSize =30.sp , modifier=Modifier,textAlign= TextAlign.Start,fontWeight=FontWeight.SemiBold, color = aliceBlue)
 
     }
 }

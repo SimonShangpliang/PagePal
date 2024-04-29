@@ -654,7 +654,7 @@ fun SavedChatsScreen(chatList: LiveData<List<Chat>>, chatViewModel: ChatViewMode
             .background(darkBar)
             .fillMaxSize()
     ) {
-        Text(text="Saved Chats", fontSize =30.sp , modifier=Modifier.padding(20.dp), color= aliceBlue,fontFamily =  OpenSans,textAlign= TextAlign.Start,fontWeight=FontWeight.SemiBold)
+        Text(text="Saved Chats", fontSize =30.sp , modifier=Modifier.padding(20.dp), color= aliceBlue,textAlign= TextAlign.Start,fontWeight=FontWeight.SemiBold)
 
         MySearchBar(placeHolder = "Search", onQueryChanged = {query -> searchQuery.value = query})
 
