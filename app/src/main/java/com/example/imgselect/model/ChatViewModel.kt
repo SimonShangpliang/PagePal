@@ -55,8 +55,8 @@ class ChatViewModel(application: Application): AndroidViewModel(application) {
     init {
         val config = generationConfig { temperature = 0.70f }
         generativeModel = GenerativeModel(
-            modelName = "gemini-pro",
-            apiKey = "AIzaSyAOgrCj3x9WE8JoSDB5yuoGqH7m4Rn0IWI",
+            modelName = "gemini-1.5-flash-latest",
+            apiKey = "AIzaSyC-PzCAvCDvJeHCZMx9YY4mSjq9U6OAYKo",
             generationConfig = config
         )
 //        val localStorageDao = LocalStorageDatabase.getDatabase(application).userDao()
