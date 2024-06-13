@@ -7,22 +7,22 @@ PagePal is an Android mobile application designed to enhance reading and compreh
 - **Home Page:** When you open the app you see this page and you can then navigate to your desired location.
   ![Home Page](images/homepage_3.jpg)
 - **Take Photos** You can take photo of a page from a physical book via the app or you can directly upload images from the gallery.
-   ![Taking Photo](images/take_photo.jpg) ![From gallery](images/photosfromgallary.jpg)
+   ![Taking Photo](images/take_photo_3.jpg) ![From gallery](images/photosfromgallary_3.jpg)
 - **Instant Definitions:** Tap any word in a scanned page to see its meaning immediately.
-  ![Meaning](images/instant_word_meaning.jpg)
+  ![Meaning](images/instant_word_meaning_3.jpg)
 - **Content Summaries:** Get concise summaries of pages or selected text extracts.
-  ![Crop Images](images/crop_portion.jpg) ![Summary](images/summary.jpg)
+  ![Crop Images](images/crop_portion_3.jpg) ![Summary](images/summary_3.jpg)
 - **Image Interpretation:** Upload any image (not limited to text or diagrams) to receive an AI-driven explanation of its contents.
-  ![Random pic](images/random_pic.jpg) ![Interpretation](images/random_pic_interpretation.jpg)
+  ![Random pic](images/random_pic_3.jpg) ![Interpretation](images/random_pic_interpretation_3.jpg)
 - **Integrated ChatBot:** Engage in conversations on any topic, or discuss uploaded images and text extracts directly through the app.
-  ![chat](images/chatbotwithimage.jpg)
+  ![chat](images/chatbotwithimage_3.jpg)
 - **PDF Viewer:** Open and interact with PDFs stored on your device, accessing all app features like meanings and summaries.
-  ![Pdf viewer](images/pdf_viewer.jpg) ![PDF opened](images/pdf_opened.jpg)
+  ![Pdf viewer](images/pdf_viewer_3.jpg) ![PDF opened](images/pdf_opened_3.jpg)
 - **Web View:** Browse any website and utilize the app’s features without needing to download content.
-  ![WEB view](images/web_view.jpg)
+  ![WEB view](images/web_view_3.jpg)
 - **Offline Saving:** Save definitions, summaries, and chat histories with custom titles for easy access later.
-  ![FlashCardlib](images/flashcard_lib_where_meaning_stored.jpg) ![Meaning card](images/individual_meaning_card.jpg) ![Summary saved](images/summaries_saved.jpg)
-  ![Chats saved](images/save_the_chats.jpg)
+  ![FlashCardlib](images/flashcard_lib_where_meaning_stored_3.jpg) ![Meaning card](images/individual_meaning_card_3.jpg)
+  ![Summary saved](images/summaries_saved.jpg) ![Chats saved](images/save_the_chats.jpg)
 
 ## Getting Started
 
