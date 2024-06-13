@@ -43,6 +43,7 @@ Browse any website and utilize the app’s features without needing to download 
 
 ### Offline Saving
 Save definitions, summaries, and chat histories with custom titles for easy access later.
+
 ![FlashCard Library](images/flashcard_lib_where_meaning_stored_3.jpg) ![Summary Saved](images/summaries_saved_3.jpg) ![Chats Saved](images/save_the_chats_3.jpg)
 
 
