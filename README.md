@@ -5,7 +5,7 @@ PagePal is an Android mobile application designed to enhance reading and compreh
 
 ## Features
 - **Home Page:** When you open the app you see this page and you can then navigate to your desired location.
-  ![Home Page](images/homepage_2.jpg)
+  ![Home Page](images/homepage_3.jpg)
 - **Take Photos** You can take photo of a page from a physical book via the app or you can directly upload images from the gallery.
    ![Taking Photo](images/take_photo.jpg) ![From gallery](images/photosfromgallary.jpg)
 - **Instant Definitions:** Tap any word in a scanned page to see its meaning immediately.
