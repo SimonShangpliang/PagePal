@@ -7,44 +7,48 @@ PagePal is an Android mobile application designed to enhance reading and compreh
 
 ### Home Page
 When you open the app, you see this page and you can then navigate to your desired location.
+
 ![Home Page](images/homepage_3.jpg)
 
 ### Take Photos
 You can take a photo of a page from a physical book via the app or you can directly upload images from the gallery.
-![Taking Photo](images/take_photo_3.jpg)
-![From gallery](images/photosfromgallary_3.jpg)
+
+![Taking Photo](images/take_photo_3.jpg)     ![From gallery](images/photosfromgallary_3.jpg)
 
 ### Instant Definitions
 Tap any word in a scanned page to see its meaning immediately.
+
 ![Meaning](images/instant_word_meaning_3.jpg)
 
 ### Content Summaries
 Get concise summaries of pages or selected text extracts.
-![Crop Images](images/crop_portion_3.jpg)
-![Summary](images/summary_3.jpg)
+
+![Crop Images](images/crop_portion_3.jpg)       ![Summary](images/summary_3.jpg)
 
 ### Image Interpretation
 Upload any image (not limited to text or diagrams) to receive an AI-driven explanation of its contents.
-![Random pic](images/random_pic_3.jpg)
-![Interpretation](images/random_pic_interpretation_3.jpg)
+
+![Random pic](images/random_pic_3.jpg)     ![Interpretation](images/random_pic_interpretation_3.jpg)
 
 ### Integrated ChatBot
 Engage in conversations on any topic, or discuss uploaded images and text extracts directly through the app.
+
 ![Chat](images/chatbotwithimage_3.jpg)
 
 ### PDF Viewer
 Open and interact with PDFs stored on your device, accessing all app features like meanings and summaries.
-![PDF Viewer](images/pdf_viewer_3.jpg)
-![PDF Opened](images/pdf_opened_3.jpg)
+
+![PDF Viewer](images/pdf_viewer_3.jpg)       ![PDF Opened](images/pdf_opened_3.jpg)
 
 ### Web View
 Browse any website and utilize the app’s features without needing to download content.
+
 ![WEB View](images/web_view_3.jpg)
 
 ### Offline Saving
 Save definitions, summaries, and chat histories with custom titles for easy access later.
 
-![FlashCard Library](images/flashcard_lib_where_meaning_stored_3.jpg) ![Summary Saved](images/summaries_saved_3.jpg) ![Chats Saved](images/save_the_chats_3.jpg)
+![FlashCard Library](images/flashcard_lib_where_meaning_stored_3.jpg)    ![Summary Saved](images/summaries_saved_3.jpg)    ![Chats Saved](images/save_the_chats_3.jpg)
 
 
 ## Getting Started
