@@ -5,7 +5,7 @@ PagePal is an Android mobile application designed to enhance reading and compreh
 
 ## Features
 - **Home Page:** When you open the app you see this page and you can then navigate to your desired location.
-  ![Home Page](images/home page.jpg)
+  ![Home Page](images/homepage.jpg)
 - **Instant Definitions:** Tap any word in a scanned page to see its meaning immediately.
 - **Content Summaries:** Get concise summaries of pages or selected text extracts.
 - **Image Interpretation:** Upload any image (not limited to text or diagrams) to receive an AI-driven explanation of its contents.
