@@ -20,6 +20,7 @@ PagePal is an Android mobile application designed to enhance reading and compreh
   ![Pdf viewer](images/pdf_viewer_3.jpg) ![PDF opened](images/pdf_opened_3.jpg)
 - **Web View:** Browse any website and utilize the app’s features without needing to download content.
   ![WEB view](images/web_view_3.jpg)
+  
 - **Offline Saving:** Save definitions, summaries, and chat histories with custom titles for easy access later.
   ![FlashCardlib](images/flashcard_lib_where_meaning_stored_3.jpg)![Summary saved](images/summaries_saved_3.jpg) ![Chats saved](images/save_the_chats_3.jpg)
 
