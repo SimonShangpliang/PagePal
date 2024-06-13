@@ -4,6 +4,8 @@
 PagePal is an Android mobile application designed to enhance reading and comprehension across various formats, whether you're dealing with physical books, research reports, textbooks, or digital content. Built with Jetpack Compose and Kotlin, this app leverages Google's Gemini genAI model to provide instant definitions, summaries, and intelligent image interpretations directly from your mobile device.
 
 ## Features
+- **Home Page:** When you open the app you see this page and you can then navigate to your desired location.
+  ![Home Page](images/home page.jpg)
 - **Instant Definitions:** Tap any word in a scanned page to see its meaning immediately.
 - **Content Summaries:** Get concise summaries of pages or selected text extracts.
 - **Image Interpretation:** Upload any image (not limited to text or diagrams) to receive an AI-driven explanation of its contents.
