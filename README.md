@@ -22,7 +22,7 @@ PagePal is an Android mobile application designed to enhance reading and compreh
   ![WEB view](images/web_view_3.jpg)
 - **Offline Saving:** Save definitions, summaries, and chat histories with custom titles for easy access later.
   ![FlashCardlib](images/flashcard_lib_where_meaning_stored_3.jpg) ![Meaning card](images/individual_meaning_card_3.jpg)
-  ![Summary saved](images/summaries_saved.jpg) ![Chats saved](images/save_the_chats.jpg)
+  ![Summary saved](images/summaries_saved_3.jpg) ![Chats saved](images/save_the_chats_3.jpg)
 
 ## Getting Started
 
