@@ -1,7 +1,9 @@
 # PagePal
 
 ## Introduction
-PagePal is an Android mobile application designed to enhance reading and comprehension across various formats, whether you're dealing with physical books, research reports, textbooks, or digital content. Built with Jetpack Compose and Kotlin, this app leverages Google's Gemini genAI model to provide instant definitions, summaries, and intelligent image interpretations directly from your mobile device.
+PagePal is an Android mobile application designed to enhance reading and comprehension across various formats, whether you're dealing with physical books, research reports, textbooks, or digital content.
+Whether you're reading a PDF, or browsing through a website or reading some physical book on your phone, this app gives you the ability to leverage the power of AI to help you and guide you. 
+Built with Jetpack Compose and Kotlin, this app leverages Google's Gemini genAI model to provide instant definitions, summaries, and intelligent image interpretations directly from your mobile device. The app uses [Google's ML Kit Text Recongnition v2](https://developers.google.com/ml-kit/vision/text-recognition/v2) model for extracting text from image and getting the coordinates for the text.
 
 ## Features
 
